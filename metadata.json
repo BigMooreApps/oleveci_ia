@@ -1,0 +1,10 @@
+{
+  "name": "Remix Remix Remix oleveci2_con IA v2",
+  "description": "Imported from GitHub",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

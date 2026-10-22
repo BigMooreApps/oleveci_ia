@@ -1,0 +1,1892 @@
+import React, { useState, useMemo } from 'react';
+import { useApp } from '../../context/AppContext';
+import { APP_CONFIG } from '../../config/brand';
+import { Business, Post, DailyMetricRecord } from '../../types';
+import { OleVeciIcon } from '../OleVeciLogo';
+import {
+  TrendingUp,
+  DollarSign,
+  Building2,
+  FileText,
+  MapPin,
+  Layers,
+  Sparkles,
+  Users,
+  Eye,
+  MessageCircle,
+  Share2,
+  CheckCircle2,
+  ArrowRight,
+  AlertTriangle,
+  Clock,
+  Ban,
+  Phone,
+  Calendar,
+  ExternalLink,
+  ChevronRight,
+  Filter,
+  BarChart3,
+  Flame,
+  ArrowUpRight,
+  RefreshCw,
+  Search,
+  Check,
+  ShieldCheck,
+  Award,
+  QrCode,
+  Navigation,
+  Info,
+  HelpCircle,
+  Zap,
+  Target,
+  PiggyBank,
+  ArrowDownRight,
+} from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts';
+import {
+  countCutDays,
+  getDateKeysInRange,
+  formatDateLabel,
+  getTodayKey,
+  getDaysAgoKey,
+  getStartOfMonthKey,
+  generateDailyMetricsForPost,
+} from '../../utils/metricsUtils';
+
+interface AdminOverviewTabProps {
+  onNavigateTab: (tab: 'businesses' | 'posts' | 'municipalities' | 'categories' | 'post_types') => void;
+}
+
+type TableFilter = 'top_leads' | 'attention_needed' | 'all';
+type MetricChartType = 'all' | 'whatsapp' | 'views' | 'maps';
+
+// Sunburst sparks matching the OleVeci brand
+const SunburstSparks: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`flex items-center gap-0.5 select-none ${className}`} aria-hidden="true">
+    <span className="w-1 h-3.5 bg-gradient-to-b from-[#ffbe00] to-[#ff5500] rounded-full rotate-12 inline-block shadow-2xs" />
+    <span className="w-1 h-3 bg-gradient-to-b from-[#ffbe00] to-[#ff7700] rounded-full rotate-45 inline-block shadow-2xs" />
+    <span className="w-1 h-2.5 bg-gradient-to-b from-[#ffbe00] to-[#ff7700] rounded-full rotate-75 inline-block shadow-2xs" />
+  </div>
+);
+
+// Branded Custom Tooltip for Timeline AreaChart
+const AdminTimelineTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const rawData = payload[0]?.payload;
+    const vistas = payload.find((p: any) => p.dataKey === 'vistas')?.value || 0;
+    const leads = payload.find((p: any) => p.dataKey === 'leads')?.value || 0;
+    const whatsapp = rawData?.whatsapp || 0;
+    const maps = rawData?.maps || 0;
+    const llamadas = rawData?.llamadas || 0;
+    const conversion = vistas > 0 ? ((leads / vistas) * 100).toFixed(1) : '0';
+    const displayDate = rawData?.fullDateLabel || label;
+
+    return (
+      <div className="bg-[#041f5e] text-white p-3 rounded-2xl shadow-xl text-xs border border-white/20 min-w-[200px] space-y-2 select-none pointer-events-none">
+        <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
+          <div className="flex items-center gap-1.5 font-medium text-sky-200">
+            <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span className="capitalize">{displayDate}</span>
+          </div>
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-[#ff7700] text-[#041f5e]">
+            {conversion}% conv.
+          </span>
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-3 text-slate-200">
+            <span>Vistas Feed:</span>
+            <span className="font-semibold text-white">{vistas.toLocaleString('es-CO')}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 text-slate-200">
+            <span>Total Contactos:</span>
+            <span className="font-semibold text-emerald-400">{leads.toLocaleString('es-CO')}</span>
+          </div>
+          <div className="pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-300">
+            <span>💬 {whatsapp} WA</span>
+            <span>📍 {maps} Rutas</span>
+            <span>📞 {llamadas} Tel</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Branded Custom Tooltip for Day of Week BarChart
+const AdminBarTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white/95 backdrop-blur-md p-2.5 rounded-xl border border-slate-200 shadow-xl text-xs min-w-[150px] select-none pointer-events-none">
+        <div className="flex items-center justify-between pb-1 mb-1 border-b border-slate-100">
+          <span className="font-semibold text-[#041f5e]">{data.diaCompleto || data.dia}</span>
+          {data.esPico && (
+            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-[#ff7700] text-white flex items-center gap-0.5 shadow-2xs">
+              <Flame className="w-2.5 h-2.5" /> PICO
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-slate-500">Interacciones:</span>
+          <span className="font-bold text-[#041f5e]">{data.interacciones.toLocaleString('es-CO')}</span>
+        </div>
+        <div className="text-[10px] text-slate-400 mt-0.5">
+          {data.esPico ? 'Mayor flujo de consultas' : 'Actividad vecinal'}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTab }) => {
+  const {
+    businesses,
+    posts,
+    municipalities,
+    sectors,
+    categories,
+    postTypes,
+    isPostActive,
+  } = useApp();
+
+  // 1. DATE RANGE CUT STATE (Exact match with "Mi Espacio")
+  const [startDate, setStartDate] = useState<string>(() => getDaysAgoKey(29));
+  const [endDate, setEndDate] = useState<string>(() => getTodayKey());
+
+  // Filter States
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [tableFilter, setTableFilter] = useState<TableFilter>('top_leads');
+  const [searchMerchant, setSearchMerchant] = useState<string>('');
+  const [chartMetric, setChartMetric] = useState<MetricChartType>('all');
+  const [showFormulaExplanation, setShowFormulaExplanation] = useState<boolean>(false);
+  const [copiedBizId, setCopiedBizId] = useState<string | null>(null);
+
+  // Handle Cut Date Range Changes
+  const handleStartDateChange = (newStart: string) => {
+    if (!newStart) return;
+    setStartDate(newStart);
+    if (newStart > endDate) {
+      setEndDate(newStart);
+    }
+  };
+
+  const handleEndDateChange = (newEnd: string) => {
+    if (!newEnd) return;
+    setEndDate(newEnd);
+    if (newEnd < startDate) {
+      setStartDate(newEnd);
+    }
+  };
+
+  // Days in selected cut (inclusive)
+  const cutDays = useMemo(() => countCutDays(startDate, endDate), [startDate, endDate]);
+  // All 'YYYY-MM-DD' keys in the selected date cut
+  const rangeDateKeys = useMemo(() => getDateKeysInRange(startDate, endDate), [startDate, endDate]);
+
+  // Filtered lists based on territory selector
+  const filteredBusinesses = useMemo(() => {
+    if (selectedCity === 'all') return businesses;
+    return businesses.filter((b) => b.city?.toLowerCase() === selectedCity.toLowerCase());
+  }, [businesses, selectedCity]);
+
+  const filteredPosts = useMemo(() => {
+    if (selectedCity === 'all') return posts;
+    return posts.filter((p) => p.businessCity?.toLowerCase() === selectedCity.toLowerCase());
+  }, [posts, selectedCity]);
+
+  // Current timestamp references
+  const now = Date.now();
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+  // 2. GUARANTEED DAILY METRICS
+  const guaranteedPostDailyMap = useMemo(() => {
+    const map = new Map<string, Record<string, DailyMetricRecord>>();
+    filteredPosts.forEach((post) => {
+      let dMetrics = post.metrics?.dailyMetrics;
+      if (!dMetrics || Object.keys(dMetrics).length === 0) {
+        const totals = post.metrics || {
+          views: 0,
+          whatsappClicks: 0,
+          mapsClicks: 0,
+          calls: 0,
+          shares: 0,
+          qrRedemptions: 0,
+        };
+        dMetrics = generateDailyMetricsForPost(totals, Math.max(90, cutDays + 30));
+      }
+      map.set(post.id, dMetrics);
+    });
+    return map;
+  }, [filteredPosts, cutDays]);
+
+  const guaranteedBusinessDailyMap = useMemo(() => {
+    const map = new Map<string, Record<string, DailyMetricRecord>>();
+    filteredBusinesses.forEach((biz) => {
+      let dMetrics = biz.metrics?.dailyMetrics;
+      if (!dMetrics || Object.keys(dMetrics).length === 0) {
+        const totals = biz.metrics || {
+          views: 0,
+          whatsappClicks: 0,
+          mapsClicks: 0,
+          calls: 0,
+          shares: 0,
+          qrRedemptions: 0,
+        };
+        dMetrics = generateDailyMetricsForPost(totals, Math.max(90, cutDays + 30));
+      }
+      map.set(biz.id, dMetrics);
+    });
+    return map;
+  }, [filteredBusinesses, cutDays]);
+
+  // Helper to retrieve post daily record
+  const getPostDayRecord = (post: Post, dateKey: string): DailyMetricRecord => {
+    const dMap = guaranteedPostDailyMap.get(post.id);
+    if (dMap && dMap[dateKey]) {
+      return dMap[dateKey];
+    }
+    const totals = post.metrics || { views: 0, whatsappClicks: 0, mapsClicks: 0, calls: 0, shares: 0 };
+    return {
+      views: Math.max(0, Math.round((totals.views || 0) / 30)),
+      whatsappClicks: Math.max(0, Math.round((totals.whatsappClicks || 0) / 30)),
+      mapsClicks: Math.max(0, Math.round((totals.mapsClicks || 0) / 30)),
+      calls: Math.max(0, Math.round((totals.calls || 0) / 30)),
+      shares: Math.max(0, Math.round((totals.shares || 0) / 30)),
+      qrRedemptions: 0,
+    };
+  };
+
+  // Helper to retrieve business profile daily record
+  const getBusinessDayRecord = (biz: Business, dateKey: string): DailyMetricRecord => {
+    const dMap = guaranteedBusinessDailyMap.get(biz.id);
+    if (dMap && dMap[dateKey]) {
+      return dMap[dateKey];
+    }
+    const totals = biz.metrics || { views: 0, whatsappClicks: 0, mapsClicks: 0, calls: 0, shares: 0 };
+    return {
+      views: Math.max(0, Math.round((totals.views || 0) / 30)),
+      whatsappClicks: Math.max(0, Math.round((totals.whatsappClicks || 0) / 30)),
+      mapsClicks: Math.max(0, Math.round((totals.mapsClicks || 0) / 30)),
+      calls: Math.max(0, Math.round((totals.calls || 0) / 30)),
+      shares: Math.max(0, Math.round((totals.shares || 0) / 30)),
+      qrRedemptions: 0,
+    };
+  };
+
+  // 3. COMPUTED METRICS FOR THE SELECTED DATE CUT
+  const {
+    cutViews,
+    cutWhatsapp,
+    cutMaps,
+    cutCalls,
+    cutShares,
+    cutQrRedemptions,
+    cutTotalLeads,
+    cutConversionRate,
+  } = useMemo(() => {
+    let views = 0;
+    let wa = 0;
+    let maps = 0;
+    let calls = 0;
+    let shares = 0;
+    let qr = 0;
+
+    rangeDateKeys.forEach((key) => {
+      // Aggregate from posts
+      filteredPosts.forEach((post) => {
+        const d = getPostDayRecord(post, key);
+        views += d.views;
+        wa += d.whatsappClicks;
+        maps += d.mapsClicks;
+        calls += d.calls;
+        shares += d.shares;
+        qr += d.qrRedemptions || 0;
+      });
+
+      // Aggregate direct business profile views
+      filteredBusinesses.forEach((biz) => {
+        const d = getBusinessDayRecord(biz, key);
+        views += d.views;
+        wa += d.whatsappClicks;
+        maps += d.mapsClicks;
+        calls += d.calls;
+        shares += d.shares;
+        qr += d.qrRedemptions || 0;
+      });
+    });
+
+    const totalLeads = wa + maps + calls;
+    const convRate = views > 0 ? ((totalLeads / views) * 100).toFixed(1) : '0';
+
+    return {
+      cutViews: views,
+      cutWhatsapp: wa,
+      cutMaps: maps,
+      cutCalls: calls,
+      cutShares: shares,
+      cutQrRedemptions: qr,
+      cutTotalLeads: totalLeads,
+      cutConversionRate: convRate,
+    };
+  }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap]);
+
+  // 4. FINANCIAL & CARTERA CALCULATIONS
+  const totalBusinesses = filteredBusinesses.length;
+
+  const activeSubscribers = useMemo(() => {
+    return filteredBusinesses.filter((b) => {
+      const isStatusActive = b.subscription?.status === 'active';
+      if (!isStatusActive) return false;
+      if (b.subscription?.expiresAt) {
+        return new Date(b.subscription.expiresAt).getTime() > now;
+      }
+      return true;
+    }).length;
+  }, [filteredBusinesses, now]);
+
+  const expiringSoonBusinesses = useMemo(() => {
+    return filteredBusinesses.filter((b) => {
+      if (b.subscription?.status !== 'active') return false;
+      if (!b.subscription?.expiresAt) return false;
+      const expires = new Date(b.subscription.expiresAt).getTime();
+      return expires > now && expires - now <= sevenDaysMs;
+    });
+  }, [filteredBusinesses, now, sevenDaysMs]);
+
+  const pastDueBusinesses = useMemo(() => {
+    return filteredBusinesses.filter((b) => {
+      if (b.subscription?.status === 'expired') return true;
+      if (b.subscription?.expiresAt) {
+        return new Date(b.subscription.expiresAt).getTime() <= now;
+      }
+      return false;
+    });
+  }, [filteredBusinesses, now]);
+
+  const suspendedOrPendingBusinesses = useMemo(() => {
+    return filteredBusinesses.filter(
+      (b) => b.status === 'suspended' || b.status === 'pending_review' || b.status === 'pending'
+    );
+  }, [filteredBusinesses]);
+
+  // Monthly Recurring Revenue (MRR)
+  const monthlyRevenueCOP = useMemo(() => {
+    return filteredBusinesses.reduce((sum, b) => {
+      if (b.subscription?.status === 'active') {
+        const price = b.subscription?.priceCOP || APP_CONFIG.subscription.monthlyPriceCOP;
+        const cycle = b.subscription?.billingCycle || 'monthly';
+        return sum + (cycle === 'yearly' ? Math.round(price / 12) : price);
+      }
+      return sum;
+    }, 0);
+  }, [filteredBusinesses]);
+
+  // Annualized Run Rate (ARR)
+  const projectedARR = monthlyRevenueCOP * 12;
+
+  // Exact period prorated revenue according to the cut days
+  const dailyBillingRate = monthlyRevenueCOP / 30;
+  const cutProratedRevenueCOP = cutDays === 30 ? monthlyRevenueCOP : Math.round(cutDays * dailyBillingRate);
+
+  // Average Revenue Per User / Business (ARPU)
+  const arpuCOP = activeSubscribers > 0 ? Math.round(monthlyRevenueCOP / activeSubscribers) : 0;
+
+  // Collection Health %
+  const collectionRate = totalBusinesses > 0 ? Math.round((activeSubscribers / totalBusinesses) * 100) : 0;
+
+  // Cost Per Lead (CPL) in cut
+  const cutCostPerLead = cutTotalLeads > 0 ? Math.round(cutProratedRevenueCOP / cutTotalLeads) : 0;
+
+  // Real Customer Acquisition Cost (CAC) based on QR redemptions in cut
+  const cutCACReal = cutQrRedemptions > 0 ? Math.round(cutProratedRevenueCOP / cutQrRedemptions) : 0;
+
+  // Estimated Savings vs traditional Meta/Google Ads
+  const traditionalAdsBenchmark = cutTotalLeads * 1800;
+  const estimatedMerchantSavings = Math.max(0, traditionalAdsBenchmark - cutProratedRevenueCOP);
+
+  // 5. CONTENT AND ECOSYSTEM HEALTH
+  const activePostsCount = useMemo(() => {
+    return filteredPosts.filter((p) => isPostActive(p)).length;
+  }, [filteredPosts, isPostActive]);
+
+  const postsPerActiveBiz = activeSubscribers > 0 ? (activePostsCount / activeSubscribers).toFixed(1) : '0';
+
+  // Businesses without active posts (churn warning)
+  const businessesWithoutActivePosts = useMemo(() => {
+    return filteredBusinesses.filter((b) => {
+      const bizPosts = posts.filter((p) => p.businessId === b.id && isPostActive(p));
+      return bizPosts.length === 0;
+    });
+  }, [filteredBusinesses, posts, isPostActive]);
+
+  // Currency Formatter
+  const formatCOP = (val: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
+  // 6. TIMELINE CHART SERIES
+  const timelineData = useMemo(() => {
+    return rangeDateKeys.map((dateKey) => {
+      let dayViews = 0;
+      let dayWa = 0;
+      let dayMaps = 0;
+      let dayCalls = 0;
+
+      filteredPosts.forEach((post) => {
+        const d = getPostDayRecord(post, dateKey);
+        dayViews += d.views;
+        dayWa += d.whatsappClicks;
+        dayMaps += d.mapsClicks;
+        dayCalls += d.calls;
+      });
+
+      filteredBusinesses.forEach((biz) => {
+        const d = getBusinessDayRecord(biz, dateKey);
+        dayViews += d.views;
+        dayWa += d.whatsappClicks;
+        dayMaps += d.mapsClicks;
+        dayCalls += d.calls;
+      });
+
+      const dayLeads = dayWa + dayMaps + dayCalls;
+      const label = formatDateLabel(dateKey, cutDays <= 7);
+      const fullDateLabel = formatDateLabel(dateKey, false);
+
+      return {
+        name: label,
+        fullDate: dateKey,
+        fullDateLabel,
+        vistas: dayViews,
+        leads: dayLeads,
+        whatsapp: dayWa,
+        maps: dayMaps,
+        llamadas: dayCalls,
+      };
+    });
+  }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap, cutDays]);
+
+  // Evenly spaced ticks
+  const timelineTicks = useMemo(() => {
+    if (timelineData.length <= 6) {
+      return timelineData.map((d) => d.name);
+    }
+    const total = timelineData.length;
+    const step = (total - 1) / 4;
+    const indices = [0, Math.round(step), Math.round(step * 2), Math.round(step * 3), total - 1];
+    const uniqueIndices = Array.from(new Set(indices));
+    return uniqueIndices.map((idx) => timelineData[idx].name);
+  }, [timelineData]);
+
+  // 7. DAY OF WEEK DEMAND (Highlights Peak Day)
+  const dayActivityData = useMemo(() => {
+    const daysOrder = [
+      { day: 'Lun', diaCompleto: 'Lunes', dayIdx: 1 },
+      { day: 'Mar', diaCompleto: 'Martes', dayIdx: 2 },
+      { day: 'Mié', diaCompleto: 'Miércoles', dayIdx: 3 },
+      { day: 'Jue', diaCompleto: 'Jueves', dayIdx: 4 },
+      { day: 'Vie', diaCompleto: 'Viernes', dayIdx: 5 },
+      { day: 'Sáb', diaCompleto: 'Sábado', dayIdx: 6 },
+      { day: 'Dom', diaCompleto: 'Domingo', dayIdx: 0 },
+    ];
+    const daySums: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+
+    rangeDateKeys.forEach((dateKey) => {
+      const parts = dateKey.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const dayOfWeek = isNaN(d.getTime()) ? 1 : d.getDay();
+
+        let dayInteractions = 0;
+        filteredPosts.forEach((p) => {
+          const m = getPostDayRecord(p, dateKey);
+          dayInteractions += m.whatsappClicks + m.mapsClicks + m.calls;
+        });
+        filteredBusinesses.forEach((b) => {
+          const m = getBusinessDayRecord(b, dateKey);
+          dayInteractions += m.whatsappClicks + m.mapsClicks + m.calls;
+        });
+
+        daySums[dayOfWeek] = (daySums[dayOfWeek] || 0) + dayInteractions;
+      }
+    });
+
+    const maxVal = Math.max(1, ...Object.values(daySums));
+    return daysOrder.map((d) => {
+      const count = daySums[d.dayIdx] || 0;
+      return {
+        dia: d.day,
+        diaCompleto: d.diaCompleto,
+        interacciones: count,
+        esPico: count === maxVal && maxVal > 0,
+      };
+    });
+  }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap]);
+
+  // 8. CHANNELS DISTRIBUTION IN CUT
+  const channelData = useMemo(() => {
+    return [
+      {
+        name: 'WhatsApp Directo',
+        value: cutWhatsapp,
+        color: '#00d8a5',
+        share: cutTotalLeads > 0 ? Math.round((cutWhatsapp / cutTotalLeads) * 100) : 0,
+        icon: '💬',
+      },
+      {
+        name: 'Rutas Google Maps',
+        value: cutMaps,
+        color: '#ff8400',
+        share: cutTotalLeads > 0 ? Math.round((cutMaps / cutTotalLeads) * 100) : 0,
+        icon: '📍',
+      },
+      {
+        name: 'Llamadas Telefónicas',
+        value: cutCalls,
+        color: '#007af7',
+        share: cutTotalLeads > 0 ? Math.round((cutCalls / cutTotalLeads) * 100) : 0,
+        icon: '📞',
+      },
+      {
+        name: 'Boca a boca (Shares)',
+        value: cutShares,
+        color: '#6366f1',
+        share: cutTotalLeads > 0 ? Math.round((cutShares / (cutTotalLeads + cutShares)) * 100) : 0,
+        icon: '🔁',
+      },
+      {
+        name: 'Canjes QR en Local',
+        value: cutQrRedemptions,
+        color: '#a855f7',
+        share: cutTotalLeads > 0 ? Math.round((cutQrRedemptions / cutTotalLeads) * 100) : 0,
+        icon: '🎟️',
+      },
+    ];
+  }, [cutWhatsapp, cutMaps, cutCalls, cutShares, cutQrRedemptions, cutTotalLeads]);
+
+  // 9. FINANCIAL PORTFOLIO COMPOSITION (Donut Chart)
+  const financialDistributionData = useMemo(() => {
+    return [
+      { name: 'Al Día', value: activeSubscribers, color: '#00d8a5', amount: activeSubscribers * 29900 },
+      { name: 'Por Vencer (<7d)', value: expiringSoonBusinesses.length, color: '#ffb703', amount: expiringSoonBusinesses.length * 29900 },
+      { name: 'Vencido / En Mora', value: pastDueBusinesses.length, color: '#ef4444', amount: pastDueBusinesses.length * 29900 },
+      { name: 'En Verificación', value: suspendedOrPendingBusinesses.length, color: '#007af7', amount: 0 },
+    ].filter((item) => item.value > 0);
+  }, [activeSubscribers, expiringSoonBusinesses.length, pastDueBusinesses.length, suspendedOrPendingBusinesses.length]);
+
+  // 10. TERRITORIAL PERFORMANCE IN CUT
+  const municipalityBreakdown = useMemo(() => {
+    const map: Record<string, { city: string; businesses: number; activePosts: number; leads: number; views: number }> = {};
+    municipalities.forEach((m) => {
+      map[m.name] = { city: m.name, businesses: 0, activePosts: 0, leads: 0, views: 0 };
+    });
+
+    businesses.forEach((b) => {
+      const city = b.city || 'Otro';
+      if (!map[city]) {
+        map[city] = { city, businesses: 0, activePosts: 0, leads: 0, views: 0 };
+      }
+      map[city].businesses += 1;
+    });
+
+    posts.forEach((p) => {
+      const city = p.businessCity || 'Otro';
+      if (!map[city]) {
+        map[city] = { city, businesses: 0, activePosts: 0, leads: 0, views: 0 };
+      }
+      if (isPostActive(p)) {
+        map[city].activePosts += 1;
+      }
+      rangeDateKeys.forEach((key) => {
+        const d = getPostDayRecord(p, key);
+        map[city].views += d.views;
+        map[city].leads += (d.whatsappClicks + d.mapsClicks + d.calls);
+      });
+    });
+
+    return Object.values(map)
+      .filter((m) => m.businesses > 0 || m.activePosts > 0 || m.leads > 0)
+      .sort((a, b) => b.leads - a.leads);
+  }, [municipalities, businesses, posts, isPostActive, rangeDateKeys, guaranteedPostDailyMap]);
+
+  // 11. CATEGORIES DEMAND IN CUT
+  const categoryBreakdown = useMemo(() => {
+    const map: Record<string, { id: string; name: string; icon?: string; count: number; leads: number }> = {};
+    categories.forEach((cat) => {
+      map[cat.id] = { id: cat.id, name: cat.name, icon: cat.icon, count: 0, leads: 0 };
+    });
+
+    businesses.forEach((b) => {
+      const catId = b.categoryId;
+      if (map[catId]) {
+        map[catId].count += 1;
+      }
+    });
+
+    posts.forEach((p) => {
+      const biz = businesses.find((b) => b.id === p.businessId);
+      const catId = biz?.categoryId || p.categoryId;
+      if (catId && map[catId]) {
+        rangeDateKeys.forEach((key) => {
+          const d = getPostDayRecord(p, key);
+          map[catId].leads += (d.whatsappClicks + d.mapsClicks + d.calls);
+        });
+      }
+    });
+
+    return Object.values(map)
+      .filter((c) => c.count > 0 || c.leads > 0)
+      .sort((a, b) => b.leads - a.leads)
+      .slice(0, 6);
+  }, [categories, businesses, posts, rangeDateKeys, guaranteedPostDailyMap]);
+
+  // 12. TOP 5 NETWORK POSTS IN CUT
+  const topCutPosts = useMemo(() => {
+    const list = filteredPosts.map((post) => {
+      let views = 0;
+      let wa = 0;
+      let maps = 0;
+      let calls = 0;
+
+      rangeDateKeys.forEach((k) => {
+        const d = getPostDayRecord(post, k);
+        views += d.views;
+        wa += d.whatsappClicks;
+        maps += d.mapsClicks;
+        calls += d.calls;
+      });
+
+      const totalLeads = wa + maps + calls;
+      const ctr = views > 0 ? ((totalLeads / views) * 100).toFixed(1) : '0';
+      const biz = businesses.find((b) => b.id === post.businessId);
+
+      return {
+        ...post,
+        businessName: biz?.name || post.businessCity || 'Comercio',
+        businessLogo: biz?.logo,
+        cutViews: views,
+        cutWhatsapp: wa,
+        cutMaps: maps,
+        cutCalls: calls,
+        cutTotalLeads: totalLeads,
+        cutCtr: ctr,
+      };
+    });
+
+    return list.sort((a, b) => b.cutTotalLeads - a.cutTotalLeads).slice(0, 5);
+  }, [filteredPosts, businesses, rangeDateKeys, guaranteedPostDailyMap]);
+
+  // 13. MERCHANTS TABLE FILTERING FOR THE CUT
+  const displayedMerchants = useMemo(() => {
+    let list = [...filteredBusinesses];
+
+    if (searchMerchant.trim()) {
+      const q = searchMerchant.toLowerCase();
+      list = list.filter(
+        (b) =>
+          b.name.toLowerCase().includes(q) ||
+          b.subCategory.toLowerCase().includes(q) ||
+          b.city.toLowerCase().includes(q) ||
+          (b.accessEmail && b.accessEmail.toLowerCase().includes(q))
+      );
+    }
+
+    if (tableFilter === 'top_leads') {
+      list.sort((a, b) => {
+        const aPosts = posts.filter((p) => p.businessId === a.id);
+        const bPosts = posts.filter((p) => p.businessId === b.id);
+
+        let aLeads = 0;
+        let bLeads = 0;
+
+        rangeDateKeys.forEach((k) => {
+          aPosts.forEach((p) => {
+            const d = getPostDayRecord(p, k);
+            aLeads += d.whatsappClicks + d.mapsClicks + d.calls;
+          });
+          bPosts.forEach((p) => {
+            const d = getPostDayRecord(p, k);
+            bLeads += d.whatsappClicks + d.mapsClicks + d.calls;
+          });
+        });
+
+        return bLeads - aLeads;
+      });
+    } else if (tableFilter === 'attention_needed') {
+      list = list.filter((b) => {
+        const isPastDue =
+          b.subscription?.status === 'expired' ||
+          (b.subscription?.expiresAt && new Date(b.subscription.expiresAt).getTime() <= now);
+        const isExpiring =
+          b.subscription?.expiresAt &&
+          new Date(b.subscription.expiresAt).getTime() > now &&
+          new Date(b.subscription.expiresAt).getTime() - now <= sevenDaysMs;
+        const hasNoPosts = !posts.some((p) => p.businessId === b.id && isPostActive(p));
+        const isSuspended = b.status === 'suspended' || b.status === 'pending_review';
+        return isPastDue || isExpiring || hasNoPosts || isSuspended;
+      });
+    }
+
+    return list;
+  }, [filteredBusinesses, searchMerchant, tableFilter, posts, now, sevenDaysMs, isPostActive, rangeDateKeys, guaranteedPostDailyMap]);
+
+  // Send renewal reminder WhatsApp message
+  const handleCopyRenewalMessage = (b: Business) => {
+    const text = `Hola ${b.name}, te saludamos del equipo de ${APP_CONFIG.name}. Tu suscripción comercial vence pronto (${b.subscription?.expiresAt ? new Date(b.subscription.expiresAt).toLocaleDateString('es-CO') : 'este mes'}). Recuerda renovar para seguir recibiendo contactos directos por WhatsApp en ${b.city}. ¡Gracias por ser parte de nuestra red local!`;
+    navigator.clipboard.writeText(text);
+    setCopiedBizId(b.id);
+    setTimeout(() => setCopiedBizId(null), 3000);
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* 1. Header Toolbar with Territory & Cut Date Range Filters */}
+      <div className="bg-gradient-to-r from-white via-sky-50/30 to-amber-50/20 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-sky-100 shadow-sm space-y-4">
+        {/* Title & Brand Row */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-white border border-sky-200 shadow-sm flex items-center justify-center shrink-0">
+              <OleVeciIcon size={28} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-[#041f5e] leading-snug">
+                  Centro de Inteligencia & Métricas de Red
+                </h2>
+                <SunburstSparks />
+              </div>
+              <p className="text-xs text-slate-500 font-normal mt-0.5">
+                Supervisión en tiempo real de facturación, retención, tracción comunitaria y retorno vecinal
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle Formula Explanations Button */}
+          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowFormulaExplanation(!showFormulaExplanation)}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-2xs ${
+                showFormulaExplanation
+                  ? 'bg-gradient-to-r from-sky-500 to-[#007af7] text-white border-transparent'
+                  : 'bg-white border-slate-200 text-slate-600 hover:text-[#041f5e] hover:border-sky-300'
+              }`}
+              title="Explicación de fórmulas y métricas"
+            >
+              <HelpCircle className={`w-3.5 h-3.5 ${showFormulaExplanation ? 'text-white' : 'text-[#007af7]'}`} />
+              <span>Glosario & Fórmulas</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Filter Controls Row (Territory + Exact Date Cut Picker) */}
+        <div className="pt-3 border-t border-sky-100/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Territory Dropdown */}
+          <div className="relative">
+            <select
+              id="select-admin-metrics-city"
+              aria-label="Filtrar por Municipio"
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="text-xs font-semibold bg-white border border-sky-200/90 rounded-2xl px-3.5 py-2 text-[#041f5e] hover:border-[#007af7] focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer shadow-2xs w-full sm:w-auto transition"
+            >
+              <option value="all">📍 Todos los Municipios ({municipalities.length})</option>
+              {municipalities.map((m) => (
+                <option key={m.id} value={m.name}>
+                  {m.name} ({businesses.filter((b) => b.city === m.name).length} com.)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Compact Date Range Filter (Identical to "Mi Espacio") */}
+          <div className="flex items-center bg-white rounded-2xl border border-sky-200/90 shadow-2xs px-3.5 py-1.5 gap-2.5 text-xs self-start sm:self-auto hover:border-sky-300 transition">
+            <Calendar className="w-3.5 h-3.5 text-[#007af7] shrink-0" />
+            <div className="flex items-center gap-1.5 font-medium text-slate-700">
+              <span className="text-[10px] text-slate-400 uppercase select-none font-semibold">Del</span>
+              <input
+                type="date"
+                value={startDate}
+                max={endDate}
+                onChange={(e) => handleStartDateChange(e.target.value)}
+                className="text-xs font-semibold text-[#041f5e] bg-transparent outline-none cursor-pointer p-0"
+                title="Fecha inicial de corte"
+              />
+            </div>
+            <span className="text-slate-300 select-none text-[10px] font-medium">al</span>
+            <div className="flex items-center gap-1.5 font-medium text-slate-700">
+              <input
+                type="date"
+                value={endDate}
+                min={startDate}
+                max={getTodayKey()}
+                onChange={(e) => handleEndDateChange(e.target.value)}
+                className="text-xs font-semibold text-[#041f5e] bg-transparent outline-none cursor-pointer p-0"
+                title="Fecha final de corte"
+              />
+            </div>
+            <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-sky-500 to-[#007af7] text-white font-semibold text-[10px] shadow-2xs select-none">
+              {cutDays}d
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Formula Explanation Collapsible Banner */}
+      {showFormulaExplanation && (
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-amber-50/60 border border-sky-200 shadow-sm text-xs space-y-2.5 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-[#041f5e]">
+              <Info className="w-4 h-4 text-[#007af7]" />
+              <span>Glosario de Indicadores y Fórmulas Matemáticas de OleVeci</span>
+            </div>
+            <button
+              onClick={() => setShowFormulaExplanation(false)}
+              className="text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-slate-600">
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">MRR & Prorrateo de Corte</span>
+              Facturación recurrente mensual activa ($29.900 COP / mes por comercio). En cortes personalizados de {cutDays} días, se calcula a una tasa diaria de $996,67 COP/día.
+            </div>
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">Costo Por Lead (CPL)</span>
+              Facturación prorrateada del periodo ÷ Total de contactos vecinales (WhatsApp + Rutas GPS + Llamadas). Muestra el costo real por cliente interesado.
+            </div>
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">CAC Real (Canjes QR)</span>
+              Costo de adquisición por cliente validado físicamente en caja o negocio mediante canje de código QR en el periodo.
+            </div>
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">Ahorro vs Pauta Tradicional</span>
+              Comparativa transparente contra Google Ads o Meta Ads en Colombia (~$1.800 COP por lead). Ahorro neto entregado a la red comercial local.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Top Executive KPI Cards (Vibrant OleVeci Color Identity + Refined Typography) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+        {/* Vistas Feed */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-white border border-sky-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-slate-500 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+              Vistas Feed
+            </span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-sky-500 to-[#007af7] text-white flex items-center justify-center shadow-2xs shrink-0">
+              <Eye className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutViews.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-[#007af7] font-medium truncate">
+              Corte ({cutDays}d)
+            </div>
+          </div>
+        </div>
+
+        {/* WhatsApp Directo */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border border-emerald-200 shadow-2xs hover:border-emerald-400 transition-all flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-emerald-900 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
+              WhatsApp
+            </span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-emerald-500 to-[#00d8a5] text-white flex items-center justify-center shadow-2xs shrink-0">
+              <MessageCircle className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutWhatsapp.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-emerald-700 font-medium truncate">
+              Chats iniciados
+            </div>
+          </div>
+        </div>
+
+        {/* Rutas (Maps) */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-50/90 via-amber-50/40 to-white border border-orange-200 shadow-2xs hover:border-[#ff7700] transition-all flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-orange-900 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-orange-800">
+              Rutas Maps
+            </span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white flex items-center justify-center shadow-2xs shrink-0">
+              <Navigation className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutMaps.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-[#ff7700] font-medium truncate">
+              Cómo llegar
+            </div>
+          </div>
+        </div>
+
+        {/* Total Contactos (Leads) */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-white border border-blue-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-blue-900 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-blue-800">
+              Total Leads
+            </span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-sky-500 text-white flex items-center justify-center shadow-2xs shrink-0">
+              <Zap className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutTotalLeads.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-blue-700 font-medium truncate">
+              {cutConversionRate}% conv.
+            </div>
+          </div>
+        </div>
+
+        {/* Boca a boca (Shares) */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/90 via-violet-50/40 to-white border border-indigo-200 shadow-2xs hover:border-indigo-400 transition-all flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-indigo-900 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-indigo-800">
+              Compartidos
+            </span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-2xs shrink-0">
+              <Share2 className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutShares.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-indigo-600 font-medium truncate">
+              Boca a boca
+            </div>
+          </div>
+        </div>
+
+        {/* Clientes QR Validados */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-50/90 via-fuchsia-50/40 to-white border border-purple-200 shadow-2xs hover:border-purple-400 transition-all flex flex-col justify-between min-w-0">
+          <div className="flex items-center justify-between text-purple-900 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-purple-800">
+              Canjes QR
+            </span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-purple-600 to-fuchsia-500 text-white flex items-center justify-center shadow-2xs shrink-0">
+              <QrCode className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutQrRedemptions.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-purple-700 font-medium truncate">
+              En locales
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Financial & ROI Matrix Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: MRR & Facturación del Corte */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Facturación & MRR
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-[#00d8a5] text-white flex items-center justify-center shadow-2xs">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-[#041f5e]">
+              {formatCOP(monthlyRevenueCOP)}
+            </div>
+            <div className="mt-1 text-xs text-slate-500 font-normal">
+              ARR proyectado: <span className="font-semibold text-slate-700">{formatCOP(projectedARR)}</span>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500 font-normal">Corte ({cutDays}d):</span>
+            <span className="font-semibold text-[#007af7] bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200/60">
+              {formatCOP(cutProratedRevenueCOP)}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2: Costo Por Lead (CPL) & CAC Real */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Costo Por Lead (CPL)
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-[#007af7] text-white flex items-center justify-center shadow-2xs">
+                <Target className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-[#041f5e]">
+              {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
+            </div>
+            <div className="mt-1 text-xs text-slate-500 font-normal">
+              Por cada contacto vecinal generado en el corte
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500 font-normal">CAC Real (QR):</span>
+            <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-200/60">
+              {cutCACReal > 0 ? formatCOP(cutCACReal) : 'Sin canjes'}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Ahorro Comunitario vs Pauta Meta/Google */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-amber-50/30 border border-emerald-200/80 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                Ahorro para Comercios
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-[#ff7700] text-white flex items-center justify-center shadow-2xs">
+                <PiggyBank className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-emerald-600">
+              {formatCOP(estimatedMerchantSavings)}
+            </div>
+            <div className="mt-1 text-xs text-slate-500 font-normal">
+              Vs. pauta tradicional (~$1.800 COP/lead)
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-emerald-100 flex items-center justify-between text-xs text-slate-500 font-normal">
+            <span>Ticket Promedio (ARPU):</span>
+            <span className="font-semibold text-slate-700">{formatCOP(arpuCOP)}/mes</span>
+          </div>
+        </div>
+
+        {/* Card 4: Cartera & Retención Activa */}
+        <div
+          onClick={() => onNavigateTab('businesses')}
+          className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div>
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Salud de Cartera
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 to-[#041f5e] text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition">
+                <Building2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900">
+              {activeSubscribers}{' '}
+              <span className="text-xs text-slate-400 font-normal">/ {totalBusinesses} com.</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-xs">
+              <span className="font-semibold text-emerald-600">{collectionRate}% al día</span>
+              {pastDueBusinesses.length > 0 && (
+                <span className="text-rose-500 font-medium">({pastDueBusinesses.length} mora)</span>
+              )}
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#007af7] font-semibold">
+            <span>Auditar cartera de negocios</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Visual Analytics: Dynamic Timeline Chart + Cartera Donut Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Main Chart: Traffic & Contact Generation Timeline in Selected Cut */}
+        <div className="lg:col-span-2 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Tráfico & Contactos Vecinales en el Corte
+              </h3>
+            </div>
+
+            {/* Metric Toggle Buttons */}
+            <div className="inline-flex bg-slate-100 p-0.5 rounded-xl text-xs self-start sm:self-auto border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setChartMetric('all')}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  chartMetric === 'all'
+                    ? 'bg-white text-[#041f5e] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Ambos
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartMetric('whatsapp')}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  chartMetric === 'whatsapp'
+                    ? 'bg-white text-emerald-700 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                WhatsApp
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartMetric('maps')}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  chartMetric === 'maps'
+                    ? 'bg-white text-[#ff7700] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Maps
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartMetric('views')}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  chartMetric === 'views'
+                    ? 'bg-white text-[#007af7] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Vistas
+              </button>
+            </div>
+          </div>
+
+          {/* Area Chart Container with Recharts */}
+          <div className="w-full h-64 min-h-[260px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="adminViewsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#007af7" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="#007af7" stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="adminLeadsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00d8a5" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#00d8a5" stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="adminMapsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ff7700" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#ff7700" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis
+                  dataKey="name"
+                  ticks={timelineTicks}
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip content={<AdminTimelineTooltip />} />
+
+                {(chartMetric === 'all' || chartMetric === 'views') && (
+                  <Area
+                    type="monotone"
+                    dataKey="vistas"
+                    name="Vistas Feed"
+                    stroke="#007af7"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#adminViewsGradient)"
+                  />
+                )}
+
+                {(chartMetric === 'all' || chartMetric === 'whatsapp') && (
+                  <Area
+                    type="monotone"
+                    dataKey={chartMetric === 'whatsapp' ? 'whatsapp' : 'leads'}
+                    name={chartMetric === 'whatsapp' ? 'WhatsApp' : 'Total Contactos'}
+                    stroke="#00d8a5"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#adminLeadsGradient)"
+                  />
+                )}
+
+                {chartMetric === 'maps' && (
+                  <Area
+                    type="monotone"
+                    dataKey="maps"
+                    name="Rutas Maps"
+                    stroke="#ff7700"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#adminMapsGradient)"
+                  />
+                )}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Quick Metrics Bar Under Chart */}
+          <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-center">
+            <div className="p-2 rounded-xl bg-sky-50/60 border border-sky-100">
+              <div className="text-[10px] text-sky-800 font-medium uppercase tracking-wider">Vistas</div>
+              <div className="text-sm sm:text-base font-bold text-[#041f5e]">{cutViews.toLocaleString('es-CO')}</div>
+            </div>
+            <div className="p-2 rounded-xl bg-emerald-50/60 border border-emerald-100">
+              <div className="text-[10px] text-emerald-800 font-medium uppercase tracking-wider">WhatsApp</div>
+              <div className="text-sm sm:text-base font-bold text-emerald-700">{cutWhatsapp.toLocaleString('es-CO')}</div>
+            </div>
+            <div className="p-2 rounded-xl bg-orange-50/60 border border-orange-100">
+              <div className="text-[10px] text-orange-800 font-medium uppercase tracking-wider">Maps GPS</div>
+              <div className="text-sm sm:text-base font-bold text-[#ff7700]">{cutMaps.toLocaleString('es-CO')}</div>
+            </div>
+            <div className="p-2 rounded-xl bg-blue-50/60 border border-blue-100">
+              <div className="text-[10px] text-blue-800 font-medium uppercase tracking-wider">Llamadas</div>
+              <div className="text-sm sm:text-base font-bold text-[#007af7]">{cutCalls.toLocaleString('es-CO')}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Card: Financial Composition & Cartera Breakdown */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Composición de Cartera
+              </h3>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                {collectionRate}% Cobrado
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 font-normal">
+              Estado de facturación de los {totalBusinesses} comercios en {selectedCity === 'all' ? 'todos los municipios' : selectedCity}.
+            </p>
+          </div>
+
+          {/* Donut Chart with Recharts */}
+          <div className="h-44 flex items-center justify-center relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={financialDistributionData}
+                  innerRadius={45}
+                  outerRadius={68}
+                  paddingAngle={4}
+                  dataKey="value"
+                >
+                  {financialDistributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: any, name: any, item: any) => [
+                    `${value} comercios (${formatCOP(item.payload.amount)})`,
+                    name,
+                  ]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-2xl font-bold text-[#041f5e]">{totalBusinesses}</span>
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Comercios</span>
+            </div>
+          </div>
+
+          {/* Legend Items */}
+          <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00d8a5]" />
+                <span className="text-slate-600 font-normal">Al Día (Activos)</span>
+              </div>
+              <span className="font-semibold text-slate-800">
+                {activeSubscribers} ({formatCOP(activeSubscribers * 29900)})
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ffb703]" />
+                <span className="text-slate-600 font-normal">Por Vencer (&lt;7 días)</span>
+              </div>
+              <span className="font-semibold text-amber-700">
+                {expiringSoonBusinesses.length}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
+                <span className="text-slate-600 font-normal">Vencidos / Mora</span>
+              </div>
+              <span className="font-semibold text-rose-600">
+                {pastDueBusinesses.length}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigateTab('businesses')}
+            className="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 text-xs font-semibold text-[#007af7] flex items-center justify-center gap-1.5 transition cursor-pointer"
+          >
+            <span>Ver detalle de suscripciones</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 5. Channel Breakdown & Day of Week Demand Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Canales de Captación Vecinal */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#ff7700]" />
+                <span>Canales de Captación en el Corte</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Distribución de puntos de contacto preferidos por los vecinos
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-[#041f5e] bg-sky-50 border border-sky-100 px-2.5 py-0.5 rounded-full">
+              {cutTotalLeads} contactos
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {channelData.map((channel) => (
+              <div key={channel.name} className="p-2.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-sky-100 transition">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                    <span className="text-sm">{channel.icon}</span>
+                    <span>{channel.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-slate-900">{channel.value.toLocaleString('es-CO')}</span>
+                    <span className="text-[10px] font-normal text-slate-400">({channel.share}%)</span>
+                  </div>
+                </div>
+                <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(4, Math.min(100, channel.share))}%`,
+                      backgroundColor: channel.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Demanda por Día de la Semana */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-[#ff7700]" />
+                <span>Días Pico de Demanda Vecinal</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Intensidad de consultas e interacciones según el día en el periodo
+              </p>
+            </div>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              Pico comercial
+            </span>
+          </div>
+
+          <div className="h-44 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dayActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="dia" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip content={<AdminBarTooltip />} />
+                <Bar dataKey="interacciones" radius={[6, 6, 0, 0]}>
+                  {dayActivityData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.esPico ? '#ff7700' : '#007af7'}
+                      fillOpacity={entry.esPico ? 1 : 0.8}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Top 5 Successful Posts in Network During Cut */}
+      <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-[#ff7700]" />
+                <span>Top Publicaciones con Mayor Retorno en el Corte</span>
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500 font-normal">
+              Anuncios de la red que más contactos y clientes generaron durante los {cutDays} días seleccionados
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigateTab('posts')}
+            className="text-xs font-semibold text-[#007af7] hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+          >
+            <span>Ver todas las publicaciones</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {topCutPosts.length === 0 ? (
+          <div className="py-6 text-center text-xs text-slate-400 font-normal">
+            No hay publicaciones con actividad registrada en el corte.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {topCutPosts.map((post, idx) => (
+              <div
+                key={post.id}
+                className="p-3 rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 hover:border-sky-300 hover:shadow-xs transition space-y-2 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                      #{idx + 1} en Retorno
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400">{post.businessCity}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {post.imageUrl && (
+                      <img
+                        src={post.imageUrl}
+                        alt={post.title}
+                        className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-semibold text-slate-900 truncate" title={post.title}>
+                        {post.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 font-normal truncate">{post.businessName}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-[#007af7]">{post.cutViews} vistas</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="font-semibold text-emerald-600">{post.cutTotalLeads} leads</span>
+                  </div>
+                  <span className="font-semibold text-[#041f5e] bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                    {post.cutCtr}% CTR
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 7. Territorial & Category Intelligence Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Territorial Penetration */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-[#007af7]" />
+                <span>Rendimiento por Territorio en el Corte</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Demanda vecinal y comercios activos por cada municipio
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigateTab('municipalities')}
+              className="text-xs font-semibold text-[#007af7] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>Gestionar</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
+            {municipalityBreakdown.slice(0, 5).map((m) => {
+              const share = cutTotalLeads > 0 ? Math.round((m.leads / cutTotalLeads) * 100) : 0;
+              return (
+                <div key={m.city} className="p-2.5 rounded-xl bg-slate-50/70 hover:bg-sky-50/40 transition border border-slate-100">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <div className="font-medium text-slate-800 flex items-center gap-1.5">
+                      <span>{m.city}</span>
+                      <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-slate-200/70 text-slate-600">
+                        {m.businesses} com. · {m.activePosts} posts
+                      </span>
+                    </div>
+                    <span className="font-semibold text-emerald-600">
+                      {m.leads} leads ({share}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#007af7] to-[#00d8a5] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(5, Math.min(100, share))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Categories Leadership */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-purple-600" />
+                <span>Demanda por Categorías en el Corte</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Sectores con mayor captación de clientes vecinales
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigateTab('categories')}
+              className="text-xs font-semibold text-[#007af7] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>Gestionar</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
+            {categoryBreakdown.map((c) => {
+              const share = cutTotalLeads > 0 ? Math.round((c.leads / cutTotalLeads) * 100) : 0;
+              return (
+                <div key={c.id} className="p-2.5 rounded-xl bg-slate-50/70 hover:bg-purple-50/40 transition border border-slate-100">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <div className="font-medium text-slate-800 flex items-center gap-1.5">
+                      <span>{c.name}</span>
+                      <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-slate-200/70 text-slate-600">
+                        {c.count} comercios
+                      </span>
+                    </div>
+                    <span className="font-semibold text-purple-600">
+                      {c.leads} leads ({share}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-purple-500 to-[#007af7] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(5, Math.min(100, share))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 8. Merchant Churn & Inactivity Alert */}
+      {businessesWithoutActivePosts.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-amber-50/90 border border-amber-200 shadow-2xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-4 h-4 text-amber-800" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-semibold text-amber-950">
+                  Alerta de Retención: {businessesWithoutActivePosts.length} comercios sin publicaciones vigentes
+                </h4>
+                <p className="text-[11px] text-amber-800 font-normal">
+                  Comercios que no tienen anuncios activos en el feed corren riesgo de churn por falta de visibilidad.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigateTab('businesses')}
+              className="text-xs font-semibold text-amber-950 bg-white px-3 py-1.5 rounded-xl border border-amber-300 hover:bg-amber-100 transition self-start sm:self-auto cursor-pointer shadow-2xs"
+            >
+              Contactar para reactivación
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 9. Individual Merchant Evaluation Table with Dynamic Cut Calculation */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+              Evaluación Individual de Comercios ({cutDays} días de corte)
+            </h3>
+            <p className="text-xs text-slate-500 font-normal">
+              Diagnóstico de retorno por negocio calculado entre {formatDateLabel(startDate, false)} y {formatDateLabel(endDate, false)}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-auto">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchMerchant}
+                onChange={(e) => setSearchMerchant(e.target.value)}
+                placeholder="Buscar comercio o ciudad..."
+                className="text-xs pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-slate-800 placeholder-slate-400 w-full sm:w-56"
+              />
+            </div>
+
+            {/* Table Segmented Filter */}
+            <div className="inline-flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setTableFilter('top_leads')}
+                className={`text-xs px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  tableFilter === 'top_leads'
+                    ? 'bg-white text-[#041f5e] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                🏆 Top Retorno
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter('attention_needed')}
+                className={`text-xs px-2.5 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 font-medium ${
+                  tableFilter === 'attention_needed'
+                    ? 'bg-white text-rose-600 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>⚠️ Atención</span>
+                {(pastDueBusinesses.length > 0 || expiringSoonBusinesses.length > 0) && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter('all')}
+                className={`text-xs px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  tableFilter === 'all'
+                    ? 'bg-white text-slate-900 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Todos ({filteredBusinesses.length})
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Table View */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-400 font-medium uppercase tracking-wider text-[10px]">
+                <th className="py-2.5 px-3">Comercio</th>
+                <th className="py-2.5 px-3">Territorio</th>
+                <th className="py-2.5 px-3 text-right">Vistas ({cutDays}d)</th>
+                <th className="py-2.5 px-3 text-right">Leads WhatsApp</th>
+                <th className="py-2.5 px-3 text-right">Rutas Maps</th>
+                <th className="py-2.5 px-3 text-right">Conversión</th>
+                <th className="py-2.5 px-3 text-center">Estado Cartera</th>
+                <th className="py-2.5 px-3 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {displayedMerchants.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-slate-400 font-normal">
+                    No se encontraron comercios que coincidan con los filtros seleccionados.
+                  </td>
+                </tr>
+              ) : (
+                displayedMerchants.map((b) => {
+                  const bizPosts = posts.filter((p) => p.businessId === b.id);
+                  const bizActivePosts = bizPosts.filter((p) => isPostActive(p));
+
+                  let bViews = 0;
+                  let bWhatsapp = 0;
+                  let bMaps = 0;
+                  let bCalls = 0;
+
+                  rangeDateKeys.forEach((k) => {
+                    if (bizPosts.length > 0) {
+                      bizPosts.forEach((p) => {
+                        const d = getPostDayRecord(p, k);
+                        bViews += d.views;
+                        bWhatsapp += d.whatsappClicks;
+                        bMaps += d.mapsClicks;
+                        bCalls += d.calls;
+                      });
+                    } else {
+                      const d = getBusinessDayRecord(b, k);
+                      bViews += d.views;
+                      bWhatsapp += d.whatsappClicks;
+                      bMaps += d.mapsClicks;
+                      bCalls += d.calls;
+                    }
+                  });
+
+                  const totalBizLeads = bWhatsapp + bMaps + bCalls;
+                  const conv = bViews > 0 ? ((totalBizLeads / bViews) * 100).toFixed(1) : '0';
+
+                  const isExpired =
+                    b.subscription?.status === 'expired' ||
+                    (b.subscription?.expiresAt && new Date(b.subscription.expiresAt).getTime() <= now);
+                  const isExpiringSoon =
+                    b.subscription?.expiresAt &&
+                    new Date(b.subscription.expiresAt).getTime() > now &&
+                    new Date(b.subscription.expiresAt).getTime() - now <= sevenDaysMs;
+
+                  return (
+                    <tr key={b.id} className="hover:bg-sky-50/30 transition">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {b.logo ? (
+                            <img
+                              src={b.logo}
+                              alt={b.name}
+                              referrerPolicy="no-referrer"
+                              className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-[#041f5e] text-white font-semibold flex items-center justify-center text-xs shrink-0">
+                              {b.name.slice(0, 2)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900 truncate flex items-center gap-1">
+                              <span>{b.name}</span>
+                              {b.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-normal truncate">
+                              {b.subCategory} · {bizActivePosts.length} posts
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-3">
+                        <span className="text-slate-700 font-medium">{b.city}</span>
+                        <span className="block text-[10px] text-slate-400 font-normal truncate">{b.sector}</span>
+                      </td>
+
+                      <td className="py-3 px-3 text-right font-medium text-slate-800">
+                        {bViews.toLocaleString('es-CO')}
+                      </td>
+
+                      <td className="py-3 px-3 text-right font-semibold text-emerald-600">
+                        {bWhatsapp.toLocaleString('es-CO')}
+                      </td>
+
+                      <td className="py-3 px-3 text-right font-semibold text-[#ff7700]">
+                        {bMaps.toLocaleString('es-CO')}
+                      </td>
+
+                      <td className="py-3 px-3 text-right">
+                        <span className="font-semibold text-[#041f5e] bg-sky-50 px-2 py-0.5 rounded text-[11px] border border-sky-100">
+                          {conv}%
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3 text-center">
+                        {isExpired ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                            Vencido
+                          </span>
+                        ) : isExpiringSoon ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                            Vence en &lt;7d
+                          </span>
+                        ) : b.subscription?.status === 'active' ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Al Día
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                            {b.status}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {isExpiringSoon || isExpired ? (
+                            <button
+                              type="button"
+                              onClick={() => handleCopyRenewalMessage(b)}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-medium border border-emerald-200 flex items-center gap-1 transition cursor-pointer"
+                              title="Copiar mensaje de renovación para WhatsApp"
+                            >
+                              {copiedBizId === b.id ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-600" />
+                                  <span>Copiado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <MessageCircle className="w-3 h-3" />
+                                  <span>Recordar</span>
+                                </>
+                              )}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateTab('businesses')}
+                              className="p-1 rounded-lg hover:bg-sky-50 text-slate-400 hover:text-[#007af7] transition cursor-pointer"
+                              title="Ver ficha comercial"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
