@@ -1946,7 +1946,7 @@ export async function generateOliSearchResponse(
     if (ai) {
       try {
         const noMatchRes = await ai.models.generateContent({
-          model: 'gemini-3.8-flash',
+          model: 'gemini-2.5-flash',
           contents: `El usuario preguntó en OleVeci: "${userPrompt}" para el municipio "${targetMunicipality}".
 No hay comercios registrados exactamente para esa búsqueda.
 Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
@@ -2016,7 +2016,7 @@ Genera la respuesta hablada de Oli:
 5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
 6. Máximo 2 o 3 oraciones directas.`;
 
-      for (const modelName of ['gemini-3.8-flash', 'gemini-3.1-flash-lite']) {
+      for (const modelName of ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3.8-flash']) {
         try {
           const aiResponse = await ai.models.generateContent({
             model: modelName,
@@ -2145,8 +2145,8 @@ async function callGeminiWithModelFallback(
   systemInstruction: string,
   responseSchema: any
 ): Promise<string> {
-  // Candidate models: flagship fast flash -> ultra-low latency flash-lite
-  const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+  // Candidate models: ultra-fast gemini-2.5-flash
+  const candidateModels = ['gemini-2.5-flash'];
   let lastError: any = null;
 
   for (const model of candidateModels) {
@@ -2162,7 +2162,7 @@ async function callGeminiWithModelFallback(
       });
 
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout superado en modelo ${model}`)), 25000)
+        setTimeout(() => reject(new Error(`Timeout superado en modelo ${model}`)), 30000)
       );
 
       const res = await Promise.race([call, timeoutPromise]);
@@ -2492,7 +2492,7 @@ ${JSON.stringify(catalogSummary)}`;
         title: 'Inferencia Autónoma Gemini (LLM)',
         status: 'success',
         details: `Generado con modelo Gemini en tiempo real. Plan estructurado de forma personalizada.`,
-        data: { model: 'Gemini 3.8 Flash', rawStopsCount: parsed.stops?.length },
+        data: { model: 'Gemini 2.5 Flash', rawStopsCount: parsed.stops?.length },
       },
       {
         step: '4',
@@ -2507,7 +2507,7 @@ ${JSON.stringify(catalogSummary)}`;
       rawPrompt: userPrompt,
       timestamp: new Date().toISOString(),
       executionMode: 'llm',
-      modelUsed: 'Gemini 3.8 Flash',
+      modelUsed: 'Gemini 2.5 Flash',
       apiKeyPresent: true,
       intentDetected: isRefinement ? 'plan_refinement' : 'plan_creation',
       interpretation: {
