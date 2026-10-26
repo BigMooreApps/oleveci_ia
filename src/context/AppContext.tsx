@@ -48,7 +48,13 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import {
   getPostsFromSupabase,
   getBusinessesFromSupabase,
+  getReadyPlansFromSupabase,
   savePostToSupabase,
+  deletePostFromSupabase,
+  saveBusinessToSupabase,
+  deleteBusinessFromSupabase,
+  saveReadyPlanToSupabase,
+  deleteReadyPlanFromSupabase,
   seedInitialDataToSupabase,
 } from '../services/supabaseService';
 
@@ -1058,9 +1064,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let isMounted = true;
     (async () => {
       try {
-        const [remotePosts, remoteBiz] = await Promise.all([
+        const [remotePosts, remoteBiz, remotePlans] = await Promise.all([
           getPostsFromSupabase(),
           getBusinessesFromSupabase(),
+          getReadyPlansFromSupabase(),
         ]);
         if (!isMounted) return;
         if (remotePosts && remotePosts.length > 0) {
@@ -1083,9 +1090,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return Array.from(map.values());
           });
         }
+        if (remotePlans && remotePlans.length > 0) {
+          setReadyPlans((prev) => {
+            const map = new Map(prev.map((p) => [p.id, p]));
+            remotePlans.forEach((rp) => {
+              const existing = map.get(rp.id);
+              map.set(rp.id, existing ? (Object.assign({}, existing, rp) as SimulatedReadyPlan) : rp);
+            });
+            return Array.from(map.values());
+          });
+        }
 
         // Si la base de datos de Supabase está vacía, la poblamos automáticamente
-        const isDbEmpty = (!remotePosts || remotePosts.length === 0) && (!remoteBiz || remoteBiz.length === 0);
+        const isDbEmpty = (!remotePosts || remotePosts.length === 0) && (!remoteBiz || remoteBiz.length === 0) && (!remotePlans || remotePlans.length === 0);
         if (isDbEmpty) {
           console.info('Poblando base de datos inicial de Supabase con datos de OleVeci...');
           await seedInitialDataToSupabase(INITIAL_BUSINESSES, INITIAL_POSTS, READY_PLANS_SEED);

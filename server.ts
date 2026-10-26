@@ -10,6 +10,13 @@ import { READY_PLANS_SEED, SimulatedReadyPlan } from './src/data/readyPlansData'
 import { Post, Business } from './src/types';
 import { renderPostCardImage } from './server/cardRenderer';
 import { generateOliPlan, generateOliSpeechAudio } from './server/oliAssistant';
+import { processIncomingWhatsAppWebhook, sendWhatsAppMessage } from './server/oliWhatsAppService';
+import {
+  initBaileysService,
+  connectBaileys,
+  disconnectBaileys,
+  getBaileysState,
+} from './server/oliBaileysService';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -470,6 +477,7 @@ app.post('/api/oli/plan', async (req, res) => {
       userBudget = 100000,
       previousPlan = null,
       messageHistory = [],
+      apiKey,
     } = req.body;
 
     if (!userPrompt || typeof userPrompt !== 'string') {
@@ -487,6 +495,7 @@ app.post('/api/oli/plan', async (req, res) => {
       messageHistory,
       catalogPosts: posts,
       catalogBusinesses: businesses,
+      apiKey: apiKey || process.env.GEMINI_API_KEY,
     });
 
     return res.json(plan);
@@ -494,6 +503,147 @@ app.post('/api/oli/plan', async (req, res) => {
     console.error('Error generando plan con Oli:', error);
     return res.status(500).json({ error: 'Error procesando solicitud con Oli' });
   }
+});
+
+app.get('/api/oli/config', (_req, res) => {
+  return res.json({
+    hasApiKey: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0),
+  });
+});
+
+app.post('/api/oli/set-key', (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    if (apiKey && typeof apiKey === 'string' && apiKey.trim().length > 0) {
+      process.env.GEMINI_API_KEY = apiKey.trim();
+      return res.json({ success: true, hasApiKey: true });
+    }
+    return res.status(400).json({ error: 'Clave API inválida' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Error configurando clave API' });
+  }
+});
+
+// ==============================================================================
+// WhatsApp Bot Integration - Meta Cloud API Webhook & Live Simulator
+// ==============================================================================
+
+// Verification endpoint for Meta Webhook setup
+app.get(['/api/whatsapp/webhook', '/webhook/whatsapp'], (req, res) => {
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || 'oleveci_token_2026';
+
+  if (mode === 'subscribe' && token === verifyToken) {
+    console.log('[WhatsApp Webhook] Verificado con éxito por Meta');
+    return res.status(200).send(challenge);
+  }
+  return res.status(403).send('Forbidden: Token de verificación incorrecto');
+});
+
+// Incoming message listener from Meta WhatsApp Cloud API
+app.post(['/api/whatsapp/webhook', '/webhook/whatsapp'], async (req, res) => {
+  try {
+    // Acknowledge receipt to Meta immediately within 3s
+    res.status(200).send('EVENT_RECEIVED');
+
+    const posts = Array.from(postStore.values());
+    const businesses = Array.from(businessStore.values());
+    await processIncomingWhatsAppWebhook(req.body, posts, businesses);
+  } catch (err) {
+    console.error('[WhatsApp Webhook Error]:', err);
+  }
+});
+
+// WhatsApp Bot Simulator (allows testing from web UI without Meta account)
+app.post('/api/whatsapp/simulate', async (req, res) => {
+  try {
+    const { userPrompt, phoneNumber = '573001234567' } = req.body;
+    if (!userPrompt || typeof userPrompt !== 'string') {
+      return res.status(400).json({ error: 'El parámetro userPrompt es requerido' });
+    }
+
+    const posts = Array.from(postStore.values());
+    const businesses = Array.from(businessStore.values());
+
+    const mockPayload = {
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                messages: [
+                  {
+                    from: phoneNumber,
+                    type: 'text',
+                    text: { body: userPrompt.trim() },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await processIncomingWhatsAppWebhook(mockPayload, posts, businesses);
+    return res.json(result);
+  } catch (err: any) {
+    console.error('Error en simulador de WhatsApp:', err);
+    return res.status(500).json({ error: err?.message || 'Error simulando mensaje' });
+  }
+});
+
+// Get WhatsApp Bot Configuration & Status
+app.get('/api/whatsapp/config', (_req, res) => {
+  const hasToken = Boolean(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_TOKEN.trim().length > 0);
+  const hasPhoneId = Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_PHONE_NUMBER_ID.trim().length > 0);
+  const botNumber = process.env.WHATSAPP_BOT_NUMBER || '573245168762';
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || 'oleveci_token_2026';
+
+  return res.json({
+    isConfigured: hasToken && hasPhoneId,
+    hasToken,
+    hasPhoneId,
+    botNumber,
+    verifyToken,
+    webhookUrl: `${_req.protocol}://${_req.get('host')}/api/whatsapp/webhook`,
+  });
+});
+
+// Save WhatsApp Bot Configuration
+app.post('/api/whatsapp/config', (req, res) => {
+  try {
+    const { token, phoneNumberId, botNumber, verifyToken } = req.body;
+
+    if (token) process.env.WHATSAPP_TOKEN = token.trim();
+    if (phoneNumberId) process.env.WHATSAPP_PHONE_NUMBER_ID = phoneNumberId.trim();
+    if (botNumber) process.env.WHATSAPP_BOT_NUMBER = botNumber.trim();
+    if (verifyToken) process.env.WHATSAPP_VERIFY_TOKEN = verifyToken.trim();
+
+    return res.json({
+      success: true,
+      isConfigured: Boolean(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID),
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err?.message || 'Error guardando configuración' });
+  }
+});
+
+// WhatsApp Web (Baileys) Linking endpoints
+app.get('/api/whatsapp/baileys/status', (_req, res) => {
+  return res.json(getBaileysState());
+});
+
+app.post('/api/whatsapp/baileys/connect', async (_req, res) => {
+  const result = await connectBaileys();
+  return res.json(result);
+});
+
+app.post('/api/whatsapp/baileys/disconnect', async (_req, res) => {
+  const result = await disconnectBaileys();
+  return res.json(result);
 });
 
 app.post('/api/oli/tts', async (req, res) => {
@@ -1486,6 +1636,11 @@ async function startServer() {
 
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`OleVeci Server running on http://0.0.0.0:${PORT}`);
+    // Initialize WhatsApp Web (Baileys) Bot Service
+    initBaileysService(
+      () => Array.from(businessStore.values()),
+      () => Array.from(postStore.values())
+    );
     // Pre-warm database video posts in background after server is up
     setTimeout(warmUpDatabaseVideos, 1500);
   });

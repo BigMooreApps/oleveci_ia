@@ -8,3 +8,5 @@ coverage/
 !.env.example
 server/bin/
 *.exe
+whatsapp_session/
+whatsapp_auth/

@@ -521,9 +521,9 @@
     "slug": "fogon-sabanero-chia",
     "logo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
     "coverImage": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1000&auto=format&fit=crop&q=80",
-    "description": "Asados al carbón, pollo broaster familiar sabanero, cortes finos a la parrilla, picadas tradicionales y arepas de choclo.",
-    "categoryId": "cat_restaurantes",
-    "subCategory": "Parrilla, Pollo & Carnes",
+    "description": "Asados al carbón, cortes finos a la parrilla, picadas familiares y arepas de choclo.",
+    "categoryId": "cat_gastronomia",
+    "subCategory": "Parrilla & Carnes",
     "address": "Cra. 10 # 12-45, Centro",
     "city": "Chía",
     "sector": "Centro",
@@ -535,9 +535,7 @@
     "whatsapp": "573145678901",
     "phone": "3145678901",
     "email": "pedidos@fogonsabanero.com",
-    "username": "OLE0109",
-    "password": "Veci2026",
-    "instagram": "@fogonsabanero_chia",
+    "socialLinks": {},
     "rating": 4.7,
     "verified": true,
     "featured": false,
@@ -545,23 +543,358 @@
     "subscription": {
       "status": "active",
       "planName": "Plan Mensual OleVeci",
-      "priceCOP": 44900,
-      "billingCycle": "monthly",
-      "expiresAt": "2026-10-05T19:43:04.021Z",
-      "autoRenew": true
+      "priceCOP": 29900,
+      "autoRenew": true,
+      "expiresAt": "2027-10-20T19:43:04.021Z",
+      "billingCycle": "monthly"
     },
+    "paymentHistory": [],
+    "username": "OLE0109",
+    "password": "Veci2026",
+    "accessEmail": "pedidos@fogonsabanero.com",
     "metrics": {
-      "views": 980,
-      "whatsappClicks": 110,
-      "mapsClicks": 75,
-      "calls": 18,
-      "shares": 26
+      "views": 1922,
+      "whatsappClicks": 325,
+      "mapsClicks": 161,
+      "calls": 57,
+      "shares": 89,
+      "dailyMetrics": {
+        "2026-09-06": {
+          "views": 16,
+          "whatsappClicks": 2,
+          "mapsClicks": 2,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-07": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-08": {
+          "views": 18,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-09": {
+          "views": 21,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-10": {
+          "views": 25,
+          "whatsappClicks": 3,
+          "mapsClicks": 2,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-11": {
+          "views": 33,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 2
+        },
+        "2026-09-12": {
+          "views": 38,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 1,
+          "shares": 3
+        },
+        "2026-09-13": {
+          "views": 30,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-14": {
+          "views": 18,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-15": {
+          "views": 20,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-16": {
+          "views": 22,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-17": {
+          "views": 27,
+          "whatsappClicks": 3,
+          "mapsClicks": 2,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-18": {
+          "views": 35,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 2
+        },
+        "2026-09-19": {
+          "views": 41,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-09-20": {
+          "views": 33,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 3
+        },
+        "2026-09-21": {
+          "views": 20,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-22": {
+          "views": 22,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-23": {
+          "views": 24,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-24": {
+          "views": 27,
+          "whatsappClicks": 3,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-25": {
+          "views": 37,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 1,
+          "shares": 2
+        },
+        "2026-09-26": {
+          "views": 44,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-09-27": {
+          "views": 36,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 3
+        },
+        "2026-09-28": {
+          "views": 23,
+          "whatsappClicks": 3,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-29": {
+          "views": 24,
+          "whatsappClicks": 4,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-09-30": {
+          "views": 26,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-10-01": {
+          "views": 28,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 1
+        },
+        "2026-10-02": {
+          "views": 37,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 2,
+          "shares": 2
+        },
+        "2026-10-03": {
+          "views": 46,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-10-04": {
+          "views": 39,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-10-05": {
+          "views": 25,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-10-06": {
+          "views": 26,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-10-07": {
+          "views": 27,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-10-08": {
+          "views": 30,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 1
+        },
+        "2026-10-09": {
+          "views": 39,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 2,
+          "shares": 3
+        },
+        "2026-10-10": {
+          "views": 47,
+          "whatsappClicks": 8,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-10-11": {
+          "views": 41,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-10-12": {
+          "views": 27,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-10-13": {
+          "views": 29,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 0
+        },
+        "2026-10-14": {
+          "views": 31,
+          "whatsappClicks": 4,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 1
+        },
+        "2026-10-15": {
+          "views": 31,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 3
+        },
+        "2026-10-16": {
+          "views": 40,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-10-17": {
+          "views": 49,
+          "whatsappClicks": 8,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-10-18": {
+          "views": 42,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 3,
+          "shares": 3
+        },
+        "2026-10-19": {
+          "views": 28,
+          "whatsappClicks": 5,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 1
+        },
+        "2026-10-20": {
+          "views": 32,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 0,
+          "shares": 2
+        },
+        "2026-10-21": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1
+        },
+        "2026-10-22": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1
+        }
+      }
     },
-    "createdAt": "2025-01-20T11:00:00Z",
+    "createdAt": "2026-10-20T21:41:27.077896+00:00",
     "suspensionHistory": [],
-    "accessEmail": "fogon-sabanero-chia@oleveci.com",
-    "accessPin": "1234",
     "accessPassword": "Veci2026",
+    "reviewStatus": "none",
+    "accessPin": "1234",
     "ownerName": "Propietario / Gerente",
     "ownerPhone": "3145678901"
   },
@@ -917,7 +1250,7 @@
     "sector": "Centro",
     "coordinates": {
       "lat": 4.9195,
-      "lng": -74.0260
+      "lng": -74.026
     },
     "hours": "Mar - Dom: 12:00 PM - 10:00 PM",
     "whatsapp": "573159988776",

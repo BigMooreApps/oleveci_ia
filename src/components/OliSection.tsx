@@ -25,13 +25,16 @@ import {
   Phone,
   Tag,
   X,
+  Activity,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Post, Business } from '../types';
 import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
-import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan } from '../../server/oliAssistant';
+import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan, OliAuditTrace } from '../../server/oliAssistant';
+import { OliAuditModal } from './OliAuditModal';
+import { OliWhatsAppModal } from './OliWhatsAppModal';
 
 interface OliSectionProps {
   onSelectPlan?: (plan: SimulatedReadyPlan) => void;
@@ -48,6 +51,7 @@ interface ChatMessage {
   matchedPosts?: Post[];
   responseType?: 'plan' | 'search' | 'info';
   timestamp?: string;
+  auditTrace?: OliAuditTrace;
 }
 
 // Quick starter options for first turn (exactly 4 options)
@@ -99,6 +103,25 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSaved, setIsSaved] = useState(false);
 
+  // Audit Inspector State
+  const [isAuditOpen, setIsAuditOpen] = useState(false);
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const [auditTraces, setAuditTraces] = useState<OliAuditTrace[]>([]);
+  const [selectedAuditTrace, setSelectedAuditTrace] = useState<OliAuditTrace | null>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+
+  // Check API key configuration on mount
+  useEffect(() => {
+    fetch('/api/oli/config')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.hasApiKey === 'boolean') {
+          setHasApiKey(data.hasApiKey);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Audio / Speech State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
@@ -128,108 +151,17 @@ export const OliSection: React.FC<OliSectionProps> = ({
     }
   }, [chatHistory, isLoading]);
 
-  // Web Speech Synthesis Fallback
-  const speakWithBrowserTTS = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const cleanText = text.replace(/\$/g, '').trim();
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'es-CO';
-      utterance.rate = 1.05;
-      utterance.pitch = 1.15;
-
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice =
-        voices.find((v) => v.lang.includes('es-CO') || v.lang.includes('es-419')) ||
-        voices.find(
-          (v) =>
-            v.lang.includes('es') &&
-            (v.name.includes('Female') ||
-              v.name.includes('Sofia') ||
-              v.name.includes('Paulina') ||
-              v.name.includes('Helena') ||
-              v.name.includes('Lucia'))
-        ) ||
-        voices.find((v) => v.lang.includes('es'));
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      utterance.onstart = () => setIsPlayingAudio(true);
-      utterance.onend = () => setIsPlayingAudio(false);
-      utterance.onerror = () => setIsPlayingAudio(false);
-
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      setIsPlayingAudio(false);
-    }
+  // Modo de voz deshabilitado temporalmente a solicitud
+  const speakWithBrowserTTS = (_text: string) => {
+    return;
   };
 
-  // Play audio response from Gemini TTS (/api/oli/tts) or fallback
-  const playOliSpokenText = async (spokenText: string) => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-
-    setIsAudioLoading(true);
-    setIsPlayingAudio(true);
-
-    try {
-      const response = await fetch('/api/oli/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ spokenText }),
-      });
-
-      if (!response.ok) {
-        throw new Error('TTS response not ok');
-      }
-
-      const contentType = response.headers.get('content-type') || '';
-      if (contentType.includes('audio/wav') || contentType.includes('audio/')) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audioRef.current = audio;
-        audio.onended = () => {
-          setIsPlayingAudio(false);
-        };
-        audio.onerror = () => {
-          speakWithBrowserTTS(spokenText);
-        };
-        await audio.play();
-        setIsAudioLoading(false);
-      } else {
-        setIsAudioLoading(false);
-        speakWithBrowserTTS(spokenText);
-      }
-    } catch {
-      setIsAudioLoading(false);
-      speakWithBrowserTTS(spokenText);
-    }
+  const playOliSpokenText = async (_spokenText: string) => {
+    return;
   };
 
-  const handleToggleAudio = (textToPlay?: string) => {
-    if (isPlayingAudio) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      setIsPlayingAudio(false);
-    } else {
-      const text = textToPlay || currentPlan?.spokenText;
-      if (text) {
-        playOliSpokenText(text);
-      }
-    }
+  const handleToggleAudio = (_textToPlay?: string) => {
+    return;
   };
 
   // Speech Recognition
@@ -339,6 +271,17 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
       if (hasStops) {
         setCurrentPlan(responseData);
+      } else if (responseData.type === 'search') {
+        // If it's a direct search, reset currentPlan so subsequent queries are not trapped in plan refinement!
+        setCurrentPlan(null);
+      }
+
+      if (responseData.auditTrace) {
+        setAuditTraces((prev) => [...prev, responseData.auditTrace!]);
+        setSelectedAuditTrace(responseData.auditTrace);
+        if (responseData.auditTrace.executionMode === 'llm') {
+          setHasApiKey(true);
+        }
       }
 
       // Merge local businesses/posts if server returned basic data or IDs
@@ -369,10 +312,11 @@ export const OliSection: React.FC<OliSectionProps> = ({
           matchedPosts: matchedP,
           responseType: responseData.type || (hasStops ? 'plan' : 'search'),
           timestamp: responseTime,
+          auditTrace: responseData.auditTrace,
         },
       ]);
 
-      playOliSpokenText(responseData.spokenText);
+      // playOliSpokenText(responseData.spokenText);
     } catch (err: any) {
       console.error('Error generating response with Oli:', err);
       const fallbackText =
@@ -385,7 +329,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
-      speakWithBrowserTTS(fallbackText);
+      // speakWithBrowserTTS(fallbackText);
     } finally {
       setIsLoading(false);
     }
@@ -518,15 +462,43 @@ export const OliSection: React.FC<OliSectionProps> = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleResetConversation}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
-              title="Iniciar una nueva conversación"
-            >
-              <Plus className="w-3.5 h-3.5 text-[#0066FF]" />
-              <span>Nueva consulta</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsWhatsAppOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
+                title="Conversar con Oli en WhatsApp (Simulador y Conexión)"
+              >
+                <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsAuditOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
+                title="Auditoría del Agente: Ver interpretación y filtrado paso a paso"
+              >
+                <Activity className="w-3.5 h-3.5 text-[#0066FF]" />
+                <span className="hidden sm:inline">Auditoría OLI</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    hasApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-amber-500'
+                  }`}
+                  title={hasApiKey ? 'IA Gemini Activa' : 'Motor Local de Respaldo'}
+                />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetConversation}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
+                title="Iniciar una nueva conversación"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#0066FF]" />
+                <span className="hidden sm:inline">Nueva consulta</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -537,7 +509,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
         {!hasStarted && (
           <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col items-center justify-center px-4 py-8 sm:py-12">
             {/* Full Oli Mascot Character (Complete, unclipped, not inside a circle) */}
-            <div className="relative mb-5 sm:mb-6 flex flex-col items-center">
+            <div className="relative mb-3 flex flex-col items-center">
               <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center transition-transform hover:scale-105 duration-300">
                 {/* Soft ambient aura in background */}
                 <div className="absolute inset-4 bg-gradient-to-tr from-blue-400/20 via-cyan-400/25 to-amber-300/20 rounded-full blur-2xl pointer-events-none" />
@@ -548,6 +520,33 @@ export const OliSection: React.FC<OliSectionProps> = ({
                   className="w-full h-full object-contain select-none drop-shadow-[0_12px_24px_rgba(0,102,255,0.22)]"
                 />
               </div>
+            </div>
+
+            {/* Action Pills: WhatsApp & Inspector */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setIsWhatsAppOpen(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold text-emerald-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+              >
+                <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Chatear en WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsAuditOpen(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+              >
+                <Activity className="w-3.5 h-3.5 text-[#0066FF]" />
+                <span>Auditoría e Inspector</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    hasApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-amber-500'
+                  }`}
+                  title={hasApiKey ? 'IA Gemini Activa' : 'Motor Local de Respaldo'}
+                />
+              </button>
             </div>
 
             {/* Headline */}
@@ -664,27 +663,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                           </span>
                         </div>
 
-                        {/* Audio Voice Player */}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleAudio(msg.text)}
-                          disabled={isAudioLoading}
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                            isPlayingAudio
-                              ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400'
-                              : 'bg-blue-50 hover:bg-blue-100 text-[#0066FF]'
-                          }`}
-                          title={isPlayingAudio ? 'Pausar audio' : 'Escuchar respuesta de Oli'}
-                        >
-                          {isAudioLoading ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Volume2 className="w-3.5 h-3.5" />
-                          )}
-                          <span className="text-[11px]">
-                            {isPlayingAudio ? 'Pausar' : 'Escuchar voz'}
-                          </span>
-                        </button>
+                        {/* Modo de voz deshabilitado temporalmente */}
                       </div>
 
                       {/* Conversational Spoken Text */}
@@ -692,11 +671,29 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         {msg.text}
                       </p>
 
-                      {msg.timestamp && (
-                        <span className="text-[10px] text-slate-400 font-medium block text-right pt-1">
-                          {msg.timestamp}
-                        </span>
-                      )}
+                      <div className="flex items-center justify-between pt-1">
+                        {msg.auditTrace ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedAuditTrace(msg.auditTrace!);
+                              setIsAuditOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95"
+                          >
+                            <Activity className="w-3 h-3 text-[#0066FF]" />
+                            <span>Auditar paso a paso</span>
+                          </button>
+                        ) : (
+                          <span />
+                        )}
+
+                        {msg.timestamp && (
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {msg.timestamp}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* BUSINESS SEARCH RESULTS (Directly in chat without leaving) */}
@@ -1080,20 +1077,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
             }}
             className="w-full bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200/90 hover:border-slate-300 focus-within:border-[#0066FF] focus-within:bg-white focus-within:ring-3 focus-within:ring-blue-500/15 rounded-2xl p-1.5 sm:p-2 flex items-center gap-2 sm:gap-3 shadow-sm hover:shadow transition-all"
           >
-            {/* Microphone Button */}
-            <button
-              type="button"
-              onClick={toggleListening}
-              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 ${
-                isListening
-                  ? 'bg-rose-100 text-rose-600 ring-2 ring-rose-500 animate-pulse'
-                  : 'bg-blue-100 text-[#0066FF] hover:text-[#0056D6] hover:bg-blue-200'
-              }`}
-              title={isListening ? 'Escuchando... Toca para detener' : 'Hablar por micrófono con Oli'}
-              aria-label="Hablar con micrófono"
-            >
-              {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </button>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[#0066FF] bg-blue-50/80 ml-1">
+              <Sparkles className="w-4 h-4" />
+            </div>
 
             {/* Text input */}
             <input
@@ -1127,6 +1113,22 @@ export const OliSection: React.FC<OliSectionProps> = ({
           </form>
         </div>
       </div>
+
+      {/* Floating Step-by-Step Agent Decision Inspector */}
+      <OliAuditModal
+        isOpen={isAuditOpen}
+        onClose={() => setIsAuditOpen(false)}
+        auditTraces={auditTraces}
+        selectedTrace={selectedAuditTrace}
+        onSelectTrace={(trace) => setSelectedAuditTrace(trace)}
+        onApiKeySaved={() => setHasApiKey(true)}
+      />
+
+      {/* WhatsApp Modal: Simulator, Direct wa.me link, and Meta Cloud API Webhook */}
+      <OliWhatsAppModal
+        isOpen={isWhatsAppOpen}
+        onClose={() => setIsWhatsAppOpen(false)}
+      />
     </div>
   );
 };
