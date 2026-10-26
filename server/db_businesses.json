@@ -521,9 +521,9 @@
     "slug": "fogon-sabanero-chia",
     "logo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
     "coverImage": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1000&auto=format&fit=crop&q=80",
-    "description": "Asados al carbón, cortes finos a la parrilla, picadas familiares y arepas de choclo.",
+    "description": "Asados al carbón, pollo broaster familiar sabanero, cortes finos a la parrilla, picadas tradicionales y arepas de choclo.",
     "categoryId": "cat_restaurantes",
-    "subCategory": "Parrilla & Carnes",
+    "subCategory": "Parrilla, Pollo & Carnes",
     "address": "Cra. 10 # 12-45, Centro",
     "city": "Chía",
     "sector": "Centro",
@@ -902,5 +902,49 @@
       "shares": 29
     },
     "createdAt": "2025-02-15T09:00:00Z"
+  },
+  {
+    "id": "biz_pizzeria_bella_sabana",
+    "name": "Pizzería & Trattoria Bella Sabana",
+    "slug": "pizzeria-trattoria-bella-sabana-cajica",
+    "logo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1000&auto=format&fit=crop&q=80",
+    "description": "Pizzería tradicional italiana con horno de leña, pizzas artesanales de masa madre fermentada 48 horas, pastas frescas, calzones y postres.",
+    "categoryId": "cat_restaurantes",
+    "subCategory": "Pizzería & Comida Italiana",
+    "address": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "city": "Cajicá",
+    "sector": "Centro",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.0260
+    },
+    "hours": "Mar - Dom: 12:00 PM - 10:00 PM",
+    "whatsapp": "573159988776",
+    "phone": "3159988776",
+    "email": "contacto@bellasabanapizza.com",
+    "username": "OLE0117",
+    "password": "Veci2026",
+    "instagram": "@bellasabanapizza",
+    "rating": 4.9,
+    "verified": true,
+    "featured": true,
+    "status": "active",
+    "subscription": {
+      "status": "active",
+      "planName": "Plan Mensual OleVeci",
+      "priceCOP": 39900,
+      "billingCycle": "monthly",
+      "expiresAt": "2026-11-20T19:43:04.021Z",
+      "autoRenew": true
+    },
+    "metrics": {
+      "views": 820,
+      "whatsappClicks": 165,
+      "mapsClicks": 94,
+      "calls": 42,
+      "shares": 38
+    },
+    "createdAt": "2025-02-16T10:00:00Z"
   }
 ]

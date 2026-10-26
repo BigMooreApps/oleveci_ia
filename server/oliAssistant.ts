@@ -76,16 +76,18 @@ export interface GenerateOliPlanInput {
   referenceDate?: Date;
 }
 
-const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
+export function getGenAI(): GoogleGenAI | null {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
       },
-    })
-  : null;
+    },
+  });
+}
 
 /**
  * Text normalization: lowercase, strip diacritics/accents, trim, remove excess spaces
@@ -202,7 +204,7 @@ export function extractMunicipality(prompt: string, fallbackCity = 'Cajicá'): s
 
 /**
  * Intent classification (Section 4)
- * Strict distinction between search (single spot/service lookup) and plan (itinerary)
+ * Distinguishes between search / single recommendation and full multi-stop plans
  */
 export function detectSearchIntent(prompt: string): boolean {
   const norm = normalizeText(prompt);
@@ -213,6 +215,7 @@ export function detectSearchIntent(prompt: string): boolean {
     'armame un plan',
     'armanos un plan',
     'crea un plan',
+    'creame un plan',
     'itinerario',
     'ruta para el',
     'ruta de cafe',
@@ -225,9 +228,8 @@ export function detectSearchIntent(prompt: string): boolean {
     'plan de fin de semana',
     'quiero un plan',
     'hacer un plan',
-    'tarde para comer',
+    'tarde para salir',
     'salir este fin de semana',
-    'tengo 100',
     'presupuesto para un plan',
   ];
 
@@ -235,8 +237,57 @@ export function detectSearchIntent(prompt: string): boolean {
     return false;
   }
 
-  // Search prefixes & questions
+  // Refinement Signals (should be handled as plan updates)
+  const refinementSignals = [
+    'cambia la',
+    'cambiar la',
+    'cambia el',
+    'cambiar el',
+    'cambia primera',
+    'cambia segunda',
+    'cambia tercera',
+    'en vez de',
+    'reemplaza',
+    'reemplazar',
+    'quita la',
+    'quitar la',
+    'no me gusta',
+    'otra opcion para',
+  ];
+
+  if (refinementSignals.some((sig) => norm.includes(sig))) {
+    return false;
+  }
+
+  // Search / Recommendation prefixes and question words
   const searchPrefixes = [
+    'donde',
+    'dónde',
+    'donde puedo',
+    'donde lavar',
+    'donde lavan',
+    'donde me lavan',
+    'donde consig',
+    'donde compr',
+    'donde arregl',
+    'donde queda',
+    'donde hay',
+    'donde atiend',
+    'recomiendame',
+    'recomienda',
+    'recomendacion',
+    'comer',
+    'quiero comer',
+    'donde comer',
+    'donde venden',
+    'sitio para',
+    'sitios para',
+    'sitio de',
+    'sitios de',
+    'lugar para',
+    'lugares para',
+    'lugar de',
+    'lugares de',
     'necesito una',
     'necesito un',
     'busco una',
@@ -245,30 +296,55 @@ export function detectSearchIntent(prompt: string): boolean {
     'buscar un',
     'busca una',
     'busca un',
-    'donde arreglan',
-    'donde reparan',
-    'donde consigo',
-    'donde comprar',
-    'donde hay',
-    'donde queda',
     'que peluquerias hay',
     'que talleres hay',
     'que veterinarias hay',
     'que papelerias hay',
+    'que pizzerias hay',
+    'que restaurantes hay',
     'contacto de',
     'telefono de',
     'whatsapp de',
+    'horario de',
+    'a que hora',
+    'cuanto cuesta',
+    'precio de',
   ];
 
   if (searchPrefixes.some((p) => norm.includes(p))) {
     return true;
   }
 
-  // Pure service or trade keywords when not phrased as a full plan
+  // Pure service, trade or food keywords when not phrased as a full plan
   const standaloneServices = [
+    'lavar el auto',
+    'lavar auto',
+    'lavar carro',
+    'lavar vehiculo',
+    'lavadero',
+    'lavado de autos',
+    'lavado de carros',
+    'lavado',
+    'autospa',
+    'car wash',
+    'detailing',
+    'pizza',
+    'pizzas',
+    'pizzeria',
+    'pollo',
+    'pollos',
+    'broaster',
+    'pollo asado',
+    'pollo broaster',
+    'hamburguesa',
+    'hamburguesas',
+    'burger',
+    'parrilla',
+    'asado',
     'papeleria',
     'taller mecanico',
     'taller de autos',
+    'taller automotriz',
     'mecanica',
     'veterinaria',
     'veterinario',
@@ -278,8 +354,6 @@ export function detectSearchIntent(prompt: string): boolean {
     'reparacion de celulares',
     'cambio de aceite',
     'frenos',
-    'lavado de autos',
-    'car wash',
     'drogueria',
     'farmacia',
     'ferreteria',
@@ -301,16 +375,16 @@ export function extractRequestedTopic(prompt: string): {
   const specificDesires = [
     { label: 'arroz chino', isDining: true, keywords: ['arroz chino', 'comida china', 'oriental', 'chaufa', 'chifa'] },
     { label: 'sushi', isDining: true, keywords: ['sushi', 'comida japonesa', 'ramen', 'poke', 'makis'] },
-    { label: 'pizza', isDining: true, keywords: ['pizza', 'pizzas', 'calzone'] },
+    { label: 'pizza', isDining: true, keywords: ['pizza', 'pizzas', 'calzone', 'pizzeria', 'italiana'] },
+    { label: 'pollo', isDining: true, keywords: ['pollo', 'pollos', 'broaster', 'pollo asado', 'pollo campesino', 'pollo frito', 'alitas'] },
     { label: 'hamburguesas', isDining: true, keywords: ['hamburguesa', 'hamburguesas', 'burger', 'burgers', 'smash'] },
     { label: 'tacos y comida mexicana', isDining: true, keywords: ['taco', 'tacos', 'mexicana', 'burrito', 'quesadilla', 'nachos'] },
     { label: 'carne y asado', isDining: true, keywords: ['carne', 'asado', 'parrilla', 'steak', 'punta de anca', 'costilla', 'churrasco'] },
-    { label: 'cerveza artesanal y polas', isDining: true, keywords: ['pola', 'polas', 'cerveza', 'cervezas', 'cerveza artesanal', 'pub', 'alitas'] },
+    { label: 'cerveza artesanal y polas', isDining: true, keywords: ['pola', 'polas', 'cerveza', 'cervezas', 'cerveza artesanal', 'pub', 'gastrobar'] },
     { label: 'café y postres', isDining: true, keywords: ['cafe', 'postre', 'postres', 'torta', 'tortas', 'reposteria', 'pasteleria', 'helado', 'helados', 'crepes'] },
     { label: 'comida típica colombiana', isDining: true, keywords: ['ajiaco', 'bandeja paisa', 'sancocho', 'corrientazo', 'comida tipica', 'almuerzo casero'] },
-    { label: 'pastas y comida italiana', isDining: true, keywords: ['pasta', 'pastas', 'lasagna', 'lasana', 'italiana', 'espagueti', 'ravioli'] },
+    { label: 'pastas y comida italiana', isDining: true, keywords: ['pasta', 'pastas', 'lasagna', 'lasana', 'espagueti', 'ravioli'] },
     { label: 'pescados y mariscos', isDining: true, keywords: ['pescado', 'mariscos', 'ceviche', 'camarones', 'mojarra', 'trucha'] },
-    { label: 'pollo asado o broaster', isDining: true, keywords: ['pollo asado', 'pollo broaster', 'broaster'] },
     { label: 'desayuno o brunch', isDining: true, keywords: ['desayuno', 'brunch', 'calentado', 'huevos', 'waffles', 'pancakes'] },
     { label: 'opciones vegetarianas', isDining: true, keywords: ['vegetariano', 'vegano', 'ensalada', 'saludable'] },
     { label: 'papelería', isDining: false, keywords: ['papeleria', 'utiles', 'fotocopias', 'impresiones'] },
@@ -325,7 +399,7 @@ export function extractRequestedTopic(prompt: string): {
   }
 
   // Regex for "quiero comer X", "antojo de X", "ganas de X"
-  const cravingMatch = norm.match(/(?:quiero comer|tengo ganas de comer|antojo de|ganas de|busco donde comer)\s+([a-z\s]+?)(?:\s+(?:en|cerca|para|con|este|hoy|$))/i);
+  const cravingMatch = norm.match(/(?:quiero comer|tengo ganas de comer|antojo de|ganas de|busco donde comer|recomiendame comer)\s+([a-z\s]+?)(?:\s+(?:en|cerca|para|con|este|hoy|$))/i);
   if (cravingMatch && cravingMatch[1]) {
     const raw = cravingMatch[1].trim();
     if (raw.length > 2 && !['algo', 'rico', 'delicioso', 'bien', 'bueno'].includes(raw)) {
@@ -379,6 +453,20 @@ export function classifyPostRole(post: Post): PostMealRole {
   const combined = normalizeText(
     `${post.title || ''} ${post.description || ''} ${post.categoryId || ''} ${post.planCategoryId || ''} ${(post.tags || []).join(' ')}`
   );
+
+  // Retail raw meat, groceries, markets are retail shopping, NOT restaurant dine-in meals
+  if (
+    combined.includes('carniceria') ||
+    combined.includes('empacado al vacio') ||
+    combined.includes('fruver') ||
+    combined.includes('supermercado') ||
+    combined.includes('lacteos artesanales') ||
+    combined.includes('cuajada & arequipe') ||
+    post.businessId === 'biz_carniceria_gourmet' ||
+    post.businessId === 'biz_mercado_sabana'
+  ) {
+    return 'activity_other';
+  }
 
   if (combined.includes('desayuno') || combined.includes('brunch') || combined.includes('calentado') || combined.includes('huevos')) {
     return 'breakfast_brunch';
@@ -626,6 +714,219 @@ export function buildCoherentItinerary(
 }
 
 /**
+ * Intelligent deterministic refinement handler for Oli
+ * Handles stop substitution (e.g., swapping first stop for pizza or chicken),
+ * stop deletion, preserving unchanged stops and recalculating totals.
+ */
+export function handleRefinementPlan(
+  input: GenerateOliPlanInput,
+  businessMap: Map<string, Business>,
+  eligiblePosts: Post[]
+): OliPlanResponse {
+  const { userPrompt, previousPlan, userBudget = 100000, currentCity = 'Cajicá' } = input;
+  const normPrompt = normalizeText(userPrompt);
+
+  if (!previousPlan || !previousPlan.stops || previousPlan.stops.length === 0) {
+    return generateFallbackOliPlan({ ...input, previousPlan: null });
+  }
+
+  // 1. Check for removal requests ("quita la primera parada", "elimina la segunda", etc.)
+  if (
+    normPrompt.includes('quita') ||
+    normPrompt.includes('quitar') ||
+    normPrompt.includes('elimina') ||
+    normPrompt.includes('eliminar') ||
+    normPrompt.includes('borra') ||
+    normPrompt.includes('borrar')
+  ) {
+    let removeIndex = 0;
+    if (normPrompt.includes('segund') || normPrompt.includes('2da') || normPrompt.includes('2')) removeIndex = 1;
+    else if (normPrompt.includes('tercer') || normPrompt.includes('3ra') || normPrompt.includes('3') || normPrompt.includes('ultim')) removeIndex = 2;
+    removeIndex = Math.min(removeIndex, previousPlan.stops.length - 1);
+    return removeStopAndRecalculatePlan(previousPlan, removeIndex);
+  }
+
+  const existingStops = [...previousPlan.stops];
+
+  // 2. Determine target stop index to replace
+  let targetIndex = -1;
+  if (normPrompt.includes('primer') || normPrompt.includes('1ra') || normPrompt.includes('parada 1') || normPrompt.includes('el primer')) {
+    targetIndex = 0;
+  } else if (normPrompt.includes('segund') || normPrompt.includes('2da') || normPrompt.includes('parada 2') || normPrompt.includes('el segund')) {
+    targetIndex = 1;
+  } else if (normPrompt.includes('tercer') || normPrompt.includes('3ra') || normPrompt.includes('parada 3') || normPrompt.includes('el tercer') || normPrompt.includes('ultim')) {
+    targetIndex = existingStops.length - 1;
+  }
+
+  // Extract requested topic / food / category
+  const { topic } = extractRequestedTopic(userPrompt);
+  const normTopic = topic ? normalizeText(topic) : '';
+
+  // If no explicit index mentioned, infer by topic type
+  if (targetIndex === -1) {
+    if (
+      normPrompt.includes('pizza') ||
+      normPrompt.includes('pollo') ||
+      normPrompt.includes('hamburguesa') ||
+      normPrompt.includes('carne') ||
+      normPrompt.includes('asado') ||
+      normPrompt.includes('almuerzo') ||
+      normPrompt.includes('cena') ||
+      normTopic.includes('pizza') ||
+      normTopic.includes('pollo') ||
+      normTopic.includes('carne')
+    ) {
+      const mainIdx = existingStops.findIndex((s) => {
+        const p = eligiblePosts.find((p) => p.id === s.postId);
+        return p && classifyPostRole(p) === 'main_course';
+      });
+      targetIndex = mainIdx !== -1 ? mainIdx : 0;
+    } else if (
+      normPrompt.includes('cafe') ||
+      normPrompt.includes('postre') ||
+      normPrompt.includes('torta') ||
+      normPrompt.includes('helado') ||
+      normTopic.includes('cafe') ||
+      normTopic.includes('postre')
+    ) {
+      const dessertIdx = existingStops.findIndex((s) => {
+        const p = eligiblePosts.find((p) => p.id === s.postId);
+        return p && classifyPostRole(p) === 'cafe_dessert';
+      });
+      targetIndex = dessertIdx !== -1 ? dessertIdx : 1;
+    } else if (
+      normPrompt.includes('cerveza') ||
+      normPrompt.includes('trago') ||
+      normPrompt.includes('vino') ||
+      normPrompt.includes('coctel')
+    ) {
+      targetIndex = existingStops.length - 1;
+    } else {
+      targetIndex = 0;
+    }
+  }
+
+  targetIndex = Math.min(Math.max(targetIndex, 0), existingStops.length - 1);
+
+  // Other business IDs in the plan that cannot be reused to avoid duplicates
+  const otherBizIds = new Set(
+    existingStops.filter((_, idx) => idx !== targetIndex).map((s) => s.businessId)
+  );
+
+  // Search candidate replacement posts matching topic/keywords
+  const searchKeywords: string[] = [];
+  if (normTopic) searchKeywords.push(...normTopic.split(/\s+/).filter((w) => w.length > 2));
+  if (normPrompt.includes('pizza')) searchKeywords.push('pizza', 'pizzeria', 'italiana', 'artesanal');
+  if (normPrompt.includes('pollo')) searchKeywords.push('pollo', 'broaster', 'alitas', 'crispy');
+  if (normPrompt.includes('hamburguesa')) searchKeywords.push('hamburguesa', 'burger', 'smash');
+  if (normPrompt.includes('cafe')) searchKeywords.push('cafe', 'postre', 'reposteria');
+  if (normPrompt.includes('postre')) searchKeywords.push('postre', 'torta', 'helado');
+
+  const targetCity = extractMunicipality(userPrompt, previousPlan.stops[targetIndex]?.businessCity || currentCity);
+
+  const scoredCandidates = eligiblePosts
+    .filter((p) => !otherBizIds.has(p.businessId) && p.id !== existingStops[targetIndex].postId)
+    .map((p) => {
+      const b = businessMap.get(p.businessId);
+      const combined = normalizeText(
+        `${p.title} ${p.description || ''} ${(p.tags || []).join(' ')} ${b?.name || ''} ${b?.description || ''} ${p.categoryId || ''}`
+      );
+      let score = 0;
+      for (const kw of searchKeywords) {
+        if (textContainsTerm(combined, kw)) score += 30;
+      }
+      if (b?.city && normalizeText(b.city) === normalizeText(targetCity)) score += 15;
+      if (p.businessCity && normalizeText(p.businessCity) === normalizeText(targetCity)) score += 15;
+
+      return { post: p, score };
+    })
+    .filter((c) => c.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  let replacementPost = scoredCandidates.length > 0 ? scoredCandidates[0].post : null;
+
+  // Fallback: If no keyword match without colliding, pick any eligible post from another business
+  if (!replacementPost) {
+    replacementPost = eligiblePosts.find(
+      (p) => !otherBizIds.has(p.businessId) && p.id !== existingStops[targetIndex].postId
+    ) || null;
+  }
+
+  if (replacementPost) {
+    const biz = businessMap.get(replacementPost.businessId) || ({
+      id: replacementPost.businessId,
+      name: replacementPost.businessName,
+      city: replacementPost.businessCity || targetCity,
+      address: replacementPost.businessAddress || 'Sabana Centro',
+      phone: replacementPost.businessPhone,
+      whatsapp: replacementPost.businessWhatsapp,
+      coordinates: replacementPost.coordinates,
+    } as Business);
+
+    const cost = replacementPost.promotionalPrice || replacementPost.originalPrice || replacementPost.approximatePrice || 25000;
+    const postRole = classifyPostRole(replacementPost);
+    const stopTime = existingStops[targetIndex].time || getScheduleTimeForRole(postRole, targetIndex, existingStops.length, replacementPost, biz);
+    const activityDesc = generateActivityFromPost(replacementPost, biz);
+
+    const newStop: OliPlanStop = {
+      postId: replacementPost.id,
+      businessId: replacementPost.businessId,
+      businessName: biz.name || replacementPost.businessName,
+      businessCity: biz.city || replacementPost.businessCity || targetCity,
+      businessAddress: biz.address || 'Sabana Centro',
+      businessPhone: biz.phone || replacementPost.businessPhone,
+      businessWhatsapp: biz.whatsapp || replacementPost.businessWhatsapp,
+      time: stopTime,
+      activity: activityDesc,
+      postTitle: replacementPost.title,
+      imageUrl: replacementPost.imageUrl || biz.coverImage || biz.logo || '/Logo_OleVeci.png',
+      cost,
+      whySelected: `Opción seleccionada especialmente para cumplir con tu antojo de ${topic || 'comida local'}.`,
+    };
+
+    existingStops[targetIndex] = newStop;
+  }
+
+  // Recalculate budget
+  const personCount = previousPlan.personCount || extractPersonCount(userPrompt);
+  const budgetSummary = calculateItineraryBudget(
+    existingStops.map((s) => ({ cost: s.cost })),
+    previousPlan.userBudget || userBudget,
+    personCount
+  );
+
+  const ordinalLabels = ['primera', 'segunda', 'tercera', 'cuarta'];
+  const replacedStop = existingStops[targetIndex];
+  const targetLabel = ordinalLabels[targetIndex] || `parada ${targetIndex + 1}`;
+
+  let spokenText = `¡Listo veci! Ya te cambié la ${targetLabel} parada por ${replacedStop.businessName} para ${replacedStop.activity}. `;
+  if (existingStops.length === 1) {
+    spokenText += `El plan queda en ${existingStops[0].businessName} con un total estimado de ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
+  } else if (existingStops.length === 2) {
+    spokenText += `Ahora el recorrido inicia en ${existingStops[0].businessName} para ${existingStops[0].activity}, y luego pasamos a ${existingStops[1].businessName} para ${existingStops[1].activity}. En total les sale en ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
+  } else {
+    spokenText += `El recorrido completo queda así: primero ${existingStops[0].businessName} para ${existingStops[0].activity}, luego ${existingStops[1].businessName} para ${existingStops[1].activity}, y cerramos en ${existingStops[2].businessName} para ${existingStops[2].activity}. En total todo les sale en ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
+  }
+
+  spokenText = sanitizeSpokenText(spokenText, existingStops, true, false, false);
+
+  return {
+    ...previousPlan,
+    type: 'plan',
+    spokenText,
+    greeting: '¡Listo veci! Ya te ajusté el plan',
+    planTitle: topic ? `Ruta con ${topic.charAt(0).toUpperCase() + topic.slice(1)} Ajustada` : `Plan Veci Ajustado`,
+    summary: `Itinerario actualizado con ${existingStops[targetIndex].businessName} en la ${targetLabel} parada.`,
+    stops: existingStops,
+    costPerPerson: budgetSummary.costPerPerson,
+    totalEstimatedCost: budgetSummary.totalEstimatedCost,
+    savingsOrRemaining: budgetSummary.savingsOrRemaining,
+    budgetStatus: budgetSummary.budgetStatus,
+    hasUnconfirmedPrices: budgetSummary.hasUnconfirmedPrices,
+  };
+}
+
+/**
  * Fallback plan generator that deterministically complies with all 14 business rules
  */
 export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanResponse {
@@ -679,12 +980,29 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
       return false;
     }
     if (targetAudience === 'Familiar') {
-      if (desc.includes('discoteca') || desc.includes('rumba nocturna') || desc.includes('licorera') || desc.includes('bar nocturno')) {
+      const subCat = normalizeText(biz?.subCategory || '');
+      if (
+        desc.includes('discoteca') ||
+        desc.includes('rumba') ||
+        desc.includes('licorera') ||
+        desc.includes('bar nocturno') ||
+        desc.includes('rock & beer') ||
+        desc.includes('cueva del rock') ||
+        desc.includes('cocteleria') ||
+        subCat.includes('bar') ||
+        subCat.includes('coctel') ||
+        p.businessId === 'biz_bar_nocturno'
+      ) {
         return false;
       }
     }
     return true;
   });
+
+  // If this is a refinement and previousPlan exists, delegate immediately to handleRefinementPlan
+  if (isRefinement && previousPlan && previousPlan.stops && previousPlan.stops.length > 0) {
+    return handleRefinementPlan(input, businessMap, eligiblePosts);
+  }
 
   // Filter by target city first
   let cityPosts = eligiblePosts.filter((p) => {
@@ -795,11 +1113,38 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
   const isFoodRequest =
     !allowGym &&
     (isAlternativeSuggestion ||
-      /arroz|chino|comida|comer|almorzar|cenar|restaurante|plato|carne|asado|brunch|cafe|postre|hamburguesa|pizza|gastro|parrilla|picada|panaderia|helado|sushi/i.test(
+      /arroz|chino|comida|comer|almorzar|cenar|restaurante|plato|carne|asado|brunch|cafe|postre|hamburguesa|pizza|gastro|parrilla|picada|panaderia|helado|sushi|pareja|amigos|familia|fin de semana|domingo|sabado|plan|itinerario|salir/i.test(
         normPrompt
       ));
 
-  const candidatePosts = cityPosts.length >= 2 ? cityPosts : eligiblePosts;
+  // Seed-based dynamic rotation so initial plan requests don't always pick the identical 3 spots
+  const seed = (normPrompt.length * 37 + (dateInfo.dayOfWeek || 0) * 13) % 100;
+  const baseCandidates = cityPosts.length >= 2 ? cityPosts : eligiblePosts;
+  const filteredCandidates = isFoodRequest
+    ? baseCandidates.filter((p) => {
+        const b = businessMap.get(p.businessId);
+        const combined = normalizeText(`${p.title} ${p.description || ''} ${b?.name || ''} ${b?.subCategory || ''} ${p.categoryId || ''}`);
+        if (
+          combined.includes('carniceria') ||
+          combined.includes('fruver') ||
+          combined.includes('supermercado') ||
+          combined.includes('feria de lacteos') ||
+          p.businessId === 'biz_carniceria_gourmet' ||
+          p.businessId === 'biz_mercado_sabana'
+        ) {
+          return false;
+        }
+        return true;
+      })
+    : baseCandidates;
+
+  const rawCandidates = filteredCandidates.length >= 2 ? filteredCandidates : baseCandidates;
+  const candidatePosts = [...rawCandidates].sort((a, b) => {
+    const hashA = (a.id.charCodeAt(a.id.length - 1) + seed) % 17;
+    const hashB = (b.id.charCodeAt(b.id.length - 1) + seed) % 17;
+    return hashA - hashB;
+  });
+
   const finalPosts = buildCoherentItinerary(matchedPosts, candidatePosts, 3, isFoodRequest);
 
   // 7. Calculate Geo-distances between consecutive stops if coordinates exist
@@ -999,6 +1344,38 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
     ],
     allowedPlanCategoryIds: ['plan_comprar_algo', 'plan_otros'],
   },
+  lavado_autos: {
+    words: [
+      'lavar el auto',
+      'lavar auto',
+      'lavar carro',
+      'lavar vehiculo',
+      'lavado de autos',
+      'lavado de carros',
+      'lavadero',
+      'lavado',
+      'lavar',
+      'autospa',
+      'car wash',
+      'detailing',
+      'cojineria',
+      'polichado',
+      'limpieza de tapiceria',
+      'encerado',
+      'sellado ceramico',
+    ],
+    allowedCategoryIds: ['cat_automoviles', 'cat_servicios'],
+    excludedCategoryIds: [
+      'cat_planes_eventos',
+      'cat_mascotas',
+      'cat_cafes',
+      'cat_restaurantes',
+      'cat_comida_rapida',
+      'cat_belleza',
+      'cat_fitness',
+    ],
+    allowedPlanCategoryIds: ['plan_cuidar_la_nave', 'plan_otros'],
+  },
   taller: {
     words: [
       'taller',
@@ -1051,25 +1428,111 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
     excludedCategoryIds: ['cat_planes_eventos', 'cat_mascotas', 'cat_automoviles', 'cat_restaurantes'],
     allowedPlanCategoryIds: ['plan_comprar_algo', 'plan_otros'],
   },
-  comida: {
+  pizza: {
     words: [
-      'restaurante',
-      'restaurantes',
+      'pizza',
+      'pizzas',
+      'pizzeria',
+      'pizzerias',
+      'calzone',
+      'focaccia',
+      'masa madre',
+      'napolitana',
+      'lasagna',
+      'pasta',
+    ],
+    allowedCategoryIds: ['cat_restaurantes', 'cat_comida_rapida'],
+    excludedCategoryIds: [
+      'cat_planes_eventos',
+      'cat_mascotas',
+      'cat_automoviles',
+      'cat_fitness',
+      'cat_belleza',
+      'cat_servicios',
+    ],
+    allowedPlanCategoryIds: ['plan_comer_algo', 'plan_cita_romantica'],
+  },
+  pollo: {
+    words: [
+      'pollo',
+      'pollos',
+      'broaster',
+      'pollo broaster',
+      'pollo asado',
+      'pollo campesino',
+      'pollo frito',
+      'alitas',
+      'crispy',
+      'pechuga',
+    ],
+    allowedCategoryIds: ['cat_restaurantes', 'cat_comida_rapida'],
+    excludedCategoryIds: [
+      'cat_planes_eventos',
+      'cat_mascotas',
+      'cat_automoviles',
+      'cat_fitness',
+      'cat_belleza',
+      'cat_servicios',
+    ],
+    allowedPlanCategoryIds: ['plan_comer_algo', 'plan_con_amigos'],
+  },
+  hamburguesas: {
+    words: [
       'hamburguesa',
       'hamburguesas',
       'burger',
       'burgers',
-      'pizza',
-      'pizzas',
+      'smash',
+      'smash burger',
+    ],
+    allowedCategoryIds: ['cat_restaurantes', 'cat_comida_rapida'],
+    excludedCategoryIds: [
+      'cat_planes_eventos',
+      'cat_mascotas',
+      'cat_automoviles',
+      'cat_servicios',
+    ],
+    allowedPlanCategoryIds: ['plan_comer_algo', 'plan_con_amigos'],
+  },
+  carnes: {
+    words: [
       'carne',
+      'carnes',
       'asado',
+      'asados',
       'parrilla',
-      'alitas',
-      'comida rapida',
-      'brasa',
+      'parrillada',
+      'punta de anca',
+      'costilla',
+      'costillas',
+      'lomo',
+      'steak',
+      'churrasco',
+      'picada',
+      'cortes madurados',
+      'carniceria',
+    ],
+    allowedCategoryIds: ['cat_restaurantes', 'cat_comida_rapida', 'cat_otros'],
+    excludedCategoryIds: [
+      'cat_planes_eventos',
+      'cat_mascotas',
+      'cat_automoviles',
+      'cat_servicios',
+    ],
+    allowedPlanCategoryIds: ['plan_comer_algo', 'plan_con_amigos'],
+  },
+  comida: {
+    words: [
+      'restaurante',
+      'restaurantes',
+      'comida',
       'almuerzo',
       'cena',
-      'picada',
+      'gastronomia',
+      'comida tipica',
+      'ajiaco',
+      'sancocho',
+      'corrientazo',
     ],
     allowedCategoryIds: ['cat_restaurantes', 'cat_comida_rapida', 'cat_cafes'],
     excludedCategoryIds: ['cat_automoviles', 'cat_mascotas', 'cat_ferreteria', 'cat_servicios'],
@@ -1202,8 +1665,24 @@ export function searchBusinessesAndPosts(
     for (const term of allSearchTerms) {
       if (textContainsTerm(nameNorm, term)) score += 15;
       if (textContainsTerm(subCatNorm, term)) score += 12;
-      if (textContainsTerm(descNorm, term)) score += 5;
+      if (textContainsTerm(descNorm, term)) score += 8;
     }
+
+    // Active publications bonus: if the business has published posts matching the topic
+    const bizPosts = catalogPosts.filter(
+      (p) => p.businessId === b.id && (!p.status || p.status === 'active') && !p.suspended
+    );
+    let postMatchBonus = 0;
+    for (const p of bizPosts) {
+      const pText = normalizeText(`${p.title} ${p.description || ''} ${(p.tags || []).join(' ')}`);
+      for (const term of allSearchTerms) {
+        if (textContainsTerm(pText, term)) {
+          postMatchBonus += 15;
+          break;
+        }
+      }
+    }
+    score += Math.min(postMatchBonus, 30);
 
     // Municipality bonus: ONLY applies if the business has a genuine intrinsic topic score
     if (score >= 15 && inTargetCity) {
@@ -1244,17 +1723,21 @@ export function searchBusinessesAndPosts(
         return false;
       }
 
+      // Check keyword / tag match for the topic
+      const postTags = (post.tags || []).map((t) => normalizeText(t));
+      const postText = normalizeText(`${post.title} ${post.description || ''}`);
+      const hasTopicWord = activeTopicDef
+        ? activeTopicDef.words.some((w) => postTags.includes(w) || textContainsTerm(postText, w))
+        : false;
+
       // 1. Post belongs to a matched business
       if (matchedBizIds.has(post.businessId)) {
-        return true;
+        if (!activeTopicDef || queryTopic === 'comida') return true;
+        return hasTopicWord;
       }
 
       // 2. Direct keyword / tag match for the topic
-      const postTags = (post.tags || []).map((t) => normalizeText(t));
-      const hasTagMatch = allSearchTerms.some((term) => postTags.includes(term));
-      if (hasTagMatch) return true;
-
-      const postText = normalizeText(`${post.title} ${post.description || ''}`);
+      if (hasTopicWord) return true;
       return allSearchTerms.some((t) => textContainsTerm(postText, t));
     })
     .sort((a, b) => {
@@ -1295,12 +1778,30 @@ export async function generateOliSearchResponse(
   );
 
   if (matchedBusinesses.length === 0) {
-    const fallbackText = sanitizeSpokenText(
-      `¡Listo veci! Estuve buscando locales de ${queryTopic} en ${targetMunicipality} y Sabana Centro, pero en este momento no tenemos uno registrado con ese servicio específico en OleVeci. Sin embargo, te puedo conectar con otros comercios recomendados del municipio o armarte un plan. ¿Qué más te gustaría encontrar?`,
-      [],
-      false,
-      true
-    );
+    const ai = getGenAI();
+    let noMatchText = `¡Listo veci! Estuve buscando locales de ${queryTopic} en ${targetMunicipality} y Sabana Centro, pero en este momento no tenemos uno registrado con ese servicio específico en OleVeci. Sin embargo, te puedo conectar con otros comercios recomendados del municipio o armarte un plan. ¿Qué más te gustaría encontrar?`;
+
+    if (ai) {
+      try {
+        const noMatchRes = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: `El usuario preguntó en OleVeci: "${userPrompt}" para el municipio "${targetMunicipality}".
+No hay comercios registrados exactamente para esa búsqueda.
+Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
+- Comienza obligatoriamente con "¡Listo veci!".
+- Explica cordialmente que por ahora no hay un comercio específico registrado para eso en ${targetMunicipality}.
+- Ofrece ayudarlo a buscar gastronomía, café, talleres, planes o comercios locales de la sabana.
+- CERO signos '$'.`,
+          config: {
+            systemInstruction: 'Eres Oli, la asistente inteligente y amable de OleVeci en Colombia. Tu tono es cálido, confiable y servicial ("veci").',
+          },
+        });
+        const genText = noMatchRes.text?.trim();
+        if (genText) noMatchText = genText;
+      } catch {}
+    }
+
+    const fallbackText = sanitizeSpokenText(noMatchText, [], false, true);
     return {
       type: 'search',
       spokenText: fallbackText,
@@ -1316,13 +1817,75 @@ export async function generateOliSearchResponse(
   const firstBiz = matchedBusinesses[0];
   const secondBiz = matchedBusinesses[1];
 
-  if (!exactMatchInMunicipality && targetMunicipality) {
-    // If not in the requested municipality, explain transparently
-    spokenText = `¡Listo veci! En ${targetMunicipality} no encontré un comercio exacto de ${queryTopic}, pero te encontré una excelente opción muy cerca: ${firstBiz.name} en ${firstBiz.city}, ubicado en ${firstBiz.address}. ${firstBiz.description || ''} ¡Toca el botón verde para contactarlos directo por WhatsApp o ver su perfil!`;
-  } else if (matchedBusinesses.length === 1) {
-    spokenText = `¡Listo veci! Te encontré la mejor opción en ${firstBiz.city}: ${firstBiz.name}, ubicado en ${firstBiz.address}. ${firstBiz.description || ''} ¡Puedes escribirles directo al WhatsApp o ver su ficha en OleVeci!`;
-  } else {
-    spokenText = `¡Listo veci! Te encontré opciones recomendadas de ${queryTopic}: primero ${firstBiz.name} en ${firstBiz.city} (${firstBiz.address}), y también ${secondBiz.name} en ${secondBiz.city}. Puedes escribirles directo por WhatsApp o ver sus promociones en pantalla.`;
+  // Try intelligent text generation via Gemini 3.8 Flash
+  const ai = getGenAI();
+  if (ai) {
+    try {
+      const bizSummary = matchedBusinesses.slice(0, 3).map((b) => ({
+        id: b.id,
+        nombre: b.name,
+        municipio: b.city,
+        direccion: b.address,
+        descripcion: b.description,
+        horario: b.hours,
+        telefono: b.phone,
+        whatsapp: b.whatsapp,
+        subcategoria: b.subCategory,
+      }));
+      const postSummary = matchedPosts.slice(0, 3).map((p) => ({
+        titulo: p.title,
+        precio: p.promotionalPrice || p.originalPrice || p.approximatePrice,
+        descripcion: p.description,
+        comercio: p.businessName,
+      }));
+
+      const searchAiPrompt = `Consulta del usuario: "${userPrompt}"
+Municipio: "${targetMunicipality}"
+Comercios locales encontrados en el catálogo de OleVeci:
+${JSON.stringify(bizSummary, null, 2)}
+Publicaciones y servicios encontrados:
+${JSON.stringify(postSummary, null, 2)}
+
+Genera la respuesta hablada de Oli:
+1. DEBE comenzar estrictamente con "¡Listo veci!".
+2. Responde directamente a lo que preguntó el usuario de forma cálida, cercana y entusiasta.
+3. Menciona el comercio más relevante (${firstBiz.name}), su municipio (${firstBiz.city}), dirección (${firstBiz.address}) y el servicio o precio destacado si aplica.
+4. Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directo o ver su ficha.
+5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
+6. Máximo 2 o 3 oraciones directas.`;
+
+      for (const modelName of ['gemini-3.8-flash', 'gemini-3.1-flash-lite']) {
+        try {
+          const aiResponse = await ai.models.generateContent({
+            model: modelName,
+            contents: searchAiPrompt,
+            config: {
+              systemInstruction: 'Eres Oli, la asistente inteligente y guía oficial de OleVeci en Colombia. Tu tono es cálido, confiable, servicial y auténtico ("veci"). Responde en español colombiano natural sin tecnicismos.',
+            },
+          });
+          const aiText = aiResponse.text?.trim();
+          if (aiText) {
+            spokenText = aiText;
+            break;
+          }
+        } catch (modelErr: any) {
+          console.warn(`Intento de búsqueda con ${modelName} falló:`, modelErr?.message || modelErr);
+        }
+      }
+    } catch (err: any) {
+      console.warn('Gemini search text generation fallback:', err?.message || err);
+    }
+  }
+
+  // Fallback to template if Gemini wasn't available or errored
+  if (!spokenText) {
+    if (!exactMatchInMunicipality && targetMunicipality) {
+      spokenText = `¡Listo veci! En ${targetMunicipality} no encontré un comercio exacto de ${queryTopic}, pero te encontré una excelente opción muy cerca: ${firstBiz.name} en ${firstBiz.city}, ubicado en ${firstBiz.address}. ${firstBiz.description || ''} ¡Toca el botón verde para contactarlos directo por WhatsApp o ver su perfil!`;
+    } else if (matchedBusinesses.length === 1) {
+      spokenText = `¡Listo veci! Te encontré la mejor opción en ${firstBiz.city}: ${firstBiz.name}, ubicado en ${firstBiz.address}. ${firstBiz.description || ''} ¡Puedes escribirles directo al WhatsApp o ver su ficha en OleVeci!`;
+    } else {
+      spokenText = `¡Listo veci! Te encontré opciones recomendadas de ${queryTopic}: primero ${firstBiz.name} en ${firstBiz.city} (${firstBiz.address}), y también ${secondBiz.name} en ${secondBiz.city}. Puedes escribirles directo por WhatsApp o ver sus promociones en pantalla.`;
+    }
   }
 
   spokenText = sanitizeSpokenText(spokenText, [], false, true);
@@ -1335,6 +1898,49 @@ export async function generateOliSearchResponse(
     matchedBusinesses,
     matchedPosts,
   };
+}
+
+/**
+ * Resilient multi-model Gemini caller cascading through fastest available models
+ */
+async function callGeminiWithModelFallback(
+  aiInstance: GoogleGenAI,
+  prompt: string,
+  systemInstruction: string,
+  responseSchema: any
+): Promise<string> {
+  // Candidate models: flagship fast flash -> ultra-low latency flash-lite
+  const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+  let lastError: any = null;
+
+  for (const model of candidateModels) {
+    try {
+      const call = aiInstance.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema,
+        },
+      });
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout superado en modelo ${model}`)), 25000)
+      );
+
+      const res = await Promise.race([call, timeoutPromise]);
+      const text = res.text ? res.text.trim() : '';
+      if (text) {
+        return text;
+      }
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`Intento con modelo ${model} falló o tardó demasiado:`, err?.message || err);
+    }
+  }
+
+  throw lastError || new Error('Todos los modelos de Gemini fallaron o excedieron el tiempo de respuesta.');
 }
 
 /**
@@ -1359,6 +1965,8 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
     return generateOliSearchResponse(input);
   }
 
+  const ai = getGenAI();
+
   // 2. If Gemini API is not available, immediately use deterministic fallback
   if (!ai) {
     return generateFallbackOliPlan(input);
@@ -1373,6 +1981,9 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
     const eligiblePosts = getEligiblePlanPosts(catalogPosts, dateInfo.targetDate, dateInfo.dayOfWeek, businessMap);
 
     const normPrompt = normalizeText(userPrompt);
+
+    // Dynamic rotation seed so user gets fresh and varied recommendations rather than repeating the same 3 spots
+    const seed = (normPrompt.length * 29 + (dateInfo.dayOfWeek || 0) * 17) % 97;
     const sortedPosts = [...eligiblePosts].sort((a, b) => {
       const aInCity = a.businessCity && normalizeText(a.businessCity) === normalizeText(targetCity) ? 1 : 0;
       const bInCity = b.businessCity && normalizeText(b.businessCity) === normalizeText(targetCity) ? 1 : 0;
@@ -1380,7 +1991,12 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
 
       const aTitleMatch = normPrompt.includes(normalizeText(a.title)) ? 1 : 0;
       const bTitleMatch = normPrompt.includes(normalizeText(b.title)) ? 1 : 0;
-      return bTitleMatch - aTitleMatch;
+      if (aTitleMatch !== bTitleMatch) return bTitleMatch - aTitleMatch;
+
+      // Seed-based tie breaking for variety
+      const hashA = (a.id.charCodeAt(a.id.length - 1) + seed) % 23;
+      const hashB = (b.id.charCodeAt(b.id.length - 1) + seed) % 23;
+      return hashA - hashB;
     });
 
     // Condensed catalog for Gemini (up to 25 eligible and active posts) with both business and post schedules
@@ -1425,25 +2041,31 @@ REGLAS OBLIGATORIAS DE AUDITORÍA Y SEGURIDAD:
 ================================================================================
 1. SALUDO INICIAL (spokenText):
    - DEBE comenzar estrictamente con "¡Listo veci!".
-2. NARRACIÓN CRONOLÓGICA COMPLETA DE TODAS LAS PARADAS (CRÍTICO):
+2. REFINAMIENTOS Y AJUSTES (CRÍTICO):
+   - Si 'isRefinement' es true y el usuario pide cambiar una parada (ej: "cambia la primera parada por pizza" o "no me gusta la segunda parada"):
+     * Identifica cuál parada específica reemplazar (parada 1 = índice 0, parada 2 = índice 1).
+     * Selecciona una publicación del catálogo real que coincida con lo pedido (ej: Pizzería Bella Sabana para pizza, Fogón Sabanero para pollo).
+     * CONSERVA LAS DEMÁS PARADAS INTACTAS sin cambiarlas.
+     * En 'spokenText' explica con calidez: "¡Listo veci! Ya te cambié la [primera/segunda] parada por [comercio]..." y narra el plan completo.
+3. NARRACIÓN CRONOLÓGICA COMPLETA DE TODAS LAS PARADAS (CRÍTICO):
    - Si el plan tiene 2 paradas: menciona la parada 1 y la parada 2.
    - Si el plan tiene 3 paradas: DEBES MENCIONAR LAS 3 PARADAS EN ORDEN CRONOLÓGICO SIN OMITIR NINGUNA.
-3. PROHIBICIÓN TOTAL DEL SIGNO '$':
+4. PROHIBICIÓN TOTAL DEL SIGNO '$':
    - NUNCA uses el símbolo '$' en 'spokenText' ni en ningún texto generado.
    - Expresa siempre los precios en pesos colombianos con palabras o números acompañados de "pesos" o "mil pesos".
-4. NEGOCIOS ÚNICOS (ESTRICTO):
+5. NEGOCIOS ÚNICOS (ESTRICTO):
    - Cada parada DEBE pertenecer a un comercio diferente (businessId distinto). NUNCA repitas el mismo negocio en un mismo itinerario.
-5. MÁXIMO UN (1) PLATO PRINCIPAL / PLATO FUERTE (ESTRICTO):
+6. MÁXIMO UN (1) PLATO PRINCIPAL / PLATO FUERTE (ESTRICTO):
    - No pongas dos platos fuertes pesados en el mismo plan (ejemplo: picada y luego lomo de res). Si hay plato fuerte, la siguiente parada debe ser café, postre, actividad o coctelería.
-6. COHERENCIA DE AUDIENCIA:
+7. COHERENCIA DE AUDIENCIA:
    - Planes familiares: JAMÁS incluyas bares nocturnos, licoreras ni discotecas.
    - Gimnasios: ÚNICAMENTE si el usuario lo solicita explícitamente.
    - Planes culinarios: no mezcles papelerías, talleres mecánicos ni barberías en una ruta de comida.
-7. TRANSPARENCIA CUANDO NO HAY COINCIDENCIA:
-   - Si el usuario pidió un producto específico (ej: "arroz chino") que no existe en el catálogo JSON adjunto:
-     Acláralo de forma transparente: "¡Listo veci! En este momento no tenemos publicaciones de [producto] en [municipio] registradas en la app, pero te armé esta sugerencia alternativa con los mejores locales gastronómicos..."
-     Establece 'isAlternativeSuggestion: true' y 'alternativeNotice'. NUNCA hagas pasar una hamburguesa por arroz chino.
-8. CATÁLOGO REAL:
+8. TRANSPARENCIA CUANDO NO HAY COINCIDENCIA:
+   - Si el usuario pidió un producto específico que no existe en el catálogo:
+     Acláralo de forma transparente: "¡Listo veci! En este momento no tenemos publicaciones de [producto] en [municipio] registradas en la app, pero te armé esta sugerencia alternativa..."
+     Establece 'isAlternativeSuggestion: true' y 'alternativeNotice'.
+9. CATÁLOGO REAL:
    - Utiliza ÚNICAMENTE los postId y businessId que existen en el JSON provisto.`;
 
     const userPromptContent = `Solicitud del usuario: "${userPrompt}"
@@ -1451,83 +2073,81 @@ Municipio objetivo: "${targetCity}"
 Día inferido: "${dateInfo.dayName}" (día de la semana ${dateInfo.dayOfWeek})
 Presupuesto objetivo: ${userBudget} COP
 Es refinamiento: ${isRefinement}
-Plan previo (si existe): ${previousPlan ? JSON.stringify(previousPlan) : 'Ninguno'}
+Plan previo (si existe): ${previousPlan ? JSON.stringify({
+      planTitle: previousPlan.planTitle,
+      stops: (previousPlan.stops || []).map((s, idx) => ({
+        indice: idx,
+        postId: s.postId,
+        businessId: s.businessId,
+        businessName: s.businessName,
+        businessCity: s.businessCity,
+        time: s.time,
+        activity: s.activity,
+        cost: s.cost
+      }))
+    }) : 'Ninguno'}
 Historial de conversación: ${JSON.stringify(messageHistory)}
 Catálogo real disponible:
 ${JSON.stringify(catalogSummary)}`;
 
-    const geminiCall = ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: userPromptContent,
-      config: {
-        systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            spokenText: {
-              type: Type.STRING,
-              description: "Texto hablado obligatorio con saludo exacto '¡Listo veci!', narración cronológica completa de todas las paradas y CERO signos '$'.",
-            },
-            greeting: { type: Type.STRING },
-            planTitle: { type: Type.STRING },
-            summary: { type: Type.STRING },
-            day: { type: Type.STRING },
-            targetAudience: { type: Type.STRING },
-            userBudget: { type: Type.INTEGER },
-            totalEstimatedCost: { type: Type.INTEGER },
-            savingsOrRemaining: { type: Type.INTEGER },
-            budgetStatus: { type: Type.STRING },
-            isAlternativeSuggestion: { type: Type.BOOLEAN },
-            alternativeNotice: { type: Type.STRING },
-            stops: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  postId: { type: Type.STRING },
-                  businessId: { type: Type.STRING },
-                  businessName: { type: Type.STRING },
-                  businessCity: { type: Type.STRING },
-                  businessAddress: { type: Type.STRING },
-                  businessPhone: { type: Type.STRING },
-                  businessWhatsapp: { type: Type.STRING },
-                  time: { type: Type.STRING },
-                  activity: { type: Type.STRING },
-                  postTitle: { type: Type.STRING },
-                  imageUrl: { type: Type.STRING },
-                  cost: { type: Type.INTEGER },
-                  whySelected: { type: Type.STRING },
-                },
-                required: ['postId', 'businessId', 'businessName', 'businessCity', 'time', 'activity', 'cost'],
-              },
-            },
-            recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
-            alternativeOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
-          },
-          required: [
-            'spokenText',
-            'greeting',
-            'planTitle',
-            'summary',
-            'day',
-            'targetAudience',
-            'userBudget',
-            'totalEstimatedCost',
-            'stops',
-            'recommendations',
-          ],
+    const responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        spokenText: {
+          type: Type.STRING,
+          description: "Texto hablado obligatorio con saludo exacto '¡Listo veci!', narración cronológica completa de todas las paradas y CERO signos '$'.",
         },
+        greeting: { type: Type.STRING },
+        planTitle: { type: Type.STRING },
+        summary: { type: Type.STRING },
+        day: { type: Type.STRING },
+        targetAudience: { type: Type.STRING },
+        userBudget: { type: Type.INTEGER },
+        totalEstimatedCost: { type: Type.INTEGER },
+        savingsOrRemaining: { type: Type.INTEGER },
+        budgetStatus: { type: Type.STRING },
+        isAlternativeSuggestion: { type: Type.BOOLEAN },
+        alternativeNotice: { type: Type.STRING },
+        stops: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              postId: { type: Type.STRING },
+              businessId: { type: Type.STRING },
+              businessName: { type: Type.STRING },
+              businessCity: { type: Type.STRING },
+              businessAddress: { type: Type.STRING },
+              businessPhone: { type: Type.STRING },
+              businessWhatsapp: { type: Type.STRING },
+              time: { type: Type.STRING },
+              activity: { type: Type.STRING },
+              postTitle: { type: Type.STRING },
+              imageUrl: { type: Type.STRING },
+              cost: { type: Type.INTEGER },
+              whySelected: { type: Type.STRING },
+            },
+            required: ['postId', 'businessId', 'businessName', 'businessCity', 'time', 'activity', 'cost'],
+          },
+        },
+        recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
+        alternativeOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
       },
-    });
+      required: [
+        'spokenText',
+        'greeting',
+        'planTitle',
+        'summary',
+        'day',
+        'targetAudience',
+        'userBudget',
+        'totalEstimatedCost',
+        'stops',
+        'recommendations',
+      ],
+    };
 
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Gemini API timeout')), 25000)
-    );
-
-    const response = await Promise.race([geminiCall, timeoutPromise]);
-    const rawJson = response.text ? response.text.trim() : '';
+    const rawJson = await callGeminiWithModelFallback(ai, userPromptContent, systemInstruction, responseSchema);
 
     if (!rawJson) {
       return generateFallbackOliPlan(input);
@@ -1621,6 +2241,7 @@ ${JSON.stringify(catalogSummary)}`;
  * Text-to-Speech synthesis using Gemini 3.8 Flash Lite TTS with prebuilt voice 'Kore'
  */
 export async function generateOliSpeechAudio(spokenText: string): Promise<Buffer | null> {
+  const ai = getGenAI();
   if (!ai) return null;
 
   try {

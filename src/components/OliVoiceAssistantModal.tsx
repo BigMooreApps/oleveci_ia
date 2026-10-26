@@ -327,27 +327,28 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
 
   // Convert Oli plan to SimulatedReadyPlan for Editor/Invitation Flyer
   const convertToReadyPlan = (oliPlan: OliPlanResponse): SimulatedReadyPlan => {
-    const postIds = oliPlan.stops.map((s) => s.postId);
-    const coverImage = oliPlan.stops[0]?.imageUrl || '/Logo_OleVeci.png';
+    const stops = oliPlan.stops || [];
+    const postIds = stops.map((s) => s.postId);
+    const coverImage = stops[0]?.imageUrl || '/Logo_OleVeci.png';
     const cleanId = `oli_${Date.now()}`;
 
     return {
       id: cleanId,
-      planTitle: oliPlan.planTitle,
-      scheduledTime: `${oliPlan.day} · ${oliPlan.stops[0]?.time || '4:00 PM'}`,
+      planTitle: oliPlan.planTitle || 'Plan con Oli',
+      scheduledTime: `${oliPlan.day || 'Hoy'} · ${stops[0]?.time || '4:00 PM'}`,
       coverImage,
-      personalNote: oliPlan.summary,
+      personalNote: oliPlan.summary || '',
       hidePrices: false,
       cardTemplate: 'oleveci_brand',
       theme: THEMES.blue_brand || THEMES.nordic_light,
       bgLayout: 'cinematic',
       postIds,
       category: 'plan_comer_algo',
-      estimatedBudget: oliPlan.totalEstimatedCost,
-      municipality: oliPlan.stops[0]?.businessCity || currentCity || 'Chía',
+      estimatedBudget: oliPlan.totalEstimatedCost || 50000,
+      municipality: stops[0]?.businessCity || currentCity || 'Chía',
       timeOfDay: 'tarde',
       dayType: 'weekend',
-      tags: ['Oli Asistente', oliPlan.targetAudience, oliPlan.day],
+      tags: ['Oli Asistente', oliPlan.targetAudience || 'General', oliPlan.day || 'Fin de semana'],
     };
   };
 
@@ -541,18 +542,18 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
                 <p className="whitespace-pre-line">{msg.text}</p>
               </div>
 
-              {/* Render Plan Card if this Oli response produced a plan */}
-              {msg.plan && (
+              {/* Render Plan Card if this Oli response produced an itinerary plan */}
+              {msg.plan && msg.plan.stops && msg.plan.stops.length > 0 && (
                 <div className="w-full mt-2 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-2xl p-4 sm:p-5 space-y-4">
                   {/* Plan Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                          {msg.plan.day}
+                          {msg.plan.day || 'Fin de semana'}
                         </span>
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                          {msg.plan.targetAudience}
+                          {msg.plan.targetAudience || 'En pareja'}
                         </span>
                         {msg.plan.budgetStatus === 'under_budget' && (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
@@ -562,7 +563,7 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
                         )}
                       </div>
                       <h4 className="text-base sm:text-lg font-extrabold text-white mt-1.5">
-                        {msg.plan.planTitle}
+                        {msg.plan.planTitle || 'Tu Plan Personalizado'}
                       </h4>
                       <p className="text-xs text-slate-300 mt-0.5">{msg.plan.summary}</p>
                     </div>
@@ -573,7 +574,7 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
                         Total Estimado
                       </span>
                       <span className="text-sm sm:text-base font-extrabold text-cyan-300">
-                        ${msg.plan.totalEstimatedCost.toLocaleString('es-CO')} COP
+                        ${(msg.plan.totalEstimatedCost || 0).toLocaleString('es-CO')} COP
                       </span>
                     </div>
                   </div>
@@ -695,8 +696,121 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
                 </div>
               )}
 
-              {/* Refinement Suggestions Chips - OUTSIDE the plan card */}
-              {msg.plan && (
+              {/* Render Search & Recommendation Card if query was a specific food/service request */}
+              {msg.plan && (msg.plan.type === 'search' || (msg.plan.matchedBusinesses && msg.plan.matchedBusinesses.length > 0)) && (
+                <div className="w-full mt-2 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-2xl p-4 sm:p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          Recomendaciones Directas
+                        </span>
+                        {msg.plan.targetMunicipality && (
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                            {msg.plan.targetMunicipality}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-base font-extrabold text-white mt-1">
+                        Comercios destacados encontrados en OleVeci
+                      </h4>
+                    </div>
+                  </div>
+
+                  {/* Business cards */}
+                  <div className="space-y-3">
+                    {(msg.plan.matchedBusinesses || []).map((b) => {
+                      const relatedPosts = (msg.plan?.matchedPosts || []).filter((p) => p.businessId === b.id);
+                      return (
+                        <div
+                          key={b.id}
+                          className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-2.5"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <img
+                                src={b.coverImage || b.logo || '/Logo_OleVeci.png'}
+                                alt={b.name}
+                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-700 bg-slate-800"
+                              />
+                              <div className="min-w-0">
+                                <h5 className="text-sm font-bold text-white truncate">{b.name}</h5>
+                                <p className="text-xs text-cyan-200/80 flex items-center gap-1 mt-0.5">
+                                  <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
+                                  {b.city} · {b.address}
+                                </p>
+                              </div>
+                            </div>
+
+                            {b.whatsapp && (
+                              <a
+                                href={`https://api.whatsapp.com/send?phone=${b.whatsapp.replace(/\D/g, '')}&text=${encodeURIComponent(`¡Hola ${b.name}! Vi su perfil en OleVeci y me gustaría saber más.`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors shadow-xs"
+                              >
+                                <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
+                                <span>WhatsApp</span>
+                              </a>
+                            )}
+                          </div>
+
+                          {b.description && (
+                            <p className="text-xs text-slate-300 leading-relaxed">{b.description}</p>
+                          )}
+
+                          {/* Related Posts for this business */}
+                          {relatedPosts.length > 0 && (
+                            <div className="space-y-1.5 pt-1 border-t border-slate-800/80">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                Publicaciones y Especialidades activas:
+                              </span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {relatedPosts.map((p) => (
+                                  <div
+                                    key={p.id}
+                                    className="p-2 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center gap-2"
+                                  >
+                                    <img
+                                      src={p.imageUrl || '/Logo_OleVeci.png'}
+                                      alt={p.title}
+                                      className="w-10 h-10 rounded-md object-cover shrink-0 bg-slate-800"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-semibold text-white truncate">{p.title}</p>
+                                      <p className="text-[11px] font-bold text-emerald-400">
+                                        ${(p.promotionalPrice || p.originalPrice || p.approximatePrice || 0).toLocaleString('es-CO')} COP
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Quick Plan Generator CTA */}
+                          <div className="pt-1 flex justify-end">
+                            <button
+                              onClick={() => {
+                                const promptText = `Armame un plan en ${b.city} que empiece en ${b.name}`;
+                                setInputMessage(promptText);
+                                handleSendMessage(promptText);
+                              }}
+                              className="text-xs text-cyan-300 hover:text-white font-bold flex items-center gap-1 px-2.5 py-1 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-all cursor-pointer"
+                            >
+                              <Sparkles className="w-3 h-3 text-cyan-400" />
+                              <span>Armar plan completo con este local</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Refinement Suggestions Chips for Itinerary */}
+              {msg.plan && msg.plan.stops && msg.plan.stops.length > 0 && (
                 <div className="w-full mt-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800/90 shadow-md">
                   <span className="text-[11px] font-bold text-slate-300 block mb-2 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
@@ -704,6 +818,35 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {REFINEMENT_CHIPS.map((chipText) => (
+                      <button
+                        key={chipText}
+                        onClick={() => {
+                          setInputMessage(chipText);
+                          handleSendMessage(chipText);
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-cyan-500/20 border border-slate-700/60 hover:border-cyan-500/40 text-xs text-cyan-200 hover:text-white transition-all cursor-pointer active:scale-95 shadow-xs"
+                      >
+                        {chipText}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Suggestions Chips for Direct Recommendations */}
+              {msg.plan && (msg.plan.type === 'search' || (msg.plan.matchedBusinesses && msg.plan.matchedBusinesses.length > 0)) && (
+                <div className="w-full mt-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800/90 shadow-md">
+                  <span className="text-[11px] font-bold text-slate-300 block mb-2 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                    Ideas para continuar:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      'Armame un plan con esta recomendación',
+                      'Buscar opciones en Cajicá',
+                      'Buscar opciones en Chía',
+                      'Ver opciones de postres o café',
+                    ].map((chipText) => (
                       <button
                         key={chipText}
                         onClick={() => {

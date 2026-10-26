@@ -1,6 +1,6 @@
 {
-  "name": "Remix Remix Remix oleveci2_con IA v2",
-  "description": "Imported from GitHub",
+  "name": "OleVeci",
+  "description": "Descubre promociones, planes, eventos, productos y servicios de comercios locales en tu municipio con OleVeci.",
   "requestFramePermissions": [
     "geolocation"
   ],

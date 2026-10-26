@@ -2054,5 +2054,1456 @@
     "aspectRatio": "9:16",
     "imageFit": "cover",
     "status": "active"
+  },
+  {
+    "id": "post_promo_alitas_bbq",
+    "businessId": "biz_brasa_burger",
+    "businessName": "La Brasa Smash & Beer",
+    "businessLogo": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573124567890",
+    "businessPhone": "3124567890",
+    "businessAddress": "Cra. 3 # 4-28, Cajicá",
+    "coordinates": {
+      "lat": 4.9192,
+      "lng": -74.0265
+    },
+    "type": "promotion",
+    "title": "Flash Sale: Alitas BBQ Ahumadas 2x1 (12 Alitas) + Papas Rústicas",
+    "description": "Porción doble de alitas crujientes marinadas con finas hierbas y limón mandarino, bañadas en salsa BBQ artesanal o miel mostaza, con papas rústicas y dip tártara casero.",
+    "imageUrl": "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 38000,
+    "promotionalPrice": 22900,
+    "startsAt": "2026-10-02T14:48:45.770Z",
+    "expiresAt": "2027-10-20T23:59:59.000Z",
+    "expiryLabel": "¡Promo Reactivada hasta el domingo!",
+    "categoryId": "cat_comida_rapida",
+    "planCategoryId": "plan_con_amigos",
+    "planCategoryName": "Plan con amigos",
+    "featured": true,
+    "tags": [
+      "alitas",
+      "pollo",
+      "promo",
+      "2x1",
+      "bbq",
+      "amigos",
+      "almuerzo",
+      "cena",
+      "cajica"
+    ],
+    "createdAt": "2026-10-02T14:48:45.770Z",
+    "metrics": {
+      "views": 610,
+      "whatsappClicks": 95,
+      "mapsClicks": 42,
+      "calls": 15,
+      "shares": 25,
+      "dailyMetrics": {
+        "2026-09-08": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-09": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-10": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-11": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-12": {
+          "views": 16,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-13": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-14": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-15": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-16": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-17": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-18": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-19": {
+          "views": 17,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-20": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-21": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-22": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-23": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-24": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-25": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-26": {
+          "views": 17,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-27": {
+          "views": 16,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-28": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-29": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-30": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-01": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-02": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-03": {
+          "views": 18,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-04": {
+          "views": 16,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-05": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-06": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-07": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-08": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-09": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-10": {
+          "views": 18,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-11": {
+          "views": 17,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-12": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-13": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-14": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-15": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-16": {
+          "views": 16,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-17": {
+          "views": 18,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-18": {
+          "views": 17,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-19": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-20": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-21": {
+          "views": 17,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-22": {
+          "views": 16,
+          "whatsappClicks": 3,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        }
+      }
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "priceType": "exact",
+    "approximatePrice": 22900,
+    "priceScope": "pareja",
+    "targetAudience": [
+      "amigos",
+      "parejas",
+      "familias"
+    ],
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ]
+  },
+  {
+    "id": "post_chia_promo_pollo_leña",
+    "businessId": "biz_chia_parrilla_centro",
+    "businessName": "Fogón Sabanero Chía",
+    "businessLogo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Chía",
+    "businessSector": "Centro Histórico",
+    "businessWhatsapp": "573138889900",
+    "businessPhone": "3138889900",
+    "businessAddress": "Parque Principal # 2-45, Chía",
+    "coordinates": {
+      "lat": 4.8637,
+      "lng": -74.0543
+    },
+    "type": "promotion",
+    "title": "Pollo Campesino al Horno de Leña + Papas Criollas y Mazorca",
+    "description": "Medio pollo campesino marinado 24h en cerveza sabanera y finas hierbas, asado lentamente al horno de leña, con papas criollas doradas, mazorca dulce y ají casero.",
+    "imageUrl": "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 34000,
+    "promotionalPrice": 24900,
+    "startsAt": "2026-10-02T12:00:00.000Z",
+    "expiresAt": "2027-10-20T23:59:59.000Z",
+    "expiryLabel": "Válido todos los días para almuerzo y cena",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer algo",
+    "featured": true,
+    "tags": [
+      "pollo",
+      "pollo campesino",
+      "pollo asado",
+      "leña",
+      "almuerzo",
+      "tradicional",
+      "chia"
+    ],
+    "createdAt": "2026-10-02T12:00:00.000Z",
+    "metrics": {
+      "views": 512,
+      "whatsappClicks": 78,
+      "mapsClicks": 34,
+      "calls": 12,
+      "shares": 18,
+      "dailyMetrics": {
+        "2026-09-08": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-09": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-10": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-11": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-12": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-13": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-14": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-15": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-16": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-17": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-18": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-19": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-20": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-21": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-22": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-23": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-24": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-25": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-26": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-27": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-28": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-29": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-30": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-01": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-02": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-03": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-04": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-05": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-06": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-07": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-08": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-09": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-10": {
+          "views": 15,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-11": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-12": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-13": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-14": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-15": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-16": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-17": {
+          "views": 16,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-18": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-19": {
+          "views": 10,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-20": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-21": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-22": {
+          "views": 14,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        }
+      }
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRoles": [
+      "almuerzo_fuerte"
+    ],
+    "targetAudience": [
+      "familias",
+      "amigos",
+      "parejas",
+      "todo_publico"
+    ],
+    "priceScope": "individual",
+    "priceType": "exact",
+    "approximatePrice": 24900
+  },
+  {
+    "id": "post_cajica_pechuga_parrilla",
+    "businessId": "biz_brasa_burger",
+    "businessName": "La Brasa Smash & Beer",
+    "businessLogo": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573124567890",
+    "businessPhone": "3124567890",
+    "businessAddress": "Cra. 3 # 4-28, Cajicá",
+    "coordinates": {
+      "lat": 4.9192,
+      "lng": -74.0265
+    },
+    "type": "promotion",
+    "title": "Pechuga Campestre al Carbón con Champiñones al Ajillo & Papas Francesa",
+    "description": "Suprema de pechuga de pollo marinada al romero y asada al carbón, bañada en suave salsa de champiñones frescos y queso fundido, acompañada de papas a la francesa.",
+    "imageUrl": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 32000,
+    "promotionalPrice": 25900,
+    "startsAt": "2026-10-02T12:00:00.000Z",
+    "expiresAt": "2027-10-20T23:59:59.000Z",
+    "expiryLabel": "¡Válido hoy!",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer algo",
+    "featured": true,
+    "tags": [
+      "pollo",
+      "pechuga",
+      "al carbón",
+      "almuerzo",
+      "cena",
+      "cajica"
+    ],
+    "createdAt": "2026-10-02T12:00:00.000Z",
+    "metrics": {
+      "views": 430,
+      "whatsappClicks": 62,
+      "mapsClicks": 29,
+      "calls": 11,
+      "shares": 14,
+      "dailyMetrics": {
+        "2026-09-08": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-09": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-10": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-11": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-12": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-13": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-14": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-15": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-16": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-17": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-18": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-19": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-20": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-21": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-22": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-23": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-24": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-25": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-26": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-27": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-09-28": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-29": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-30": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-01": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-02": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-03": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-04": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-05": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-06": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-07": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-08": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-09": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-10": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-11": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-12": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-13": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-14": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-15": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-16": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-17": {
+          "views": 13,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-18": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-19": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-20": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-21": {
+          "views": 12,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-22": {
+          "views": 11,
+          "whatsappClicks": 2,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        }
+      }
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ],
+    "targetAudience": [
+      "parejas",
+      "amigos",
+      "familias"
+    ],
+    "priceScope": "individual",
+    "priceType": "exact",
+    "approximatePrice": 25900
+  },
+  {
+    "id": "post_promo_pizza_familiar",
+    "businessId": "biz_pizzeria_bella_sabana",
+    "businessName": "Pizzería & Trattoria Bella Sabana",
+    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573159988776",
+    "businessPhone": "3159988776",
+    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.026
+    },
+    "type": "promotion",
+    "title": "Pizza Familiar a la Leña (Pepperoni o Margherita) + Gaseosa 1.5L",
+    "description": "Masa madre crocante al horno de leña, salsa pomodoro San Marzano, mozzarella fundido, pepperoni artesanal o albahaca fresca con gaseosa familiar.",
+    "imageUrl": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 46000,
+    "promotionalPrice": 34900,
+    "discountPercentage": 24,
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer y Antojarse",
+    "featured": true,
+    "tags": [
+      "pizza",
+      "pizzas",
+      "pizzeria",
+      "familiar",
+      "almuerzo",
+      "cena",
+      "leña",
+      "combo",
+      "cajica"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 480,
+      "whatsappClicks": 85,
+      "mapsClicks": 52,
+      "calls": 14,
+      "shares": 26
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "almuerzo_fuerte",
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ],
+    "targetAudience": [
+      "amigos",
+      "familias",
+      "parejas"
+    ],
+    "priceScope": "familiar_grupo",
+    "priceType": "exact",
+    "approximatePrice": 34900
+  },
+  {
+    "id": "post_promo_pizza_burrata",
+    "businessId": "biz_pizzeria_bella_sabana",
+    "businessName": "Pizzería & Trattoria Bella Sabana",
+    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573159988776",
+    "businessPhone": "3159988776",
+    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.026
+    },
+    "type": "product",
+    "title": "Pizza Gourmet de Burrata Artesanal, Jamón Serrano & Rúcula",
+    "description": "Masa madre de 48h fermentada, burrata fresca cremosa de la Sabana, lonjas de jamón serrano reserva y reducción de aceto balsámico al horno.",
+    "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 42000,
+    "promotionalPrice": 36000,
+    "discountPercentage": 14,
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_cita_romantica",
+    "planCategoryName": "Citas y Romance",
+    "featured": true,
+    "tags": [
+      "pizza",
+      "pizzas",
+      "burrata",
+      "gourmet",
+      "cena",
+      "pareja",
+      "romantico",
+      "italiana",
+      "cajica"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 390,
+      "whatsappClicks": 68,
+      "mapsClicks": 41,
+      "calls": 11,
+      "shares": 19
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "cena_copas",
+    "planRoles": [
+      "cena_copas",
+      "almuerzo_fuerte"
+    ],
+    "targetAudience": [
+      "parejas",
+      "amigos"
+    ],
+    "priceScope": "pareja",
+    "priceType": "exact",
+    "approximatePrice": 36000
+  },
+  {
+    "id": "post_promo_pollo_broaster_sabanero",
+    "businessId": "biz_chia_parrilla_centro",
+    "businessName": "Fogón Sabanero Chía",
+    "businessLogo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Chía",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573132223344",
+    "businessPhone": "3132223344",
+    "businessAddress": "Cra. 9 # 12-40, Chía",
+    "coordinates": {
+      "lat": 4.8625,
+      "lng": -74.0538
+    },
+    "type": "promotion",
+    "title": "Combo Pollo Broaster Crujiente Sabanero (8 Presas + Papas Francesa + Arepas)",
+    "description": "Pollo fresco marinado y apanado con receta especial crocante, acompañado de papas a la francesa doradas, arepas santandereanas y salsa miel mostaza casera.",
+    "imageUrl": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 48000,
+    "promotionalPrice": 37900,
+    "discountPercentage": 21,
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer y Antojarse",
+    "featured": true,
+    "tags": [
+      "pollo",
+      "pollos",
+      "broaster",
+      "pollo broaster",
+      "almuerzo",
+      "combo",
+      "familiar",
+      "crispy",
+      "chia"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 530,
+      "whatsappClicks": 110,
+      "mapsClicks": 58,
+      "calls": 22,
+      "shares": 31
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "almuerzo_fuerte",
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ],
+    "targetAudience": [
+      "familias",
+      "amigos"
+    ],
+    "priceScope": "familiar_grupo",
+    "priceType": "exact",
+    "approximatePrice": 37900
   }
 ]

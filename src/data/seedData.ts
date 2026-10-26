@@ -831,9 +831,9 @@ export const INITIAL_BUSINESSES: Business[] = [
     "slug": "fogon-sabanero-chia",
     "logo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
     "coverImage": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1000&auto=format&fit=crop&q=80",
-    "description": "Asados al carbón, cortes finos a la parrilla, picadas familiares y arepas de choclo.",
+    "description": "Asados al carbón, pollo broaster familiar sabanero, cortes finos a la parrilla, picadas tradicionales y arepas de choclo.",
     "categoryId": "cat_restaurantes",
-    "subCategory": "Parrilla & Carnes",
+    "subCategory": "Parrilla, Pollo & Carnes",
     "address": "Cra. 10 # 12-45, Centro",
     "city": "Chía",
     "sector": "Centro",
@@ -1176,6 +1176,50 @@ export const INITIAL_BUSINESSES: Business[] = [
       "shares": 29
     },
     "createdAt": "2025-02-15T09:00:00Z"
+  },
+  {
+    "id": "biz_pizzeria_bella_sabana",
+    "name": "Pizzería & Trattoria Bella Sabana",
+    "slug": "pizzeria-trattoria-bella-sabana-cajica",
+    "logo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1000&auto=format&fit=crop&q=80",
+    "description": "Pizzería tradicional italiana con horno de leña, pizzas artesanales de masa madre fermentada 48 horas, pastas frescas, calzones y postres.",
+    "categoryId": "cat_restaurantes",
+    "subCategory": "Pizzería & Comida Italiana",
+    "address": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "city": "Cajicá",
+    "sector": "Centro",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.0260
+    },
+    "hours": "Mar - Dom: 12:00 PM - 10:00 PM",
+    "whatsapp": "573159988776",
+    "phone": "3159988776",
+    "email": "contacto@bellasabanapizza.com",
+    "username": "OLE0117",
+    "password": "Veci2026",
+    "instagram": "@bellasabanapizza",
+    "rating": 4.9,
+    "verified": true,
+    "featured": true,
+    "status": "active",
+    "subscription": {
+      "status": "active",
+      "planName": "Plan Mensual OleVeci",
+      "priceCOP": 39900,
+      "billingCycle": "monthly",
+      "expiresAt": "2026-11-20T19:43:04.021Z",
+      "autoRenew": true
+    },
+    "metrics": {
+      "views": 820,
+      "whatsappClicks": 165,
+      "mapsClicks": 94,
+      "calls": 42,
+      "shares": 38
+    },
+    "createdAt": "2025-02-16T10:00:00Z"
   }
 ];
 
@@ -2780,6 +2824,193 @@ export const INITIAL_POSTS: Post[] = [
     },
     "status": "active"
   },
+  {
+    "id": "post_promo_pizza_familiar",
+    "businessId": "biz_pizzeria_bella_sabana",
+    "businessName": "Pizzería & Trattoria Bella Sabana",
+    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573159988776",
+    "businessPhone": "3159988776",
+    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.026
+    },
+    "type": "promotion",
+    "title": "Pizza Familiar a la Leña (Pepperoni o Margherita) + Gaseosa 1.5L",
+    "description": "Masa madre crocante al horno de leña, salsa pomodoro San Marzano, mozzarella fundido, pepperoni artesanal o albahaca fresca con gaseosa familiar.",
+    "imageUrl": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 46000,
+    "promotionalPrice": 34900,
+    "startsAt": "2026-10-01T00:00:00.000Z",
+    "expiresAt": "2027-10-20T23:59:59.000Z",
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer y Antojarse",
+    "featured": true,
+    "tags": [
+      "pizza",
+      "pizzas",
+      "pizzeria",
+      "familiar",
+      "almuerzo",
+      "cena",
+      "leña",
+      "combo",
+      "cajica"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 480,
+      "whatsappClicks": 85,
+      "mapsClicks": 52,
+      "calls": 14,
+      "shares": 26
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "almuerzo_fuerte",
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ],
+    "targetAudience": [
+      "amigos",
+      "familias",
+      "parejas"
+    ],
+    "priceScope": "familiar_grupo",
+    "priceType": "exact",
+    "approximatePrice": 34900
+  },
+  {
+    "id": "post_promo_pizza_burrata",
+    "businessId": "biz_pizzeria_bella_sabana",
+    "businessName": "Pizzería & Trattoria Bella Sabana",
+    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573159988776",
+    "businessPhone": "3159988776",
+    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.026
+    },
+    "type": "product",
+    "title": "Pizza Gourmet de Burrata Artesanal, Jamón Serrano & Rúcula",
+    "description": "Masa madre de 48h fermentada, burrata fresca cremosa de la Sabana, lonjas de jamón serrano reserva y reducción de aceto balsámico al horno.",
+    "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 42000,
+    "promotionalPrice": 36000,
+    "startsAt": "2026-10-01T00:00:00.000Z",
+    "expiresAt": "2027-10-20T23:59:59.000Z",
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_cita_romantica",
+    "planCategoryName": "Citas y Romance",
+    "featured": true,
+    "tags": [
+      "pizza",
+      "pizzas",
+      "burrata",
+      "gourmet",
+      "cena",
+      "pareja",
+      "romantico",
+      "italiana",
+      "cajica"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 390,
+      "whatsappClicks": 68,
+      "mapsClicks": 41,
+      "calls": 11,
+      "shares": 19
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "cena_copas",
+    "planRoles": [
+      "cena_copas",
+      "almuerzo_fuerte"
+    ],
+    "targetAudience": [
+      "parejas",
+      "amigos"
+    ],
+    "priceScope": "pareja",
+    "priceType": "exact",
+    "approximatePrice": 36000
+  },
+  {
+    "id": "post_promo_pollo_broaster_sabanero",
+    "businessId": "biz_chia_parrilla_centro",
+    "businessName": "Fogón Sabanero Chía",
+    "businessLogo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Chía",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573132223344",
+    "businessPhone": "3132223344",
+    "businessAddress": "Cra. 9 # 12-40, Chía",
+    "coordinates": {
+      "lat": 4.8625,
+      "lng": -74.0538
+    },
+    "type": "promotion",
+    "title": "Combo Pollo Broaster Crujiente Sabanero (8 Presas + Papas Francesa + Arepas)",
+    "description": "Pollo fresco marinado y apanado con receta especial crocante, acompañado de papas a la francesa doradas, arepas santandereanas y salsa miel mostaza casera.",
+    "imageUrl": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 48000,
+    "promotionalPrice": 37900,
+    "startsAt": "2026-10-01T00:00:00.000Z",
+    "expiresAt": "2027-10-20T23:59:59.000Z",
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer y Antojarse",
+    "featured": true,
+    "tags": [
+      "pollo",
+      "pollos",
+      "broaster",
+      "pollo broaster",
+      "almuerzo",
+      "combo",
+      "familiar",
+      "crispy",
+      "chia"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 530,
+      "whatsappClicks": 110,
+      "mapsClicks": 58,
+      "calls": 22,
+      "shares": 31
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "almuerzo_fuerte",
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ],
+    "targetAudience": [
+      "familias",
+      "amigos"
+    ],
+    "priceScope": "familiar_grupo",
+    "priceType": "exact",
+    "approximatePrice": 37900
+  }
 ];
 
 export const INITIAL_PLAN_CATEGORIES: PlanCategory[] = [
