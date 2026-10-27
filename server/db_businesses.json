@@ -19,10 +19,7 @@
     "whatsapp": "573100000000",
     "phone": "3100000000",
     "email": "contacto@oleveci.com",
-    "username": "OLE0101",
-    "password": "Veci2026",
-    "instagram": "@oleveci",
-    "facebook": "OleVeciOficial",
+    "socialLinks": {},
     "rating": 5,
     "verified": true,
     "featured": true,
@@ -47,11 +44,13 @@
       "city": "Cajicá",
       "department": "Cundinamarca"
     },
+    "paymentHistory": [],
+    "username": "OLE0101",
+    "password": "Veci2026",
     "ownerName": "Equipo OleVeci",
     "ownerPhone": "3100000000",
     "accessEmail": "oleveci@oleveci.com",
     "accessPin": "1234",
-    "accessPassword": "Veci2026",
     "metrics": {
       "views": 3540,
       "whatsappClicks": 480,
@@ -60,7 +59,10 @@
       "shares": 190
     },
     "createdAt": "2025-01-01T08:00:00Z",
-    "suspensionHistory": []
+    "suspensionHistory": [],
+    "accessPassword": "Veci2026",
+    "instagram": "@oleveci",
+    "facebook": "OleVeciOficial"
   },
   {
     "id": "biz_brasa_burger",
