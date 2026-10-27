@@ -322,6 +322,19 @@ export function isPlanRefinementIntent(prompt: string, previousPlan?: any): bool
     'agregar',
     'anade',
     'anadir',
+    'elijo',
+    'elegir',
+    'escoger',
+    'escojo',
+    'luego de esto',
+    'despues de esto',
+    'luego quiero',
+    'despues quiero',
+    'luego de',
+    'despues de',
+    'siguiente parada',
+    'continuar con',
+    'la primera parada',
   ];
   return refinementSignals.some((sig) => norm.includes(sig));
 }
@@ -2104,7 +2117,7 @@ export async function generateOliSearchResponse(
     if (ai) {
       try {
         const noMatchRes = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3-flash-preview',
           contents: `El usuario preguntó en OleVeci: "${userPrompt}" para el municipio "${targetMunicipality}".
 No hay comercios registrados exactamente para esa búsqueda.
 Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
@@ -2134,6 +2147,7 @@ Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
 
   // Format authentic spoken response mentioning real business details and contact
   let spokenText = '';
+  let searchModelUsed = '';
   const firstBiz = matchedBusinesses[0];
   const secondBiz = matchedBusinesses[1];
 
@@ -2174,7 +2188,7 @@ Genera la respuesta hablada de Oli:
 5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
 6. Máximo 2 o 3 oraciones directas.`;
 
-      for (const modelName of ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3.8-flash']) {
+      for (const modelName of ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest']) {
         try {
           const aiResponse = await ai.models.generateContent({
             model: modelName,
@@ -2186,6 +2200,7 @@ Genera la respuesta hablada de Oli:
           const aiText = aiResponse.text?.trim();
           if (aiText) {
             spokenText = aiText;
+            searchModelUsed = modelName;
             break;
           }
         } catch (modelErr: any) {
@@ -2235,11 +2250,11 @@ Genera la respuesta hablada de Oli:
     {
       step: '3',
       title: 'Ejecución del Motor (IA vs Respaldo)',
-      status: ai ? 'success' : 'info',
-      details: ai
-        ? `Inferencia con modelo Gemini en tiempo real.`
-        : `Ejecutado con motor determinista de respaldo (Sin clave GEMINI_API_KEY activa en entorno local).`,
-      data: { apiKeyPresent: Boolean(input.apiKey || process.env.GEMINI_API_KEY) },
+      status: searchModelUsed ? 'success' : 'info',
+      details: searchModelUsed
+        ? `Inferencia con modelo ${searchModelUsed} en tiempo real.`
+        : `Ejecutado con motor determinista de respaldo (${ai ? 'Límite de cuota API excedido o fallo temporal' : 'Sin clave GEMINI_API_KEY activa'}).`,
+      data: { model: searchModelUsed || 'Motor Determinista Local', apiKeyPresent: Boolean(input.apiKey || process.env.GEMINI_API_KEY) },
     },
     {
       step: '4',
@@ -2253,8 +2268,8 @@ Genera la respuesta hablada de Oli:
   const auditTrace: OliAuditTrace = {
     rawPrompt: userPrompt,
     timestamp: new Date().toISOString(),
-    executionMode: ai ? 'llm' : 'deterministic_fallback',
-    modelUsed: ai ? 'Gemini 3.8 Flash' : 'Motor Determinista Local',
+    executionMode: searchModelUsed ? 'llm' : 'deterministic_fallback',
+    modelUsed: searchModelUsed || 'Motor Determinista Local',
     apiKeyPresent: Boolean(input.apiKey || process.env.GEMINI_API_KEY),
     intentDetected: 'search',
     interpretation: {
@@ -2302,9 +2317,14 @@ async function callGeminiWithModelFallback(
   prompt: string,
   systemInstruction: string,
   responseSchema: any
-): Promise<string> {
-  // Candidate models: ultra-fast gemini-2.5-flash
-  const candidateModels = ['gemini-2.5-flash'];
+): Promise<{ text: string; modelUsed: string }> {
+  // Candidate models: cascade from fastest active models to resilient fallbacks
+  const candidateModels = [
+    'gemini-3-flash-preview',
+    'gemini-3.5-flash',
+    'gemini-2.5-flash',
+    'gemini-flash-latest',
+  ];
   let lastError: any = null;
 
   for (const model of candidateModels) {
@@ -2326,7 +2346,7 @@ async function callGeminiWithModelFallback(
       const res = await Promise.race([call, timeoutPromise]);
       const text = res.text ? res.text.trim() : '';
       if (text) {
-        return text;
+        return { text, modelUsed: model };
       }
     } catch (err: any) {
       lastError = err;
@@ -2393,8 +2413,8 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
       return hashA - hashB;
     });
 
-    // Condensed catalog for Gemini (up to 25 eligible and active posts) with both business and post schedules
-    const catalogSummary = sortedPosts.slice(0, 25).map((p) => {
+    // Condensed catalog for Gemini (up to 15 eligible and active posts) with both business and post schedules
+    const catalogSummary = sortedPosts.slice(0, 15).map((p) => {
       const b = businessMap.get(p.businessId);
       const postScheduleSummary = p.validitySchedule?.scheduleTable
         ? p.validitySchedule.scheduleTable
@@ -2544,7 +2564,12 @@ ${JSON.stringify(catalogSummary)}`;
       ],
     };
 
-    const rawJson = await callGeminiWithModelFallback(ai, userPromptContent, systemInstruction, responseSchema);
+    const { text: rawJson, modelUsed: actualModelUsed } = await callGeminiWithModelFallback(
+      ai,
+      userPromptContent,
+      systemInstruction,
+      responseSchema
+    );
 
     if (!rawJson) {
       return generateFallbackOliPlan(input);
@@ -2652,8 +2677,8 @@ ${JSON.stringify(catalogSummary)}`;
         step: '3',
         title: 'Inferencia Autónoma Gemini (LLM)',
         status: 'success',
-        details: `Generado con modelo Gemini en tiempo real. Plan estructurado de forma personalizada.`,
-        data: { model: 'Gemini 2.5 Flash', rawStopsCount: parsed.stops?.length },
+        details: `Generado con modelo ${actualModelUsed} en tiempo real. Plan estructurado de forma personalizada.`,
+        data: { model: actualModelUsed, rawStopsCount: parsed.stops?.length },
       },
       {
         step: '4',
@@ -2668,7 +2693,7 @@ ${JSON.stringify(catalogSummary)}`;
       rawPrompt: userPrompt,
       timestamp: new Date().toISOString(),
       executionMode: 'llm',
-      modelUsed: 'Gemini 2.5 Flash',
+      modelUsed: actualModelUsed,
       apiKeyPresent: true,
       intentDetected: isRefinement ? 'plan_refinement' : 'plan_creation',
       interpretation: {

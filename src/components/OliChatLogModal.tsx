@@ -120,7 +120,10 @@ export const OliChatLogModal: React.FC<OliChatLogModalProps> = ({
     md += `> **Fecha y Hora:** ${dateStr}\n`;
     md += `> **Municipio de Referencia:** ${currentCity}\n`;
     md += `> **Presupuesto Registrado:** ${formatCOP(currentPlan?.userBudget || 100000)}\n`;
-    md += `> **Motor de Ejecución:** ${hasApiKey ? 'Google Gemini 2.5 Flash' : 'Motor Determinista Local de Respaldo'}\n`;
+    const lastTrace = chatHistory.slice().reverse().find((m) => m.auditTrace)?.auditTrace;
+    const engineName = lastTrace?.modelUsed || (hasApiKey ? 'Google Gemini' : 'Motor Determinista Local de Respaldo');
+    const modeNote = lastTrace?.executionMode === 'deterministic_fallback' ? ' (Modo Respaldo Local por Cuota/Fallo API)' : '';
+    md += `> **Motor de Ejecución:** ${engineName}${modeNote}\n`;
     md += `> **Total de Interacciones:** ${chatHistory.length} mensajes (${userMessagesCount} del usuario, ${oliMessagesCount} de OLI)\n\n`;
 
     md += `---\n\n`;

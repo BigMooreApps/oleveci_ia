@@ -221,6 +221,19 @@ export function isPlanRefinementIntent(prompt: string, previousPlan?: any): bool
     'agregar',
     'anade',
     'anadir',
+    'elijo',
+    'elegir',
+    'escoger',
+    'escojo',
+    'luego de esto',
+    'despues de esto',
+    'luego quiero',
+    'despues quiero',
+    'luego de',
+    'despues de',
+    'siguiente parada',
+    'continuar con',
+    'la primera parada',
   ];
   return refinementSignals.some((sig) => norm.includes(sig));
 }
