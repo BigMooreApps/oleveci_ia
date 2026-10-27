@@ -19,12 +19,12 @@
     "imageUrl": "/videos/poster_bienvenida.jpg",
     "videoUrl": "/videos/bienvenida_oleveci.webm",
     "mediaType": "video",
-    "startsAt": "2026-10-02T04:48:45.770Z",
-    "expiresAt": "2027-10-02T16:48:45.770Z",
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "startsAt": "2026-10-26T14:21:07.042Z",
+    "expiresAt": "2027-10-27T02:21:07.042Z",
     "expiryLabel": "¡Publicación destacada permanente!",
     "categoryId": "cat_planes_eventos",
-    "planCategoryId": "plan_tarde_amigos",
-    "planCategoryName": "Tarde de amigos",
     "featured": true,
     "tags": [
       "oleveci",
@@ -36,17 +36,390 @@
       "video",
       "reel"
     ],
-    "createdAt": "2026-10-02T04:48:45.770Z",
+    "status": "active",
     "metrics": {
       "views": 3820,
       "whatsappClicks": 490,
       "mapsClicks": 285,
       "calls": 64,
-      "shares": 340
+      "shares": 340,
+      "dailyMetrics": {
+        "2026-09-12": {
+          "views": 84,
+          "whatsappClicks": 11,
+          "mapsClicks": 6,
+          "calls": 1,
+          "shares": 7,
+          "qrRedemptions": 0
+        },
+        "2026-09-13": {
+          "views": 63,
+          "whatsappClicks": 8,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-09-14": {
+          "views": 42,
+          "whatsappClicks": 5,
+          "mapsClicks": 3,
+          "calls": 1,
+          "shares": 4,
+          "qrRedemptions": 0
+        },
+        "2026-09-15": {
+          "views": 53,
+          "whatsappClicks": 7,
+          "mapsClicks": 4,
+          "calls": 1,
+          "shares": 5,
+          "qrRedemptions": 0
+        },
+        "2026-09-16": {
+          "views": 68,
+          "whatsappClicks": 9,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-09-17": {
+          "views": 79,
+          "whatsappClicks": 10,
+          "mapsClicks": 6,
+          "calls": 1,
+          "shares": 7,
+          "qrRedemptions": 0
+        },
+        "2026-09-18": {
+          "views": 94,
+          "whatsappClicks": 12,
+          "mapsClicks": 7,
+          "calls": 2,
+          "shares": 8,
+          "qrRedemptions": 0
+        },
+        "2026-09-19": {
+          "views": 95,
+          "whatsappClicks": 12,
+          "mapsClicks": 7,
+          "calls": 2,
+          "shares": 8,
+          "qrRedemptions": 0
+        },
+        "2026-09-20": {
+          "views": 70,
+          "whatsappClicks": 9,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-09-21": {
+          "views": 45,
+          "whatsappClicks": 6,
+          "mapsClicks": 3,
+          "calls": 1,
+          "shares": 4,
+          "qrRedemptions": 0
+        },
+        "2026-09-22": {
+          "views": 55,
+          "whatsappClicks": 7,
+          "mapsClicks": 4,
+          "calls": 1,
+          "shares": 5,
+          "qrRedemptions": 0
+        },
+        "2026-09-23": {
+          "views": 70,
+          "whatsappClicks": 9,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-09-24": {
+          "views": 84,
+          "whatsappClicks": 11,
+          "mapsClicks": 6,
+          "calls": 1,
+          "shares": 7,
+          "qrRedemptions": 0
+        },
+        "2026-09-25": {
+          "views": 103,
+          "whatsappClicks": 13,
+          "mapsClicks": 8,
+          "calls": 2,
+          "shares": 9,
+          "qrRedemptions": 0
+        },
+        "2026-09-26": {
+          "views": 107,
+          "whatsappClicks": 14,
+          "mapsClicks": 8,
+          "calls": 2,
+          "shares": 10,
+          "qrRedemptions": 0
+        },
+        "2026-09-27": {
+          "views": 79,
+          "whatsappClicks": 10,
+          "mapsClicks": 6,
+          "calls": 1,
+          "shares": 7,
+          "qrRedemptions": 0
+        },
+        "2026-09-28": {
+          "views": 48,
+          "whatsappClicks": 6,
+          "mapsClicks": 4,
+          "calls": 1,
+          "shares": 4,
+          "qrRedemptions": 0
+        },
+        "2026-09-29": {
+          "views": 57,
+          "whatsappClicks": 7,
+          "mapsClicks": 4,
+          "calls": 1,
+          "shares": 5,
+          "qrRedemptions": 0
+        },
+        "2026-09-30": {
+          "views": 72,
+          "whatsappClicks": 9,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-10-01": {
+          "views": 87,
+          "whatsappClicks": 11,
+          "mapsClicks": 7,
+          "calls": 1,
+          "shares": 8,
+          "qrRedemptions": 0
+        },
+        "2026-10-02": {
+          "views": 111,
+          "whatsappClicks": 14,
+          "mapsClicks": 8,
+          "calls": 2,
+          "shares": 10,
+          "qrRedemptions": 0
+        },
+        "2026-10-03": {
+          "views": 119,
+          "whatsappClicks": 15,
+          "mapsClicks": 9,
+          "calls": 2,
+          "shares": 11,
+          "qrRedemptions": 0
+        },
+        "2026-10-04": {
+          "views": 88,
+          "whatsappClicks": 11,
+          "mapsClicks": 7,
+          "calls": 1,
+          "shares": 8,
+          "qrRedemptions": 0
+        },
+        "2026-10-05": {
+          "views": 53,
+          "whatsappClicks": 7,
+          "mapsClicks": 4,
+          "calls": 1,
+          "shares": 5,
+          "qrRedemptions": 0
+        },
+        "2026-10-06": {
+          "views": 59,
+          "whatsappClicks": 8,
+          "mapsClicks": 4,
+          "calls": 1,
+          "shares": 5,
+          "qrRedemptions": 0
+        },
+        "2026-10-07": {
+          "views": 73,
+          "whatsappClicks": 9,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-10-08": {
+          "views": 90,
+          "whatsappClicks": 12,
+          "mapsClicks": 7,
+          "calls": 2,
+          "shares": 8,
+          "qrRedemptions": 0
+        },
+        "2026-10-09": {
+          "views": 118,
+          "whatsappClicks": 15,
+          "mapsClicks": 9,
+          "calls": 2,
+          "shares": 10,
+          "qrRedemptions": 0
+        },
+        "2026-10-10": {
+          "views": 131,
+          "whatsappClicks": 17,
+          "mapsClicks": 10,
+          "calls": 2,
+          "shares": 12,
+          "qrRedemptions": 0
+        },
+        "2026-10-11": {
+          "views": 98,
+          "whatsappClicks": 13,
+          "mapsClicks": 7,
+          "calls": 2,
+          "shares": 9,
+          "qrRedemptions": 0
+        },
+        "2026-10-12": {
+          "views": 58,
+          "whatsappClicks": 7,
+          "mapsClicks": 4,
+          "calls": 1,
+          "shares": 5,
+          "qrRedemptions": 0
+        },
+        "2026-10-13": {
+          "views": 63,
+          "whatsappClicks": 8,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-10-14": {
+          "views": 75,
+          "whatsappClicks": 10,
+          "mapsClicks": 6,
+          "calls": 1,
+          "shares": 7,
+          "qrRedemptions": 0
+        },
+        "2026-10-15": {
+          "views": 91,
+          "whatsappClicks": 12,
+          "mapsClicks": 7,
+          "calls": 2,
+          "shares": 8,
+          "qrRedemptions": 0
+        },
+        "2026-10-16": {
+          "views": 123,
+          "whatsappClicks": 16,
+          "mapsClicks": 9,
+          "calls": 2,
+          "shares": 11,
+          "qrRedemptions": 0
+        },
+        "2026-10-17": {
+          "views": 141,
+          "whatsappClicks": 18,
+          "mapsClicks": 11,
+          "calls": 2,
+          "shares": 13,
+          "qrRedemptions": 0
+        },
+        "2026-10-18": {
+          "views": 109,
+          "whatsappClicks": 14,
+          "mapsClicks": 8,
+          "calls": 2,
+          "shares": 10,
+          "qrRedemptions": 0
+        },
+        "2026-10-19": {
+          "views": 64,
+          "whatsappClicks": 8,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-10-20": {
+          "views": 67,
+          "whatsappClicks": 9,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        },
+        "2026-10-21": {
+          "views": 77,
+          "whatsappClicks": 10,
+          "mapsClicks": 6,
+          "calls": 1,
+          "shares": 7,
+          "qrRedemptions": 0
+        },
+        "2026-10-22": {
+          "views": 92,
+          "whatsappClicks": 12,
+          "mapsClicks": 7,
+          "calls": 2,
+          "shares": 8,
+          "qrRedemptions": 0
+        },
+        "2026-10-23": {
+          "views": 126,
+          "whatsappClicks": 16,
+          "mapsClicks": 9,
+          "calls": 2,
+          "shares": 11,
+          "qrRedemptions": 0
+        },
+        "2026-10-24": {
+          "views": 149,
+          "whatsappClicks": 19,
+          "mapsClicks": 11,
+          "calls": 3,
+          "shares": 13,
+          "qrRedemptions": 0
+        },
+        "2026-10-25": {
+          "views": 119,
+          "whatsappClicks": 15,
+          "mapsClicks": 9,
+          "calls": 2,
+          "shares": 11,
+          "qrRedemptions": 0
+        },
+        "2026-10-26": {
+          "views": 71,
+          "whatsappClicks": 9,
+          "mapsClicks": 5,
+          "calls": 1,
+          "shares": 6,
+          "qrRedemptions": 0
+        }
+      }
     },
-    "aspectRatio": "9:16",
-    "imageFit": "cover",
-    "status": "active"
+    "createdAt": "2026-10-26T14:21:07.042Z",
+    "imagePosition": {
+      "x": 50,
+      "y": 50
+    },
+    "imageScale": 1,
+    "mediaBgFill": "blur",
+    "planCategoryIds": [],
+    "planRoles": [],
+    "targetAudience": [],
+    "isPlan": false,
+    "suspensionHistory": [],
+    "planCategoryId": "plan_tarde_amigos",
+    "planCategoryName": "Tarde de amigos"
   },
   {
     "id": "post_promo_smash_combo",
@@ -1961,6 +2334,190 @@
     "status": "active"
   },
   {
+    "id": "post_promo_pizza_familiar",
+    "businessId": "biz_pizzeria_bella_sabana",
+    "businessName": "Pizzería & Trattoria Bella Sabana",
+    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573159988776",
+    "businessPhone": "3159988776",
+    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.026
+    },
+    "type": "promotion",
+    "title": "Pizza Familiar a la Leña (Pepperoni o Margherita) + Gaseosa 1.5L",
+    "description": "Masa madre crocante al horno de leña, salsa pomodoro San Marzano, mozzarella fundido, pepperoni artesanal o albahaca fresca con gaseosa familiar.",
+    "imageUrl": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 46000,
+    "promotionalPrice": 34900,
+    "discountPercentage": 24,
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer y Antojarse",
+    "featured": true,
+    "tags": [
+      "pizza",
+      "pizzas",
+      "pizzeria",
+      "familiar",
+      "almuerzo",
+      "cena",
+      "leña",
+      "combo",
+      "cajica"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 480,
+      "whatsappClicks": 85,
+      "mapsClicks": 52,
+      "calls": 14,
+      "shares": 26
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "almuerzo_fuerte",
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ],
+    "targetAudience": [
+      "amigos",
+      "familias",
+      "parejas"
+    ],
+    "priceScope": "familiar_grupo",
+    "priceType": "exact",
+    "approximatePrice": 34900
+  },
+  {
+    "id": "post_promo_pizza_burrata",
+    "businessId": "biz_pizzeria_bella_sabana",
+    "businessName": "Pizzería & Trattoria Bella Sabana",
+    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Cajicá",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573159988776",
+    "businessPhone": "3159988776",
+    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
+    "coordinates": {
+      "lat": 4.9195,
+      "lng": -74.026
+    },
+    "type": "product",
+    "title": "Pizza Gourmet de Burrata Artesanal, Jamón Serrano & Rúcula",
+    "description": "Masa madre de 48h fermentada, burrata fresca cremosa de la Sabana, lonjas de jamón serrano reserva y reducción de aceto balsámico al horno.",
+    "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 42000,
+    "promotionalPrice": 36000,
+    "discountPercentage": 14,
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_cita_romantica",
+    "planCategoryName": "Citas y Romance",
+    "featured": true,
+    "tags": [
+      "pizza",
+      "pizzas",
+      "burrata",
+      "gourmet",
+      "cena",
+      "pareja",
+      "romantico",
+      "italiana",
+      "cajica"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 390,
+      "whatsappClicks": 68,
+      "mapsClicks": 41,
+      "calls": 11,
+      "shares": 19
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "cena_copas",
+    "planRoles": [
+      "cena_copas",
+      "almuerzo_fuerte"
+    ],
+    "targetAudience": [
+      "parejas",
+      "amigos"
+    ],
+    "priceScope": "pareja",
+    "priceType": "exact",
+    "approximatePrice": 36000
+  },
+  {
+    "id": "post_promo_pollo_broaster_sabanero",
+    "businessId": "biz_chia_parrilla_centro",
+    "businessName": "Fogón Sabanero Chía",
+    "businessLogo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
+    "businessCity": "Chía",
+    "businessSector": "Centro",
+    "businessWhatsapp": "573132223344",
+    "businessPhone": "3132223344",
+    "businessAddress": "Cra. 9 # 12-40, Chía",
+    "coordinates": {
+      "lat": 4.8625,
+      "lng": -74.0538
+    },
+    "type": "promotion",
+    "title": "Combo Pollo Broaster Crujiente Sabanero (8 Presas + Papas Francesa + Arepas)",
+    "description": "Pollo fresco marinado y apanado con receta especial crocante, acompañado de papas a la francesa doradas, arepas santandereanas y salsa miel mostaza casera.",
+    "imageUrl": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=800&auto=format&fit=crop&q=80",
+    "originalPrice": 48000,
+    "promotionalPrice": 37900,
+    "discountPercentage": 21,
+    "mediaType": "image",
+    "categoryId": "cat_restaurantes",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer y Antojarse",
+    "featured": true,
+    "tags": [
+      "pollo",
+      "pollos",
+      "broaster",
+      "pollo broaster",
+      "almuerzo",
+      "combo",
+      "familiar",
+      "crispy",
+      "chia"
+    ],
+    "createdAt": "2026-10-22T10:00:00Z",
+    "metrics": {
+      "views": 530,
+      "whatsappClicks": 110,
+      "mapsClicks": 58,
+      "calls": 22,
+      "shares": 31
+    },
+    "aspectRatio": "9:16",
+    "imageFit": "cover",
+    "status": "active",
+    "planRole": "almuerzo_fuerte",
+    "planRoles": [
+      "almuerzo_fuerte",
+      "cena_copas"
+    ],
+    "targetAudience": [
+      "familias",
+      "amigos"
+    ],
+    "priceScope": "familiar_grupo",
+    "priceType": "exact",
+    "approximatePrice": 37900
+  },
+  {
     "id": "post_papeleria_utiles_impresiones",
     "businessId": "biz_papeleria_central",
     "businessName": "Papelería & Miscelánea Central Chía",
@@ -3321,189 +3878,5 @@
     "priceScope": "individual",
     "priceType": "exact",
     "approximatePrice": 25900
-  },
-  {
-    "id": "post_promo_pizza_familiar",
-    "businessId": "biz_pizzeria_bella_sabana",
-    "businessName": "Pizzería & Trattoria Bella Sabana",
-    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
-    "businessCity": "Cajicá",
-    "businessSector": "Centro",
-    "businessWhatsapp": "573159988776",
-    "businessPhone": "3159988776",
-    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
-    "coordinates": {
-      "lat": 4.9195,
-      "lng": -74.026
-    },
-    "type": "promotion",
-    "title": "Pizza Familiar a la Leña (Pepperoni o Margherita) + Gaseosa 1.5L",
-    "description": "Masa madre crocante al horno de leña, salsa pomodoro San Marzano, mozzarella fundido, pepperoni artesanal o albahaca fresca con gaseosa familiar.",
-    "imageUrl": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
-    "originalPrice": 46000,
-    "promotionalPrice": 34900,
-    "discountPercentage": 24,
-    "mediaType": "image",
-    "categoryId": "cat_restaurantes",
-    "planCategoryId": "plan_comer_algo",
-    "planCategoryName": "Comer y Antojarse",
-    "featured": true,
-    "tags": [
-      "pizza",
-      "pizzas",
-      "pizzeria",
-      "familiar",
-      "almuerzo",
-      "cena",
-      "leña",
-      "combo",
-      "cajica"
-    ],
-    "createdAt": "2026-10-22T10:00:00Z",
-    "metrics": {
-      "views": 480,
-      "whatsappClicks": 85,
-      "mapsClicks": 52,
-      "calls": 14,
-      "shares": 26
-    },
-    "aspectRatio": "9:16",
-    "imageFit": "cover",
-    "status": "active",
-    "planRole": "almuerzo_fuerte",
-    "planRoles": [
-      "almuerzo_fuerte",
-      "cena_copas"
-    ],
-    "targetAudience": [
-      "amigos",
-      "familias",
-      "parejas"
-    ],
-    "priceScope": "familiar_grupo",
-    "priceType": "exact",
-    "approximatePrice": 34900
-  },
-  {
-    "id": "post_promo_pizza_burrata",
-    "businessId": "biz_pizzeria_bella_sabana",
-    "businessName": "Pizzería & Trattoria Bella Sabana",
-    "businessLogo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
-    "businessCity": "Cajicá",
-    "businessSector": "Centro",
-    "businessWhatsapp": "573159988776",
-    "businessPhone": "3159988776",
-    "businessAddress": "Cra. 4 # 5-22, Parque Principal, Cajicá",
-    "coordinates": {
-      "lat": 4.9195,
-      "lng": -74.026
-    },
-    "type": "product",
-    "title": "Pizza Gourmet de Burrata Artesanal, Jamón Serrano & Rúcula",
-    "description": "Masa madre de 48h fermentada, burrata fresca cremosa de la Sabana, lonjas de jamón serrano reserva y reducción de aceto balsámico al horno.",
-    "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80",
-    "originalPrice": 42000,
-    "promotionalPrice": 36000,
-    "discountPercentage": 14,
-    "mediaType": "image",
-    "categoryId": "cat_restaurantes",
-    "planCategoryId": "plan_cita_romantica",
-    "planCategoryName": "Citas y Romance",
-    "featured": true,
-    "tags": [
-      "pizza",
-      "pizzas",
-      "burrata",
-      "gourmet",
-      "cena",
-      "pareja",
-      "romantico",
-      "italiana",
-      "cajica"
-    ],
-    "createdAt": "2026-10-22T10:00:00Z",
-    "metrics": {
-      "views": 390,
-      "whatsappClicks": 68,
-      "mapsClicks": 41,
-      "calls": 11,
-      "shares": 19
-    },
-    "aspectRatio": "9:16",
-    "imageFit": "cover",
-    "status": "active",
-    "planRole": "cena_copas",
-    "planRoles": [
-      "cena_copas",
-      "almuerzo_fuerte"
-    ],
-    "targetAudience": [
-      "parejas",
-      "amigos"
-    ],
-    "priceScope": "pareja",
-    "priceType": "exact",
-    "approximatePrice": 36000
-  },
-  {
-    "id": "post_promo_pollo_broaster_sabanero",
-    "businessId": "biz_chia_parrilla_centro",
-    "businessName": "Fogón Sabanero Chía",
-    "businessLogo": "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80",
-    "businessCity": "Chía",
-    "businessSector": "Centro",
-    "businessWhatsapp": "573132223344",
-    "businessPhone": "3132223344",
-    "businessAddress": "Cra. 9 # 12-40, Chía",
-    "coordinates": {
-      "lat": 4.8625,
-      "lng": -74.0538
-    },
-    "type": "promotion",
-    "title": "Combo Pollo Broaster Crujiente Sabanero (8 Presas + Papas Francesa + Arepas)",
-    "description": "Pollo fresco marinado y apanado con receta especial crocante, acompañado de papas a la francesa doradas, arepas santandereanas y salsa miel mostaza casera.",
-    "imageUrl": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=800&auto=format&fit=crop&q=80",
-    "originalPrice": 48000,
-    "promotionalPrice": 37900,
-    "discountPercentage": 21,
-    "mediaType": "image",
-    "categoryId": "cat_restaurantes",
-    "planCategoryId": "plan_comer_algo",
-    "planCategoryName": "Comer y Antojarse",
-    "featured": true,
-    "tags": [
-      "pollo",
-      "pollos",
-      "broaster",
-      "pollo broaster",
-      "almuerzo",
-      "combo",
-      "familiar",
-      "crispy",
-      "chia"
-    ],
-    "createdAt": "2026-10-22T10:00:00Z",
-    "metrics": {
-      "views": 530,
-      "whatsappClicks": 110,
-      "mapsClicks": 58,
-      "calls": 22,
-      "shares": 31
-    },
-    "aspectRatio": "9:16",
-    "imageFit": "cover",
-    "status": "active",
-    "planRole": "almuerzo_fuerte",
-    "planRoles": [
-      "almuerzo_fuerte",
-      "cena_copas"
-    ],
-    "targetAudience": [
-      "familias",
-      "amigos"
-    ],
-    "priceScope": "familiar_grupo",
-    "priceType": "exact",
-    "approximatePrice": 37900
   }
 ]
