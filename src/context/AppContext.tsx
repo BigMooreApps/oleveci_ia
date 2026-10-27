@@ -652,7 +652,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 merged[idx] = {
                   ...merged[idx],
                   ...initialPost,
-                  videoUrl: initialPost.videoUrl || merged[idx].videoUrl,
+                  videoUrl: initialPost.id === 'post_oleveci_bienvenida' ? initialPost.videoUrl : (initialPost.videoUrl || merged[idx].videoUrl),
                   mediaType: initialPost.mediaType || merged[idx].mediaType,
                 };
               }
@@ -669,6 +669,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const [olePost] = merged.splice(oleveciPostIdx, 1);
             merged.unshift(olePost);
           }
+          merged.forEach((p, i) => {
+            if (p?.videoUrl && p.videoUrl.includes('bienvenida_oleveci.webm')) {
+              merged[i] = { ...p, videoUrl: '/videos/bienvenida_oleveci.mp4' };
+            }
+          });
           const initialTypeMap = new Map(INITIAL_POSTS.map((p) => [p.id, p.type]));
           return merged.filter(Boolean).map((p) => {
             let updated = p;
@@ -1074,8 +1079,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setPosts((prev) => {
             const map = new Map(prev.map((p) => [p.id, p]));
             remotePosts.forEach((rp) => {
+              let sanitized = rp;
+              if (sanitized?.videoUrl && sanitized.videoUrl.includes('bienvenida_oleveci.webm')) {
+                sanitized = { ...sanitized, videoUrl: '/videos/bienvenida_oleveci.mp4' };
+              }
               const existing = map.get(rp.id);
-              map.set(rp.id, existing ? (Object.assign({}, existing, rp) as Post) : rp);
+              map.set(rp.id, existing ? (Object.assign({}, existing, sanitized) as Post) : sanitized);
             });
             return Array.from(map.values());
           });
@@ -1887,13 +1896,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updatePost = (postId: string, data: Partial<Post>) => {
+    let updatedPostToSave: Post | null = null;
     setPosts((prev) =>
-      prev.map((post) => (post.id === postId ? { ...post, ...data } : post))
+      prev.map((post) => {
+        if (post.id === postId) {
+          const updated = { ...post, ...data };
+          updatedPostToSave = updated;
+          return updated;
+        }
+        return post;
+      })
     );
+    if (updatedPostToSave && isSupabaseConfigured) {
+      savePostToSupabase(updatedPostToSave).catch((err) => {
+        console.warn('Error sincronizando actualizacion de publicacion en Supabase:', err);
+      });
+    }
   };
 
   const deletePost = (postId: string) => {
     addDeletedPostId(postId);
+    if (isSupabaseConfigured) {
+      deletePostFromSupabase(postId).catch((err) => {
+        console.warn('Error eliminando publicacion de Supabase:', err);
+      });
+    }
     setPosts((prev) => prev.filter((post) => post.id !== postId));
   };
 
@@ -2213,9 +2240,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateBusiness = (businessId: string, data: Partial<Business>) => {
+    let updatedBizToSave: Business | null = null;
     setBusinesses((prev) =>
-      prev.map((biz) => (biz.id === businessId ? { ...biz, ...data } : biz))
+      prev.map((biz) => {
+        if (biz.id === businessId) {
+          const updated = { ...biz, ...data };
+          updatedBizToSave = updated;
+          return updated;
+        }
+        return biz;
+      })
     );
+    if (updatedBizToSave && isSupabaseConfigured) {
+      saveBusinessToSupabase(updatedBizToSave).catch((err) => {
+        console.warn('Error sincronizando comercio en Supabase:', err);
+      });
+    }
     if (
       data.name !== undefined ||
       data.logo !== undefined ||
@@ -2735,11 +2775,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setBusinesses((prev) => [newBiz, ...prev]);
+    if (isSupabaseConfigured) {
+      saveBusinessToSupabase(newBiz).catch((err) => {
+        console.warn('Error guardando comercio en Supabase:', err);
+      });
+    }
     return newBiz;
   };
 
   const deleteBusiness = (businessId: string) => {
     addDeletedBusinessId(businessId);
+    if (isSupabaseConfigured) {
+      deleteBusinessFromSupabase(businessId).catch((err) => {
+        console.warn('Error eliminando comercio de Supabase:', err);
+      });
+    }
     setBusinesses((prev) => prev.filter((b) => b.id !== businessId));
     // CASCADE: Delete all posts belonging to this business and record their deletion
     posts.filter((p) => p.businessId === businessId).forEach((p) => addDeletedPostId(p.id));
@@ -3030,6 +3080,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return [plan, ...prev];
     });
 
+    if (isSupabaseConfigured) {
+      saveReadyPlanToSupabase(plan).catch((err) => {
+        console.warn('Error guardando itinerario en Supabase:', err);
+      });
+    }
+
     // Also persist plan to server for instant cross-device sharing via deep link
     fetch('/api/plans', {
       method: 'POST',
@@ -3039,12 +3095,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateReadyPlan = (id: string, data: Partial<SimulatedReadyPlan>) => {
+    let updatedPlanToSave: SimulatedReadyPlan | null = null;
     setReadyPlans((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...data } : p))
+      prev.map((p) => {
+        if (p.id === id) {
+          const updated = { ...p, ...data };
+          updatedPlanToSave = updated;
+          return updated;
+        }
+        return p;
+      })
     );
+    if (updatedPlanToSave && isSupabaseConfigured) {
+      saveReadyPlanToSupabase(updatedPlanToSave).catch((err) => {
+        console.warn('Error actualizando itinerario en Supabase:', err);
+      });
+    }
   };
 
   const deleteReadyPlan = (id: string) => {
+    if (isSupabaseConfigured) {
+      deleteReadyPlanFromSupabase(id).catch((err) => {
+        console.warn('Error eliminando itinerario de Supabase:', err);
+      });
+    }
     setReadyPlans((prev) => prev.filter((p) => p.id !== id));
   };
 

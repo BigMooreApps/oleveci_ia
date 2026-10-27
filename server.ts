@@ -668,7 +668,10 @@ app.post('/api/oli/tts', async (req, res) => {
   }
 });
 
-// Servir archivos estáticos de videos
+// Servir archivos estáticos de videos con redirección preventiva para enlaces legados .webm
+app.get('/videos/bienvenida_oleveci.webm', (_req, res) => {
+  res.redirect(302, '/videos/bienvenida_oleveci.mp4');
+});
 app.use('/videos', express.static(path.join(process.cwd(), 'public', 'videos')));
 
 // Endpoint para consultar datos de un anuncio específico
