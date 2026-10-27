@@ -32,9 +32,16 @@ import { Post, Business } from '../types';
 import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
-import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan, formatPriceCOP } from '../../server/oliAssistant';
+import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan } from '../../server/oliAssistant';
 import { OliChatLogModal } from './OliChatLogModal';
 import { OliWhatsAppModal } from './OliWhatsAppModal';
+
+const formatPriceCOP = (amount?: number | null): string => {
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return 'Precio por confirmar';
+  }
+  return `${Math.round(amount).toLocaleString('es-CO')} pesos`;
+};
 
 interface OliSectionProps {
   onSelectPlan?: (plan: SimulatedReadyPlan) => void;
