@@ -1,15 +1,28 @@
-import makeWASocket, {
-  DisconnectReason,
-  useMultiFileAuthState,
-  WASocket,
-  proto,
-} from '@whiskeysockets/baileys';
+import * as Baileys from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
 import path from 'path';
 import fs from 'fs';
 import { generateOliPlan } from './oliAssistant';
 import { formatOliResponseForWhatsApp, getOrCreateSession } from './oliWhatsAppService';
 import { Business, Post } from '../src/types';
+
+type WASocket = Baileys.WASocket;
+
+// Helper to resolve makeWASocket across both ESM (tsx dev) and CommonJS bundled (esbuild production)
+function getMakeWASocket(): typeof Baileys.default {
+  const mod = Baileys as any;
+  if (typeof mod === 'function') return mod;
+  if (mod && typeof mod.default === 'function') return mod.default;
+  if (mod && typeof mod.makeWASocket === 'function') return mod.makeWASocket;
+  if (mod && mod.default && typeof mod.default.default === 'function') return mod.default.default;
+  if (mod && mod.default && typeof mod.default.makeWASocket === 'function') return mod.default.makeWASocket;
+  throw new Error('No se pudo encontrar la función constructora makeWASocket en @whiskeysockets/baileys');
+}
+
+const useMultiFileAuthState =
+  Baileys.useMultiFileAuthState || (Baileys as any).default?.useMultiFileAuthState;
+const DisconnectReason =
+  Baileys.DisconnectReason || (Baileys as any).default?.DisconnectReason;
 
 export type BaileysStatus = 'disconnected' | 'connecting' | 'waiting_for_qr' | 'connected';
 
@@ -102,6 +115,7 @@ export async function connectBaileys(): Promise<BaileysState> {
 
     const { state: authState, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
 
+    const makeWASocket = getMakeWASocket();
     sock = makeWASocket({
       auth: authState,
       printQRInTerminal: false,
@@ -194,7 +208,7 @@ export async function connectBaileys(): Promise<BaileysState> {
   }
 }
 
-async function handleIncomingMessage(msg: proto.IWebMessageInfo) {
+async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
   if (!sock) return;
 
   // Ignore outgoing messages sent by the bot
