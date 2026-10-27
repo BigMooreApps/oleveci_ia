@@ -2,10 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 
 // Obtenemos la URL y la clave asegurando limpiar sufijos como /rest/v1/
 const rawUrl =
-  import.meta.env.VITE_SUPABASE_URL || 'https://tlvexkvkgveejmhzgnqn.supabase.co';
+  import.meta.env.VITE_SUPABASE_URL || 'https://gpdqjihnnjetoxxfsfxh.supabase.co';
 const rawKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  'sb_publishable_c-JceYbXAEoUV4Fr42M4sQ_OVompRnd';
+  'sb_publishable_ZzcuTOB4mcU1ZMC0lFiMEw_vpCm-ZuX';
 
 // Normalizar la URL eliminando /rest/v1 o barras al final
 export const supabaseUrl = (rawUrl || '')

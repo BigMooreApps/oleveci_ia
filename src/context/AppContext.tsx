@@ -670,8 +670,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             merged.unshift(olePost);
           }
           merged.forEach((p, i) => {
-            if (p?.videoUrl && p.videoUrl.includes('bienvenida_oleveci.webm')) {
-              merged[i] = { ...p, videoUrl: '/videos/bienvenida_oleveci.mp4' };
+            if (p?.id === 'post_oleveci_bienvenida') {
+              merged[i] = {
+                ...p,
+                videoUrl: 'https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/bienvenida_oleveci.mp4',
+                imageUrl: 'https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/poster_bienvenida_oli.jpg'
+              };
             }
           });
           const initialTypeMap = new Map(INITIAL_POSTS.map((p) => [p.id, p.type]));
@@ -1080,8 +1084,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const map = new Map(prev.map((p) => [p.id, p]));
             remotePosts.forEach((rp) => {
               let sanitized = rp;
-              if (sanitized?.videoUrl && sanitized.videoUrl.includes('bienvenida_oleveci.webm')) {
-                sanitized = { ...sanitized, videoUrl: '/videos/bienvenida_oleveci.mp4' };
+              if (sanitized?.id === 'post_oleveci_bienvenida') {
+                sanitized = {
+                  ...sanitized,
+                  videoUrl: 'https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/bienvenida_oleveci.mp4',
+                  imageUrl: 'https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/poster_bienvenida_oli.jpg'
+                };
               }
               const existing = map.get(rp.id);
               map.set(rp.id, existing ? (Object.assign({}, existing, sanitized) as Post) : sanitized);
