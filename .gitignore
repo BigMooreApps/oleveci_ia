@@ -10,3 +10,4 @@ server/bin/
 *.exe
 whatsapp_session/
 whatsapp_auth/
+server/db_conversation_logs.json

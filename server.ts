@@ -154,6 +154,33 @@ try {
   console.error('Error reading db_plans.json:', err);
 }
 
+// Conversation logs store for full-context chat diagnosis
+const DB_CONVERSATION_LOGS_FILE = path.join(process.cwd(), 'server', 'db_conversation_logs.json');
+let conversationLogs: any[] = [];
+try {
+  if (fs.existsSync(DB_CONVERSATION_LOGS_FILE)) {
+    const raw = fs.readFileSync(DB_CONVERSATION_LOGS_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      conversationLogs = parsed.slice(-100);
+    }
+  }
+} catch (err) {
+  console.error('Error reading db_conversation_logs.json:', err);
+}
+
+function saveConversationLogsToDisk() {
+  try {
+    fs.writeFileSync(
+      DB_CONVERSATION_LOGS_FILE,
+      JSON.stringify(conversationLogs.slice(-100), null, 2),
+      'utf-8'
+    );
+  } catch (err) {
+    console.error('Error saving db_conversation_logs.json:', err);
+  }
+}
+
 // Helper: Escape HTML special characters for meta tags
 function escapeHtml(str: string = ''): string {
   return str
@@ -498,6 +525,35 @@ app.post('/api/oli/plan', async (req, res) => {
       apiKey: apiKey || process.env.GEMINI_API_KEY,
     });
 
+    // Record conversation log for diagnostic analysis
+    try {
+      const logEntry = {
+        id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        userPrompt,
+        currentCity,
+        userBudget: typeof userBudget === 'number' ? userBudget : parseInt(userBudget, 10) || 100000,
+        messageHistoryCount: messageHistory.length,
+        responseType: plan.type || (plan.stops && plan.stops.length > 0 ? 'plan' : 'search'),
+        spokenText: plan.spokenText,
+        totalCost: plan.totalEstimatedCost,
+        stopsCount: plan.stops?.length || 0,
+        matchedBusinessesCount: plan.matchedBusinesses?.length || 0,
+        stops: plan.stops || [],
+        matchedBusinesses: (plan.matchedBusinesses || []).map((b: any) => ({
+          id: b.id,
+          name: b.name,
+          city: b.city,
+          phone: b.phone,
+        })),
+      };
+      conversationLogs.push(logEntry);
+      if (conversationLogs.length > 100) conversationLogs = conversationLogs.slice(-100);
+      saveConversationLogsToDisk();
+    } catch (logErr) {
+      console.warn('Non-fatal: Error recording conversation log:', logErr);
+    }
+
     return res.json(plan);
   } catch (error) {
     console.error('Error generando plan con Oli:', error);
@@ -522,6 +578,17 @@ app.post('/api/oli/set-key', (req, res) => {
   } catch (error) {
     return res.status(500).json({ error: 'Error configurando clave API' });
   }
+});
+
+// Full conversation logs for offline analysis and AI diagnostic
+app.get('/api/oli/conversation-logs', (_req, res) => {
+  return res.json({ logs: conversationLogs });
+});
+
+app.delete('/api/oli/conversation-logs', (_req, res) => {
+  conversationLogs = [];
+  saveConversationLogsToDisk();
+  return res.json({ success: true, count: 0 });
 });
 
 // ==============================================================================

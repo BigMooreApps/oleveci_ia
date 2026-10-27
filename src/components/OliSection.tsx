@@ -25,15 +25,15 @@ import {
   Phone,
   Tag,
   X,
-  Activity,
+  ScrollText,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Post, Business } from '../types';
 import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
-import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan, OliAuditTrace } from '../../server/oliAssistant';
-import { OliAuditModal } from './OliAuditModal';
+import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan } from '../../server/oliAssistant';
+import { OliChatLogModal } from './OliChatLogModal';
 import { OliWhatsAppModal } from './OliWhatsAppModal';
 
 interface OliSectionProps {
@@ -51,7 +51,7 @@ interface ChatMessage {
   matchedPosts?: Post[];
   responseType?: 'plan' | 'search' | 'info';
   timestamp?: string;
-  auditTrace?: OliAuditTrace;
+  auditTrace?: any;
 }
 
 // Quick starter options for first turn (exactly 4 options)
@@ -103,11 +103,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Audit Inspector State
-  const [isAuditOpen, setIsAuditOpen] = useState(false);
+  // Full Chat Conversation Log & WhatsApp Modal State
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
-  const [auditTraces, setAuditTraces] = useState<OliAuditTrace[]>([]);
-  const [selectedAuditTrace, setSelectedAuditTrace] = useState<OliAuditTrace | null>(null);
   const [hasApiKey, setHasApiKey] = useState(false);
 
   // Check API key configuration on mount
@@ -276,12 +274,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
         setCurrentPlan(null);
       }
 
-      if (responseData.auditTrace) {
-        setAuditTraces((prev) => [...prev, responseData.auditTrace!]);
-        setSelectedAuditTrace(responseData.auditTrace);
-        if (responseData.auditTrace.executionMode === 'llm') {
-          setHasApiKey(true);
-        }
+      if (responseData.auditTrace?.executionMode === 'llm') {
+        setHasApiKey(true);
       }
 
       // Merge local businesses/posts if server returned basic data or IDs
@@ -475,12 +469,12 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
               <button
                 type="button"
-                onClick={() => setIsAuditOpen(true)}
+                onClick={() => setIsLogModalOpen(true)}
                 className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
-                title="Auditoría del Agente: Ver interpretación y filtrado paso a paso"
+                title="Registro y Diagnóstico del Chat: Ver contexto completo y exportar para IA"
               >
-                <Activity className="w-3.5 h-3.5 text-[#0066FF]" />
-                <span className="hidden sm:inline">Auditoría OLI</span>
+                <ScrollText className="w-3.5 h-3.5 text-[#0066FF]" />
+                <span className="hidden sm:inline">Log del Chat</span>
                 <span
                   className={`w-2 h-2 rounded-full ${
                     hasApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-amber-500'
@@ -535,11 +529,11 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
               <button
                 type="button"
-                onClick={() => setIsAuditOpen(true)}
+                onClick={() => setIsLogModalOpen(true)}
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
               >
-                <Activity className="w-3.5 h-3.5 text-[#0066FF]" />
-                <span>Auditoría e Inspector</span>
+                <ScrollText className="w-3.5 h-3.5 text-[#0066FF]" />
+                <span>Log y Contexto del Chat</span>
                 <span
                   className={`w-2 h-2 rounded-full ${
                     hasApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-amber-500'
@@ -672,21 +666,15 @@ export const OliSection: React.FC<OliSectionProps> = ({
                       </p>
 
                       <div className="flex items-center justify-between pt-1">
-                        {msg.auditTrace ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedAuditTrace(msg.auditTrace!);
-                              setIsAuditOpen(true);
-                            }}
-                            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95"
-                          >
-                            <Activity className="w-3 h-3 text-[#0066FF]" />
-                            <span>Auditar paso a paso</span>
-                          </button>
-                        ) : (
-                          <span />
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setIsLogModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95"
+                          title="Ver contexto completo y exportar registro para análisis con IA"
+                        >
+                          <ScrollText className="w-3 h-3 text-[#0066FF]" />
+                          <span>Log y contexto del chat</span>
+                        </button>
 
                         {msg.timestamp && (
                           <span className="text-[10px] text-slate-400 font-medium">
@@ -1114,13 +1102,14 @@ export const OliSection: React.FC<OliSectionProps> = ({
         </div>
       </div>
 
-      {/* Floating Step-by-Step Agent Decision Inspector */}
-      <OliAuditModal
-        isOpen={isAuditOpen}
-        onClose={() => setIsAuditOpen(false)}
-        auditTraces={auditTraces}
-        selectedTrace={selectedAuditTrace}
-        onSelectTrace={(trace) => setSelectedAuditTrace(trace)}
+      {/* Floating Full Context Chat Log & AI Sharing Modal */}
+      <OliChatLogModal
+        isOpen={isLogModalOpen}
+        onClose={() => setIsLogModalOpen(false)}
+        chatHistory={chatHistory}
+        currentCity={currentCity || 'Cajicá'}
+        currentPlan={currentPlan}
+        hasApiKey={hasApiKey}
         onApiKeySaved={() => setHasApiKey(true)}
       />
 
