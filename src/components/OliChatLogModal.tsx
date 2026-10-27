@@ -119,7 +119,7 @@ export const OliChatLogModal: React.FC<OliChatLogModalProps> = ({
     let md = `# REGISTRO DE CONVERSACIÓN CON ASISTENTE OLI (OLEVECI)\n\n`;
     md += `> **Fecha y Hora:** ${dateStr}\n`;
     md += `> **Municipio de Referencia:** ${currentCity}\n`;
-    md += `> **Presupuesto Registrado:** ${formatCOP(currentPlan?.userBudget || 100000)}\n`;
+    md += `> **Presupuesto Registrado:** ${currentPlan?.userBudget && currentPlan.userBudget > 0 ? formatCOP(currentPlan.userBudget) : 'Sin límite establecido (abierto / $0)'}\n`;
     const lastTrace = chatHistory.slice().reverse().find((m) => m.auditTrace)?.auditTrace;
     const engineName = lastTrace?.modelUsed || (hasApiKey ? 'Google Gemini' : 'Motor Determinista Local de Respaldo');
     const modeNote = lastTrace?.executionMode === 'deterministic_fallback' ? ' (Modo Respaldo Local por Cuota/Fallo API)' : '';
@@ -204,7 +204,7 @@ export const OliChatLogModal: React.FC<OliChatLogModalProps> = ({
       md += `## 📊 ESTADO ACTUAL DEL PLAN EN MEMORIA\n`;
       md += `- **Municipio:** ${currentCity}\n`;
       md += `- **Costo Total:** ${formatCOP(currentPlan.totalEstimatedCost)}\n`;
-      md += `- **Presupuesto del Usuario:** ${formatCOP(currentPlan.userBudget)}\n`;
+      md += `- **Presupuesto del Usuario:** ${currentPlan.userBudget && currentPlan.userBudget > 0 ? formatCOP(currentPlan.userBudget) : 'Sin límite establecido (abierto / $0)'}\n`;
       md += `- **Estado de Presupuesto:** ${currentPlan.budgetStatus}\n`;
       md += `- **Número de Paradas Activas:** ${currentPlan.stops?.length || 0}\n`;
       if (currentPlan.stops && currentPlan.stops.length > 0) {
@@ -302,7 +302,7 @@ export const OliChatLogModal: React.FC<OliChatLogModalProps> = ({
           <h1>OleVeci - Registro Integral de Conversación OLI</h1>
           <div class="meta">
             <strong>Fecha:</strong> ${new Date().toLocaleString('es-CO')}<br/>
-            <strong>Municipio:</strong> ${currentCity} | <strong>Presupuesto:</strong> ${formatCOP(currentPlan?.userBudget || 100000)} | <strong>Turnos:</strong> ${turns.length}<br/>
+            <strong>Municipio:</strong> ${currentCity} | <strong>Presupuesto:</strong> ${currentPlan?.userBudget && currentPlan.userBudget > 0 ? formatCOP(currentPlan.userBudget) : 'Sin límite ($0)'} | <strong>Turnos:</strong> ${turns.length}<br/>
             <strong>Motor:</strong> ${hasApiKey ? 'Google Gemini 2.5 Flash' : 'Motor Local de Respaldo'}
           </div>
           ${customNotes ? `<div style="background:#fffbeb;border:1px solid #fef3c7;padding:10px;border-radius:6px;margin-bottom:15px;"><strong>Notas del Tester:</strong><br/>${customNotes}</div>` : ''}
@@ -438,7 +438,7 @@ export const OliChatLogModal: React.FC<OliChatLogModalProps> = ({
             <div>
               <span className="text-slate-400 block text-[10px] font-medium">Presupuesto</span>
               <span className="font-bold text-slate-800">
-                {formatCOP(currentPlan?.userBudget || 100000)}
+                {currentPlan?.userBudget && currentPlan.userBudget > 0 ? formatCOP(currentPlan.userBudget) : 'Sin límite ($0)'}
               </span>
             </div>
           </div>

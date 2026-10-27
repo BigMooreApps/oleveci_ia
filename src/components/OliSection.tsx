@@ -261,7 +261,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
         body: JSON.stringify({
           userPrompt: prompt,
           currentCity: currentCity || 'Cajicá',
-          userBudget: currentPlan ? currentPlan.userBudget : 100000,
+          userBudget: currentPlan?.userBudget || 0,
           previousPlan: currentPlan || null,
           messageHistory: updatedHistory.map((m) => ({ sender: m.sender, text: m.text })),
         }),

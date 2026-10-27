@@ -326,7 +326,7 @@ export function runConversationalModsSuite() {
     const plan = generateFallbackOliPlan({
       userPrompt: 'Está muy caro, máximo 40 mil pesos en Cajicá',
       currentCity: 'Cajicá',
-      userBudget: 40000,
+      userBudget: 0,
       catalogPosts: MOCK_POSTS,
       catalogBusinesses: MOCK_BUSINESSES,
     });

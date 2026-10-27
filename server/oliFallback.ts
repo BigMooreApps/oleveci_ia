@@ -5,6 +5,7 @@ import {
   calculateItineraryBudget,
   resolveTargetDateFromPrompt,
   extractPersonCount,
+  extractBudgetFromPrompt,
 } from './oliValidator';
 import { OliPlanStop, OliPlanResponse, GenerateOliPlanInput, OliAuditStep } from './oliTypes';
 import {
@@ -28,11 +29,21 @@ export function handleRefinementPlan(
   businessMap: Map<string, Business>,
   eligiblePosts: Post[]
 ): OliPlanResponse {
-  const { userPrompt, previousPlan, userBudget = 100000, currentCity = 'Cajicá' } = input;
+  const { userPrompt, previousPlan, userBudget = 0, currentCity = 'Cajicá' } = input;
   const normPrompt = normalizeText(userPrompt);
 
   if (!previousPlan || !previousPlan.stops || previousPlan.stops.length === 0) {
     return generateFallbackOliPlan({ ...input, previousPlan: null });
+  }
+
+  let resolvedBudget = 0;
+  const promptBudget = extractBudgetFromPrompt(userPrompt, -1);
+  if (promptBudget !== -1) {
+    resolvedBudget = promptBudget;
+  } else if (previousPlan && typeof previousPlan.userBudget === 'number' && previousPlan.userBudget > 0) {
+    resolvedBudget = previousPlan.userBudget;
+  } else if (typeof userBudget === 'number' && userBudget > 0) {
+    resolvedBudget = userBudget;
   }
 
   if (
@@ -188,10 +199,12 @@ export function handleRefinementPlan(
   }
 
   const personCount = previousPlan.personCount || extractPersonCount(userPrompt);
+  const isOpenBudget = resolvedBudget <= 0;
   const budgetSummary = calculateItineraryBudget(
     existingStops.map((s) => ({ cost: s.cost })),
-    previousPlan.userBudget || userBudget,
-    personCount
+    resolvedBudget > 0 ? resolvedBudget : 100000,
+    personCount,
+    isOpenBudget
   );
 
   const ordinalLabels = ['primera', 'segunda', 'tercera', 'cuarta'];
@@ -217,6 +230,7 @@ export function handleRefinementPlan(
     planTitle: topic ? `Ruta con ${topic.charAt(0).toUpperCase() + topic.slice(1)} Ajustada` : `Plan Veci Ajustado`,
     summary: `Itinerario actualizado con ${existingStops[targetIndex].businessName} en la ${targetLabel} parada.`,
     stops: existingStops,
+    userBudget: resolvedBudget,
     costPerPerson: budgetSummary.costPerPerson,
     totalEstimatedCost: budgetSummary.totalEstimatedCost,
     savingsOrRemaining: budgetSummary.savingsOrRemaining,
@@ -229,12 +243,22 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
   const {
     userPrompt,
     currentCity = 'Cajicá',
-    userBudget = 100000,
+    userBudget = 0,
     previousPlan,
     catalogPosts,
     catalogBusinesses,
     referenceDate = new Date(),
   } = input;
+
+  let resolvedBudget = 0;
+  const promptBudget = extractBudgetFromPrompt(userPrompt, -1);
+  if (promptBudget !== -1) {
+    resolvedBudget = promptBudget;
+  } else if (previousPlan && typeof previousPlan.userBudget === 'number' && previousPlan.userBudget > 0) {
+    resolvedBudget = previousPlan.userBudget;
+  } else if (typeof userBudget === 'number' && userBudget > 0) {
+    resolvedBudget = userBudget;
+  }
 
   const normPrompt = normalizeText(userPrompt);
   const isRefinement = isPlanRefinementIntent(userPrompt, previousPlan);
@@ -435,10 +459,12 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
   });
 
   const personCount = extractPersonCount(userPrompt);
+  const isOpenBudget = resolvedBudget <= 0;
   const budgetSummary = calculateItineraryBudget(
     stops.map((s) => ({ cost: s.cost })),
-    userBudget,
-    personCount
+    resolvedBudget > 0 ? resolvedBudget : 100000,
+    personCount,
+    isOpenBudget
   );
 
   const totalCostSpeech = formatPriceForSpeech(budgetSummary.totalEstimatedCost);
@@ -538,7 +564,7 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
     targetAudience,
     personCount,
     costPerPerson: budgetSummary.costPerPerson,
-    userBudget: budgetSummary.userBudget,
+    userBudget: resolvedBudget,
     totalEstimatedCost: budgetSummary.totalEstimatedCost,
     savingsOrRemaining: budgetSummary.savingsOrRemaining,
     budgetStatus: budgetSummary.budgetStatus,

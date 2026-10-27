@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { runTest } from './testContext';
 import {
   extractPersonCount,
+  extractBudgetFromPrompt,
   calculateItineraryBudget,
   formatPriceCOP,
   formatPriceForSpeech,
@@ -99,6 +100,21 @@ export function runFinancialMathSuite() {
     const budget = calculateItineraryBudget([], 50000, 2);
     assert.strictEqual(budget.totalEstimatedCost, 0);
     assert.strictEqual(budget.costPerPerson, 0);
+
+    // Verificación de presupuesto abierto / no restringido (userBudget: 0)
+    const openBudget = calculateItineraryBudget([{ cost: 13900 }], 0, 1, true);
+    assert.strictEqual(openBudget.userBudget, 0);
+    assert.strictEqual(openBudget.budgetStatus, 'on_budget');
+    assert.strictEqual(openBudget.savingsOrRemaining, 0);
+    assert.strictEqual(openBudget.totalEstimatedCost, 13900);
+
+    // Verificación de extracción de presupuesto en lenguaje natural colombiano
+    assert.strictEqual(extractBudgetFromPrompt('tengo 50 lucas'), 50000);
+    assert.strictEqual(extractBudgetFromPrompt('con 80 mil pesos'), 80000);
+    assert.strictEqual(extractBudgetFromPrompt('máximo 40k'), 40000);
+    assert.strictEqual(extractBudgetFromPrompt('presupuesto de 120.000'), 120000);
+    assert.strictEqual(extractBudgetFromPrompt('quiero un capuchino en cajica'), 0);
+    assert.strictEqual(extractBudgetFromPrompt('sin limite de plata'), 0);
   });
 
   runTest(222, 'calculateItineraryBudget: 1 parada para 1 persona', () => {

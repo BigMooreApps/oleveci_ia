@@ -839,11 +839,13 @@ export function removeStopAndRecalculatePlan(
   });
 
   const personCount = plan.personCount || 2;
-  const userBudget = plan.userBudget || 100000;
+  const userBudget = typeof plan.userBudget === 'number' ? plan.userBudget : 0;
+  const isOpenBudget = userBudget <= 0;
   const budgetSummary = calculateItineraryBudget(
     updatedStops.map((s) => ({ cost: s.cost })),
-    userBudget,
-    personCount
+    userBudget > 0 ? userBudget : 100000,
+    personCount,
+    isOpenBudget
   );
 
   const updatedSpoken = sanitizeSpokenText(
@@ -858,6 +860,7 @@ export function removeStopAndRecalculatePlan(
 
   return {
     ...plan,
+    userBudget,
     stops: updatedStops,
     costPerPerson: budgetSummary.costPerPerson,
     totalEstimatedCost: budgetSummary.totalEstimatedCost,
@@ -1176,7 +1179,7 @@ export function searchBusinessesAndPosts(
   );
 
   const matchedBizIds = new Set(matchedBusinesses.map((b) => b.id));
-  const matchedPosts = catalogPosts
+  const candidatePosts = catalogPosts
     .filter((post) => {
       if (post.status && post.status !== 'active') return false;
       if (post.suspended) return false;

@@ -501,7 +501,7 @@ app.post('/api/oli/plan', async (req, res) => {
     const {
       userPrompt,
       currentCity = 'Cajicá',
-      userBudget = 100000,
+      userBudget = 0,
       previousPlan = null,
       messageHistory = [],
       apiKey,
@@ -517,7 +517,7 @@ app.post('/api/oli/plan', async (req, res) => {
     const plan = await generateOliPlan({
       userPrompt,
       currentCity,
-      userBudget: typeof userBudget === 'number' ? userBudget : parseInt(userBudget, 10) || 100000,
+      userBudget: typeof userBudget === 'number' ? userBudget : (parseInt(userBudget, 10) || 0),
       previousPlan,
       messageHistory,
       catalogPosts: posts,
@@ -532,7 +532,7 @@ app.post('/api/oli/plan', async (req, res) => {
         timestamp: new Date().toISOString(),
         userPrompt,
         currentCity,
-        userBudget: typeof userBudget === 'number' ? userBudget : parseInt(userBudget, 10) || 100000,
+        userBudget: typeof plan.userBudget === 'number' ? plan.userBudget : (typeof userBudget === 'number' ? userBudget : (parseInt(userBudget, 10) || 0)),
         messageHistoryCount: messageHistory.length,
         responseType: plan.type || (plan.stops && plan.stops.length > 0 ? 'plan' : 'search'),
         spokenText: plan.spokenText,

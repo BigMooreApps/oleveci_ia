@@ -665,6 +665,77 @@ export function extractPersonCount(prompt: string): number {
 }
 
 /**
+ * Extracts explicit user budget from natural language prompt.
+ * Examples:
+ * - "tengo 40 lucas", "100 lucas" -> 40.000, 100.000 COP
+ * - "50k", "80k", "100 k" -> 50.000, 80.000, 100.000 COP
+ * - "50 mil", "80 mil pesos", "100 mil barras" -> 50.000, 80.000, 100.000 COP
+ * - "presupuesto de 80.000", "con 60000", "máximo 40 mil" -> 80.000, 60.000, 40.000 COP
+ * - "sin límite", "sin presupuesto", "ilimitado", "abierto" -> 0 (explicitly resets budget)
+ * If no budget is mentioned in the prompt, returns fallbackBudget (default 0).
+ */
+export function extractBudgetFromPrompt(prompt: string, fallbackBudget: number = 0): number {
+  if (!prompt || typeof prompt !== 'string') return fallbackBudget;
+  const p = prompt.toLowerCase();
+
+  // Explicit unconstrained / reset budget
+  if (
+    p.includes('sin limite') ||
+    p.includes('sin límite') ||
+    p.includes('sin presupuesto') ||
+    p.includes('ilimitado') ||
+    p.includes('presupuesto abierto') ||
+    p.includes('no importa el presupuesto') ||
+    p.includes('no importa la plata') ||
+    p.includes('sin restriccion de presupuesto') ||
+    p.includes('sin restricción de presupuesto')
+  ) {
+    return 0;
+  }
+
+  // 1. "40 lucas", "100 lucas"
+  const lucasMatch = p.match(/(?:tengo|con|de|hasta|maximo|máximo|presupuesto\s+(?:de)?|alrededor\s+de)?\s*(\d+)\s*lucas?\b/i);
+  if (lucasMatch && lucasMatch[1]) {
+    const val = parseInt(lucasMatch[1], 10);
+    if (!isNaN(val) && val > 0) return val * 1000;
+  }
+
+  // 2. "50k", "100k", "80 k"
+  const kMatch = p.match(/(?:presupuesto\s*(?:de)?|tengo|con|maximo|máximo|hasta|gastar|alrededor\s+de)?\s*\$?\s*(\d+)\s*k\b/i);
+  if (kMatch && kMatch[1]) {
+    const val = parseInt(kMatch[1], 10);
+    if (!isNaN(val) && val > 0) return val * 1000;
+  }
+
+  // 3. "50 mil", "80 mil pesos", "100 mil barras"
+  const milMatch = p.match(/(?:presupuesto\s*(?:de)?|tengo|con|maximo|máximo|hasta|gastar|de|alrededor\s+de)?\s*\$?\s*(\d+)\s*mil\b/i);
+  if (milMatch && milMatch[1]) {
+    const val = parseInt(milMatch[1], 10);
+    if (!isNaN(val) && val > 0) return val * 1000;
+  }
+
+  // 4. Formatted COP numbers like "$50.000", "50.000 pesos", "presupuesto de 80.000", "maximo 60000"
+  const explicitNumberMatch = p.match(
+    /(?:presupuesto\s*(?:de)?|tengo|con|maximo\s*(?:de)?|máximo\s*(?:de)?|hasta|gastar|\$)\s*\$?\s*(\d{1,3}(?:\.\d{3})+|\d{4,7})\s*(?:pesos|cop)?\b/i
+  );
+  if (explicitNumberMatch && explicitNumberMatch[1]) {
+    const rawNum = explicitNumberMatch[1].replace(/\./g, '');
+    const val = parseInt(rawNum, 10);
+    if (!isNaN(val) && val >= 5000 && val <= 10000000) return val;
+  }
+
+  // 5. Standalone number with "pesos": "40000 pesos", "50.000 pesos"
+  const pesosMatch = p.match(/(\d{1,3}(?:\.\d{3})+|\d{4,7})\s*pesos\b/i);
+  if (pesosMatch && pesosMatch[1]) {
+    const rawNum = pesosMatch[1].replace(/\./g, '');
+    const val = parseInt(rawNum, 10);
+    if (!isNaN(val) && val >= 5000 && val <= 10000000) return val;
+  }
+
+  return fallbackBudget;
+}
+
+/**
  * Budget calculator for an itinerary (Section 9)
  */
 export interface ItineraryBudgetSummary {
@@ -683,7 +754,8 @@ export interface ItineraryBudgetSummary {
 export function calculateItineraryBudget(
   stopCosts: Array<{ cost: number; isUnconfirmed?: boolean }>,
   userBudget: number = 100000,
-  personCount: number = 2
+  personCount: number = 2,
+  isOpenBudget: boolean = false
 ): ItineraryBudgetSummary {
   let totalCost = 0;
   let unconfirmedCount = 0;
@@ -697,6 +769,25 @@ export function calculateItineraryBudget(
   }
 
   const costPerPerson = personCount > 0 ? Math.round(totalCost / personCount) : totalCost;
+
+  if (isOpenBudget) {
+    const explanation = unconfirmedCount > 0
+      ? `Presupuesto estimado de ${formatPriceCOP(totalCost)} (${unconfirmedCount} parada con precio a consultar).`
+      : `El costo total estimado del itinerario es de ${formatPriceCOP(totalCost)}.`;
+    return {
+      personCount,
+      costPerPerson,
+      totalEstimatedCost: totalCost,
+      userBudget: 0,
+      difference: 0,
+      savingsOrRemaining: 0,
+      budgetStatus: 'on_budget',
+      hasUnconfirmedPrices: unconfirmedCount > 0,
+      unconfirmedCount,
+      explanation,
+    };
+  }
+
   const difference = userBudget - totalCost;
   const savingsOrRemaining = Math.max(0, difference);
 

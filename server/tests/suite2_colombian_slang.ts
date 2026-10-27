@@ -6,6 +6,7 @@ import {
   normalizeText,
   generateFallbackOliPlan,
 } from '../oliAssistant';
+import { extractBudgetFromPrompt } from '../oliValidator';
 
 export function runSlangSuite() {
   console.log('\n--- SUITE 2: JERGA COLOMBIANA, ERRORES TIPOGRÁFICOS Y MUNICIPIOS (Pruebas 34 a 75) ---');
@@ -81,6 +82,7 @@ export function runSlangSuite() {
     assert.ok(norm.includes('40 lucas'));
     const isSearch = detectSearchIntent('veci tengo 40 lucas para armar un parche');
     assert.strictEqual(isSearch, false);
+    assert.strictEqual(extractBudgetFromPrompt('veci tengo 40 lucas para armar un parche'), 40000);
   });
 
   runTest(41, 'Jerga colombiana: "plan con la bendición" (clasifica como público familiar con niños)', () => {

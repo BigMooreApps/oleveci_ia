@@ -281,7 +281,7 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
         body: JSON.stringify({
           userPrompt: prompt,
           currentCity: currentCity || 'Chía',
-          userBudget: currentPlan ? currentPlan.userBudget : 100000,
+          userBudget: currentPlan?.userBudget || 0,
           previousPlan: currentPlan || null,
           messageHistory: updatedHistory.map((m) => ({ sender: m.sender, text: m.text })),
         }),
