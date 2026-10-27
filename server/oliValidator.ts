@@ -98,6 +98,7 @@ export function resolveTargetDateFromPrompt(prompt: string, referenceDate: Date 
 export function parseTimeToMinutes(t?: string | null): number | null {
   if (!t || typeof t !== 'string') return null;
   const clean = t.trim().toUpperCase();
+  if (clean.includes('24 HORAS') || clean === '24H' || clean === '24 HORAS.') return 0;
 
   // 12h format: e.g. "08:00 AM", "8:00 PM", "8 PM", "8:30am", "1:00 PM"
   const m12 = clean.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
@@ -326,7 +327,8 @@ export function isBusinessOpen(
     const startMin = parseTimeToMinutes(dayRow.horaInicio);
     const endMin = parseTimeToMinutes(dayRow.horaFin);
     if (startMin !== null && endMin !== null) {
-      if (targetMin < startMin || targetMin > endMin) {
+      const isWithinHours = endMin >= startMin ? (targetMin >= startMin && targetMin <= endMin) : (targetMin >= startMin || targetMin <= endMin);
+      if (!isWithinHours) {
         return {
           isOpen: false,
           reason: `${business.name || 'El comercio'} atiende de ${dayRow.horaInicio} a ${dayRow.horaFin} los ${dayRow.dia}`,
@@ -687,7 +689,7 @@ export function calculateItineraryBudget(
   let unconfirmedCount = 0;
 
   for (const item of stopCosts) {
-    if (item.isUnconfirmed || item.cost === undefined || item.cost === null || item.cost < 0) {
+    if (item.isUnconfirmed || item.cost === undefined || item.cost === null || item.cost < 0 || isNaN(item.cost)) {
       unconfirmedCount++;
     } else {
       totalCost += item.cost;

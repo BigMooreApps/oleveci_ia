@@ -313,6 +313,23 @@ export function detectSearchIntent(prompt: string): boolean {
     'tarde para salir',
     'salir este fin de semana',
     'presupuesto para un plan',
+    'parche',
+    'un parche',
+    'armar un parche',
+    'parche para',
+    'a donde caemos',
+    'donde caemos',
+    'hacer una ruta',
+    'tardear',
+    'tardeo',
+    'dominguear',
+    'rumbear',
+    'salir a comer',
+    'plan para salir',
+    'que plan hay',
+    'que planes hay',
+    'hacer un recorrido',
+    'puebliar',
   ];
 
   if (planSignals.some((sig) => norm.includes(sig))) {
@@ -338,7 +355,9 @@ export function detectSearchIntent(prompt: string): boolean {
   ];
 
   if (refinementSignals.some((sig) => norm.includes(sig))) {
-    return false;
+    if (!norm.includes('aceite') && !norm.includes('freno') && !norm.includes('llanta') && !norm.includes('bateria') && !norm.includes('repuesto')) {
+      return false;
+    }
   }
 
   // Search / Recommendation prefixes and question words
@@ -391,6 +410,9 @@ export function detectSearchIntent(prompt: string): boolean {
     'a que hora',
     'cuanto cuesta',
     'precio de',
+    'alguna',
+    'algun',
+    'necesito',
   ];
 
   if (searchPrefixes.some((p) => norm.includes(p))) {
@@ -445,10 +467,15 @@ export function detectSearchIntent(prompt: string): boolean {
     'arreglan celulares',
     'reparacion de celulares',
     'cambio de aceite',
+    'cambiar el aceite',
     'frenos',
     'drogueria',
     'farmacia',
     'ferreteria',
+    'cerrajeria',
+    'odontologo',
+    'dentista',
+    'lavanderia',
   ];
 
   return standaloneServices.some((kw) => norm.includes(kw));
@@ -490,11 +517,11 @@ export function extractRequestedTopic(prompt: string): {
     }
   }
 
-  // Regex for "quiero comer X", "antojo de X", "ganas de X"
-  const cravingMatch = norm.match(/(?:quiero comer|tengo ganas de comer|antojo de|ganas de|busco donde comer|recomiendame comer)\s+([a-z\s]+?)(?:\s+(?:en|cerca|para|con|este|hoy|$))/i);
+  // Regex for cravings and activities: "quiero comer X", "antojo de X", "quiero X"
+  const cravingMatch = norm.match(/(?:quiero comer|tengo ganas de comer|antojo de|ganas de|busco donde comer|recomiendame comer|quiero|busco|viajar a|paseo en|safari de)\s+([a-z\s]+?)(?:\s+(?:en|cerca|para|con|este|hoy|por|$))/i);
   if (cravingMatch && cravingMatch[1]) {
     const raw = cravingMatch[1].trim();
-    if (raw.length > 2 && !['algo', 'rico', 'delicioso', 'bien', 'bueno'].includes(raw)) {
+    if (raw.length > 2 && !['algo', 'rico', 'delicioso', 'bien', 'bueno', 'un plan', 'salir', 'comer', 'un'].includes(raw)) {
       return { topic: raw, isSpecificFoodOrActivity: true, isDining: true };
     }
   }
@@ -587,7 +614,7 @@ export function classifyPostRole(post: Post): PostMealRole {
     combined.includes('mojito') ||
     combined.includes('coctel') ||
     combined.includes('aguardiente') ||
-    combined.includes('ron') ||
+    /\bron\b/.test(combined) ||
     combined.includes('fogata') ||
     combined.includes('noche_rumba')
   ) {
@@ -721,7 +748,7 @@ export function buildCoherentItinerary(
     : candidatePosts;
 
   const tryAddPost = (p: Post): boolean => {
-    if (!p || !p.id) return false;
+    if (!p || !p.id || !p.businessId || !p.businessId.trim()) return false;
     if (selectedPosts.some((s) => s.id === p.id)) return false;
     // CRITICAL: NEVER repeat the same business in multiple stops of a single plan!
     if (selectedBizIds.has(p.businessId)) return false;
@@ -782,7 +809,7 @@ export function buildCoherentItinerary(
   if (selectedPosts.length < 2) {
     for (const p of validCandidates) {
       if (selectedPosts.length >= 2) break;
-      if (!selectedBizIds.has(p.businessId)) {
+      if (p && p.id && p.businessId && p.businessId.trim() && !selectedBizIds.has(p.businessId)) {
         selectedPosts.push(p);
         selectedBizIds.add(p.businessId);
       }
@@ -1047,7 +1074,15 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
 
   // 3. Target Audience
   let targetAudience = 'En pareja';
-  if (normPrompt.includes('familia') || normPrompt.includes('nino') || normPrompt.includes('hijo') || normPrompt.includes('papas')) {
+  if (
+    normPrompt.includes('familia') ||
+    normPrompt.includes('nino') ||
+    normPrompt.includes('hijo') ||
+    normPrompt.includes('papas') ||
+    normPrompt.includes('bebe') ||
+    normPrompt.includes('bendicion') ||
+    normPrompt.includes('abuelo')
+  ) {
     targetAudience = 'Familiar';
   } else if (normPrompt.includes('amigo') || normPrompt.includes('parche') || normPrompt.includes('combo')) {
     targetAudience = 'Amigos';
@@ -1203,8 +1238,13 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
     }
   }
 
+  const hasActivityIntent =
+    /termal|termales|ecoparque|senderismo|caminata|parque|turismo|naturaleza|masaje|spa|bici|bicicleta|entrenar|actividad|relajacion/i.test(
+      normPrompt
+    );
   const isFoodRequest =
     !allowGym &&
+    !hasActivityIntent &&
     (isAlternativeSuggestion ||
       /arroz|chino|comida|comer|almorzar|cenar|restaurante|plato|carne|asado|brunch|cafe|postre|hamburguesa|pizza|gastro|parrilla|picada|panaderia|helado|sushi|pareja|amigos|familia|fin de semana|domingo|sabado|plan|itinerario|salir/i.test(
         normPrompt
@@ -1237,6 +1277,17 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
     const hashB = (b.id.charCodeAt(b.id.length - 1) + seed) % 17;
     return hashA - hashB;
   });
+
+  const actualCityPosts = eligiblePosts.filter((p) => {
+    const b = businessMap.get(p.businessId);
+    return (
+      (b?.city && normalizeText(b.city) === normalizeText(targetCity)) ||
+      (p.businessCity && normalizeText(p.businessCity) === normalizeText(targetCity))
+    );
+  });
+  if (matchedPosts.length === 0 && actualCityPosts.length > 0) {
+    matchedPosts.push(...actualCityPosts);
+  }
 
   const finalPosts = buildCoherentItinerary(matchedPosts, candidatePosts, 3, isFoodRequest);
 

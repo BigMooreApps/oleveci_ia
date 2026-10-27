@@ -248,7 +248,9 @@ export function detectSearchIntent(prompt: string): boolean {
   ];
 
   if (refinementSignals.some((sig) => norm.includes(sig))) {
-    return false;
+    if (!norm.includes('aceite') && !norm.includes('freno') && !norm.includes('llanta') && !norm.includes('bateria') && !norm.includes('repuesto')) {
+      return false;
+    }
   }
 
   const searchPrefixes = [
@@ -422,10 +424,10 @@ export function extractRequestedTopic(prompt: string): {
     }
   }
 
-  const cravingMatch = norm.match(/(?:quiero comer|tengo ganas de comer|antojo de|ganas de|busco donde comer|recomiendame comer)\s+([a-z\s]+?)(?:\s+(?:en|cerca|para|con|este|hoy|$))/i);
+  const cravingMatch = norm.match(/(?:quiero comer|tengo ganas de comer|antojo de|ganas de|busco donde comer|recomiendame comer|quiero|busco|viajar a|paseo en|safari de)\s+([a-z\s]+?)(?:\s+(?:en|cerca|para|con|este|hoy|$))/i);
   if (cravingMatch && cravingMatch[1]) {
     const raw = cravingMatch[1].trim();
-    if (raw.length > 2 && !['algo', 'rico', 'delicioso', 'bien', 'bueno'].includes(raw)) {
+    if (raw.length > 2 && !['algo', 'rico', 'delicioso', 'bien', 'bueno', 'un plan', 'salir', 'comer', 'un'].includes(raw)) {
       return { topic: raw, isSpecificFoodOrActivity: true, isDining: true };
     }
   }
@@ -511,7 +513,7 @@ export function classifyPostRole(post: Post): PostMealRole {
     combined.includes('mojito') ||
     combined.includes('coctel') ||
     combined.includes('aguardiente') ||
-    combined.includes('ron') ||
+    /\bron\b/.test(combined) ||
     combined.includes('fogata') ||
     combined.includes('noche_rumba')
   ) {
@@ -637,7 +639,7 @@ export function buildCoherentItinerary(
     : candidatePosts;
 
   const tryAddPost = (p: Post): boolean => {
-    if (!p || !p.id) return false;
+    if (!p || !p.id || !p.businessId || !p.businessId.trim()) return false;
     if (selectedPosts.some((s) => s.id === p.id)) return false;
     if (selectedBizIds.has(p.businessId)) return false;
 

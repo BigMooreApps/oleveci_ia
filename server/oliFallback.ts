@@ -246,7 +246,15 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
   const dateInfo = resolveTargetDateFromPrompt(userPrompt, referenceDate);
 
   let targetAudience = 'En pareja';
-  if (normPrompt.includes('familia') || normPrompt.includes('nino') || normPrompt.includes('hijo') || normPrompt.includes('papas')) {
+  if (
+    normPrompt.includes('familia') ||
+    normPrompt.includes('nino') ||
+    normPrompt.includes('hijo') ||
+    normPrompt.includes('papas') ||
+    normPrompt.includes('bebe') ||
+    normPrompt.includes('bendicion') ||
+    normPrompt.includes('abuelo')
+  ) {
     targetAudience = 'Familiar';
   } else if (normPrompt.includes('amigo') || normPrompt.includes('parche') || normPrompt.includes('combo')) {
     targetAudience = 'Amigos';
