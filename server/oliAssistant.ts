@@ -2045,7 +2045,7 @@ export function searchBusinessesAndPosts(
   // - Never include posts belonging to an excluded category
   // - Leverage new post fields: tags, planCategoryId, planRole
   const matchedBizIds = new Set(matchedBusinesses.map((b) => b.id));
-  const matchedPosts = catalogPosts
+  const candidatePosts = catalogPosts
     .filter((post) => {
       if (post.status && post.status !== 'active') return false;
       if (post.suspended) return false;
@@ -2073,18 +2073,42 @@ export function searchBusinessesAndPosts(
       if (hasTopicWord) return true;
       return allSearchTerms.some((t) => textContainsTerm(postText, t));
     })
-    .sort((a, b) => {
-      // Priority 1: From matched businesses
-      const aFromMatched = matchedBizIds.has(a.businessId) ? 1 : 0;
-      const bFromMatched = matchedBizIds.has(b.businessId) ? 1 : 0;
-      if (aFromMatched !== bFromMatched) return bFromMatched - aFromMatched;
+    .map((post) => {
+      const titleNorm = normalizeText(post.title);
+      const postText = normalizeText(`${post.title} ${post.description || ''} ${(post.tags || []).join(' ')}`);
+      let postScore = 0;
 
-      // Priority 2: In requested municipality
-      const aInCity = normalizeText(a.businessCity) === normalizeText(targetMunicipality) ? 1 : 0;
-      const bInCity = normalizeText(b.businessCity) === normalizeText(targetMunicipality) ? 1 : 0;
-      return bInCity - aInCity;
+      // Exact prompt tokens match in title gets highest priority
+      for (const token of tokens) {
+        if (textContainsTerm(titleNorm, token)) postScore += 50;
+        else if (textContainsTerm(postText, token)) postScore += 20;
+      }
+
+      // Topic words match
+      if (activeTopicDef) {
+        for (const w of activeTopicDef.words) {
+          if (textContainsTerm(titleNorm, w)) postScore += 25;
+          else if (textContainsTerm(postText, w)) postScore += 10;
+        }
+      }
+
+      // Matched business bonus
+      if (matchedBizIds.has(post.businessId)) postScore += 30;
+
+      // In requested municipality bonus
+      if (normalizeText(post.businessCity) === normalizeText(targetMunicipality)) postScore += 20;
+
+      return { post, postScore };
     })
-    .slice(0, 4);
+    .sort((a, b) => b.postScore - a.postScore);
+
+  const topPostScore = candidatePosts.length > 0 ? candidatePosts[0].postScore : 0;
+  // If top post has a high direct relevance (>= 60), prune distant/unrelated items to prevent visual overload
+  const filteredPosts = topPostScore >= 60
+    ? candidatePosts.filter((cp) => cp.postScore >= topPostScore * 0.55)
+    : candidatePosts;
+
+  const matchedPosts = filteredPosts.slice(0, 3).map((cp) => cp.post);
 
   return {
     matchedBusinesses,

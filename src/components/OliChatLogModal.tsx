@@ -169,6 +169,23 @@ export const OliChatLogModal: React.FC<OliChatLogModalProps> = ({
             md += `\n`;
           }
 
+          // If matched posts (announcements / promotions shown on screen)
+          if (turn.oliMessage.matchedPosts && turn.oliMessage.matchedPosts.length > 0) {
+            md += `  *🏷️ Opciones y anuncios disponibles mostrados en pantalla (${turn.oliMessage.matchedPosts.length}):*\n`;
+            turn.oliMessage.matchedPosts.forEach((p, pIdx) => {
+              const price = p.promotionalPrice || p.originalPrice || p.approximatePrice;
+              const priceStr = price ? ` - Precio: ${formatCOP(price)}` : '';
+              md += `    ${pIdx + 1}. **${p.title}** (${p.businessName} · ${p.businessCity || currentCity})${priceStr}\n`;
+              if (p.businessAddress) md += `       *Ubicación:* ${p.businessAddress}\n`;
+              if (p.businessPhone || p.businessWhatsapp) md += `       *WhatsApp/Tel:* ${p.businessWhatsapp || p.businessPhone}\n`;
+              if (p.description) {
+                const cleanDesc = p.description.replace(/\n+/g, ' ').trim();
+                md += `       *Descripción:* ${cleanDesc.substring(0, 110)}${cleanDesc.length > 110 ? '...' : ''}\n`;
+              }
+            });
+            md += `\n`;
+          }
+
           // If matched businesses exist
           if (turn.oliMessage.matchedBusinesses && turn.oliMessage.matchedBusinesses.length > 0) {
             md += `  *🏢 Comercios destacados encontrados (${turn.oliMessage.matchedBusinesses.length}):*\n`;
