@@ -1118,7 +1118,26 @@ export function searchBusinessesAndPosts(
     .split(/\s+/)
     .filter((w) => w.length > 2 && !SPANISH_STOP_WORDS.has(w));
 
+  const municipalityNames = new Set([
+    'cajica', 'cajicá', 'chia', 'chía', 'zipaquira', 'zipaquirá', 'zipa',
+    'cota', 'sopo', 'sopó', 'tabio', 'tenjo', 'nemocon', 'nemocón',
+    'tocancipa', 'tocancipá', 'gachancipa', 'gachancipá', 'sabana'
+  ]);
+
+  const genericSearchStopWords = new Set([
+    'quiero', 'tomar', 'tomarme', 'comer', 'comerme', 'ir', 'recomiendame',
+    'recomendar', 'recomienda', 'buscar', 'donde', 'hay', 'algun', 'alguna',
+    'buen', 'bueno', 'buena', 'rico', 'rica', 'delicioso', 'sitio', 'lugar',
+    'local', 'negocio', 'tienda', 'favor', 'veci', 'oli', 'para', 'con',
+    'este', 'esta', 'estos', 'estas', 'unas', 'unos', 'una', 'uno', 'los', 'las', 'les', 'por', 'sobre'
+  ]);
+
+  const specificProductKeywords = tokens.filter(
+    (t) => !municipalityNames.has(t) && !genericSearchStopWords.has(t) && t.length > 2
+  );
+
   const allSearchTerms = Array.from(new Set([...tokens, ...(activeTopicDef ? activeTopicDef.words : [])]));
+  const targetCityNorm = normalizeText(targetMunicipality);
 
   const scoredBusinesses = catalogBusinesses.map((b) => {
     if (b.status && b.status !== 'active') return { business: b, score: 0, inTargetCity: false };
@@ -1132,7 +1151,7 @@ export function searchBusinessesAndPosts(
     const descNorm = normalizeText(b.description || '');
     const subCatNorm = normalizeText(b.subCategory || '');
     const cityNorm = normalizeText(b.city || '');
-    const inTargetCity = cityNorm === normalizeText(targetMunicipality);
+    const inTargetCity = cityNorm === targetCityNorm;
 
     if (activeTopicDef && activeTopicDef.allowedCategoryIds.includes(b.categoryId)) {
       score += 10;
@@ -1170,13 +1189,16 @@ export function searchBusinessesAndPosts(
     .filter((sb) => sb.score >= 20)
     .sort((a, b) => b.score - a.score);
 
-  const topScore = validMatches.length > 0 ? validMatches[0].score : 0;
-  const filteredMatches = validMatches.filter((sb) => sb.score >= topScore * 0.45);
+  // STRICT MUNICIPALITY RULE FOR BUSINESSES:
+  // If there are valid businesses in the requested municipality, NEVER leak businesses from other towns!
+  const matchesInTargetCity = validMatches.filter((sb) => sb.inTargetCity);
+  const exactMatchInMunicipality = matchesInTargetCity.length > 0;
+
+  const eligibleBizMatches = exactMatchInMunicipality ? matchesInTargetCity : validMatches;
+  const topBizScore = eligibleBizMatches.length > 0 ? eligibleBizMatches[0].score : 0;
+  const filteredMatches = eligibleBizMatches.filter((sb) => sb.score >= topBizScore * 0.45);
 
   const matchedBusinesses = filteredMatches.slice(0, 4).map((sb) => sb.business);
-  const exactMatchInMunicipality = matchedBusinesses.some(
-    (b) => normalizeText(b.city) === normalizeText(targetMunicipality)
-  );
 
   const matchedBizIds = new Set(matchedBusinesses.map((b) => b.id));
   const candidatePosts = catalogPosts
@@ -1184,6 +1206,12 @@ export function searchBusinessesAndPosts(
       if (post.status && post.status !== 'active') return false;
       if (post.suspended) return false;
       if (post.businessId === 'biz_oleveci' || post.id === 'post_oleveci_bienvenida') return false;
+
+      // STRICT MUNICIPALITY RULE FOR POSTS:
+      // If there are matches in target municipality, strictly isolate posts to target municipality!
+      if (exactMatchInMunicipality && normalizeText(post.businessCity) !== targetCityNorm) {
+        return false;
+      }
 
       if (activeTopicDef && activeTopicDef.excludedCategoryIds.includes(post.categoryId)) {
         return false;
@@ -1207,17 +1235,29 @@ export function searchBusinessesAndPosts(
       const titleNorm = normalizeText(post.title);
       const postText = normalizeText(`${post.title} ${post.description || ''} ${(post.tags || []).join(' ')}`);
       let postScore = 0;
+      let matchesSpecificProduct = false;
 
-      // Exact prompt tokens match in title gets highest priority
+      // Dominant priority: Specific product/item requested (e.g. "capuchino", "pizza", "taller")
+      for (const kw of specificProductKeywords) {
+        if (textContainsTerm(titleNorm, kw)) {
+          postScore += 120;
+          matchesSpecificProduct = true;
+        } else if (textContainsTerm(postText, kw)) {
+          postScore += 50;
+          matchesSpecificProduct = true;
+        }
+      }
+
+      // General search tokens
       for (const token of tokens) {
-        if (textContainsTerm(titleNorm, token)) postScore += 50;
-        else if (textContainsTerm(postText, token)) postScore += 20;
+        if (textContainsTerm(titleNorm, token)) postScore += 30;
+        else if (textContainsTerm(postText, token)) postScore += 15;
       }
 
       // Topic words match
       if (activeTopicDef) {
         for (const w of activeTopicDef.words) {
-          if (textContainsTerm(titleNorm, w)) postScore += 25;
+          if (textContainsTerm(titleNorm, w)) postScore += 20;
           else if (textContainsTerm(postText, w)) postScore += 10;
         }
       }
@@ -1226,17 +1266,27 @@ export function searchBusinessesAndPosts(
       if (matchedBizIds.has(post.businessId)) postScore += 30;
 
       // In requested municipality bonus
-      if (normalizeText(post.businessCity) === normalizeText(targetMunicipality)) postScore += 20;
+      if (normalizeText(post.businessCity) === targetCityNorm) postScore += 25;
 
-      return { post, postScore };
+      return { post, postScore, matchesSpecificProduct };
     })
     .sort((a, b) => b.postScore - a.postScore);
 
-  const topPostScore = candidatePosts.length > 0 ? candidatePosts[0].postScore : 0;
+  // If user searched for a specific product/item and we found posts that directly match it,
+  // STRICTLY isolate results to those matching posts! Do not pad with unrelated items!
+  let refinedCandidates = candidatePosts;
+  if (specificProductKeywords.length > 0) {
+    const directProductMatches = candidatePosts.filter((cp) => cp.matchesSpecificProduct);
+    if (directProductMatches.length > 0) {
+      refinedCandidates = directProductMatches;
+    }
+  }
+
+  const topPostScore = refinedCandidates.length > 0 ? refinedCandidates[0].postScore : 0;
   // If top post has a high direct relevance (>= 60), prune distant/unrelated items to prevent visual overload
   const filteredPosts = topPostScore >= 60
-    ? candidatePosts.filter((cp) => cp.postScore >= topPostScore * 0.55)
-    : candidatePosts;
+    ? refinedCandidates.filter((cp) => cp.postScore >= topPostScore * 0.55)
+    : refinedCandidates;
 
   const matchedPosts = filteredPosts.slice(0, 3).map((cp) => cp.post);
 
