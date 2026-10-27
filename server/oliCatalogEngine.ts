@@ -913,14 +913,6 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
   },
   lavado_autos: {
     words: [
-      'carro',
-      'carros',
-      'auto',
-      'autos',
-      'automovil',
-      'automoviles',
-      'vehiculo',
-      'vehiculos',
       'lavar el auto',
       'lavar auto',
       'lavar carro',
@@ -934,7 +926,9 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
       'car wash',
       'detailing',
       'cojineria',
+      'polichado',
       'polarizado',
+      'sellado ceramico',
     ],
     allowedCategoryIds: ['cat_automoviles', 'cat_servicios'],
     excludedCategoryIds: ['cat_planes_eventos', 'cat_mascotas', 'cat_restaurantes', 'cat_comida_rapida', 'cat_cafes'],
@@ -948,6 +942,7 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
       'taller de motos',
       'taller',
       'talleres',
+      'talle',
       'mecanica',
       'mecanico',
       'mecanicos',
@@ -960,6 +955,8 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
       'latoneria',
       'pintura automotriz',
       'repuestos',
+      'peritaje',
+      'reparacion de motor',
     ],
     allowedCategoryIds: ['cat_automoviles', 'cat_servicios'],
     excludedCategoryIds: [
@@ -1152,6 +1149,15 @@ export function searchBusinessesAndPosts(
     const subCatNorm = normalizeText(b.subCategory || '');
     const cityNorm = normalizeText(b.city || '');
     const inTargetCity = cityNorm === targetCityNorm;
+
+    if (activeTopicDef) {
+      const matchesTopicWord = activeTopicDef.words.some(
+        (w) => textContainsTerm(nameNorm, w) || textContainsTerm(subCatNorm, w) || textContainsTerm(descNorm, w)
+      );
+      if (!matchesTopicWord) {
+        return { business: b, score: 0, inTargetCity: false };
+      }
+    }
 
     if (activeTopicDef && activeTopicDef.allowedCategoryIds.includes(b.categoryId)) {
       score += 10;

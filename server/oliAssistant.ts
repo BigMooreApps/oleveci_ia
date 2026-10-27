@@ -415,6 +415,26 @@ export function detectSearchIntent(prompt: string): boolean {
     return false;
   }
 
+  // Single-entity / venue search patterns (e.g. "un capuchino", "un talle", "un taller", "una hamburguesa", "una pizza")
+  if (norm.startsWith('un ') || norm.startsWith('una ')) {
+    if (!norm.includes('plan') && !norm.includes('parche') && !norm.includes('itinerario') && !norm.includes('ruta') && !norm.includes('recorrido')) {
+      return true;
+    }
+  }
+
+  // Very short query (1 to 3 words) without plan keywords is inherently a search (e.g. "taller", "un talle", "capuchino", "pizza cajica")
+  const words = norm.split(/\s+/).filter(Boolean);
+  if (words.length <= 3 && !norm.includes('plan') && !norm.includes('parche') && !norm.includes('ruta') && !norm.includes('itinerario') && !norm.includes('domingo') && !norm.includes('sabado')) {
+    const commonSearchTerms = [
+      'taller', 'talle', 'mecanico', 'mecanica', 'auto', 'carro', 'lavadero', 'autospa', 'lavar',
+      'cafe', 'capuchino', 'cappuccino', 'pizza', 'hamburguesa', 'almuerzo', 'restaurante', 'veterinaria',
+      'peluqueria', 'barberia', 'papeleria', 'helado', 'postre', 'cerveza', 'bar', 'hotel'
+    ];
+    if (words.some((w) => commonSearchTerms.includes(w))) {
+      return true;
+    }
+  }
+
   // Refinement Signals (should be handled as plan updates)
   const refinementSignals = [
     'cambia la',
@@ -1734,28 +1754,27 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
   },
   taller: {
     words: [
+      'taller mecanico',
+      'taller de autos',
+      'taller automotriz',
+      'taller de motos',
       'taller',
       'talleres',
+      'talle',
       'mecanica',
       'mecanico',
       'mecanicos',
-      'autos',
-      'auto',
-      'carro',
-      'carros',
-      'vehiculo',
-      'vehiculos',
       'frenos',
-      'aceite',
+      'cambio de aceite',
       'sincronizacion',
-      'escaner',
-      'autospa',
-      'detailing',
+      'escaner automotriz',
       'alineacion',
       'balanceo',
       'suspension',
-      'llantas',
-      'montallantas',
+      'latoneria',
+      'pintura automotriz',
+      'peritaje',
+      'reparacion de motor',
     ],
     allowedCategoryIds: ['cat_automoviles', 'cat_servicios'],
     excludedCategoryIds: [
@@ -2040,6 +2059,17 @@ export function searchBusinessesAndPosts(
     const cityNorm = normalizeText(b.city || '');
     const inTargetCity = cityNorm === targetCityNorm;
 
+    // Strict topic keyword requirement: if a specific topic was identified,
+    // the business must match at least one word from the topic definition in its name, subCategory, or description
+    if (activeTopicDef) {
+      const matchesTopicWord = activeTopicDef.words.some(
+        (w) => textContainsTerm(nameNorm, w) || textContainsTerm(subCatNorm, w) || textContainsTerm(descNorm, w)
+      );
+      if (!matchesTopicWord) {
+        return { business: b, score: 0, inTargetCity: false };
+      }
+    }
+
     // Topic category affinity bonus
     if (activeTopicDef && activeTopicDef.allowedCategoryIds.includes(b.categoryId)) {
       score += 10;
@@ -2207,6 +2237,160 @@ export async function generateOliSearchResponse(
   const { userPrompt, catalogBusinesses, catalogPosts, currentCity = 'Cajicá' } = input;
   const targetMunicipality = extractMunicipality(userPrompt, currentCity);
 
+  // 1. Prioritize autonomous LLM semantic search via Gemini cascade
+  const ai = getGenAI(input.apiKey);
+  if (ai) {
+    try {
+      const catalogSummary = catalogBusinesses.map((b) => ({
+        id: b.id,
+        nombre: b.name,
+        municipio: b.city,
+        categoria: b.categoryId,
+        subcategoria: b.subCategory,
+        descripcion: b.description,
+        direccion: b.address,
+        telefono: b.phone,
+        whatsapp: b.whatsapp,
+        publicaciones: catalogPosts
+          .filter((p) => p.businessId === b.id && (!p.status || p.status === 'active') && !p.suspended)
+          .map((p) => ({
+            id: p.id,
+            titulo: p.title,
+            precio: p.promotionalPrice || p.originalPrice || p.approximatePrice,
+            descripcion: p.description,
+          })),
+      }));
+
+      const searchAiPrompt = `Consulta del usuario: "${userPrompt}"
+Municipio solicitado: "${targetMunicipality}"
+Catálogo real de comercios y ofertas disponibles en OleVeci:
+${JSON.stringify(catalogSummary, null, 2)}`;
+
+      const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+          understanding: { type: Type.STRING },
+          exactMatchInRequestedCity: { type: Type.BOOLEAN },
+          selectedBusinessIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+          selectedPostIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+          spokenText: { type: Type.STRING },
+        },
+        required: ['understanding', 'exactMatchInRequestedCity', 'selectedBusinessIds', 'selectedPostIds', 'spokenText'],
+      };
+
+      const systemInstruction = `Eres Oli, la asistente de voz oficial de OleVeci en Colombia (Sabana Centro: Cajicá, Chía, Cota, Zipaquirá, etc.).
+Tu personalidad es cercana, cálida, alegre, honesta y servicial ("veci").
+
+Analiza con sentido común humano la consulta del usuario y compárala con el catálogo real de OleVeci:
+1. DISTINCIÓN SEMÁNTICA RIGUROSA:
+   - Un lavadero / autospa / estética automotriz NO es un taller mecánico. No confundas lavar el carro con arreglarlo o hacerle mecánica.
+   - Una veterinaria NO es una tienda de mascotas general si lo que piden es atención médica.
+   - Un té o una torta NO es un capuchino.
+2. MUNICIPIO Y TRANSPARENCIA:
+   - Si en el municipio solicitado (${targetMunicipality}) NO existe un comercio que ofrezca ese servicio exacto, indícalo con total amabilidad y honestidad en spokenText.
+   - Si en un municipio vecino cercano (ej: Chía si pidieron Cajicá) sí existe un comercio que ofrece exactamente ese servicio, selecciónalo en 'selectedBusinessIds' y cuéntaselo al usuario amablemente en 'spokenText'.
+3. CONSISTENCIA DE PUBLICACIONES:
+   - En 'selectedPostIds' pon ÚNICAMENTE publicaciones que REALMENTE correspondan a lo solicitado. Si ninguna publicación aplica o no hay publicaciones del servicio específico, 'selectedPostIds' DEBE ser un arreglo vacío []. NUNCA incluyas ofertas de lavado cuando pidieron mecánica, ni ofertas de té cuando pidieron café.
+4. SPOKENTEXT:
+   - Comienza obligatoriamente con "¡Listo veci!".
+   - Sé breve y directo (máximo 2 a 3 oraciones, estilo WhatsApp).
+   - Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directamente.
+   - PROHIBIDO TOTALMENTE el signo '$'.`;
+
+      for (const modelName of ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest']) {
+        try {
+          const aiResponse = await ai.models.generateContent({
+            model: modelName,
+            contents: searchAiPrompt,
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema,
+              systemInstruction,
+            },
+          });
+
+          const rawText = aiResponse.text?.trim();
+          if (rawText) {
+            const parsed = JSON.parse(rawText);
+            const bizMap = new Map(catalogBusinesses.map((b) => [b.id, b]));
+            const postMap = new Map(catalogPosts.map((p) => [p.id, p]));
+
+            const matchedBusinesses: Business[] = (parsed.selectedBusinessIds || [])
+              .map((id: string) => bizMap.get(id))
+              .filter(Boolean) as Business[];
+
+            const matchedPosts: Post[] = (parsed.selectedPostIds || [])
+              .map((id: string) => postMap.get(id))
+              .filter(Boolean) as Post[];
+
+            const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
+
+            return {
+              type: 'search',
+              spokenText: spokenClean,
+              searchQuery: userPrompt,
+              targetMunicipality,
+              matchedBusinesses,
+              matchedPosts,
+              isAlternativeSuggestion: !parsed.exactMatchInRequestedCity,
+              alternativeNotice: !parsed.exactMatchInRequestedCity ? parsed.understanding : undefined,
+              auditTrace: {
+                rawPrompt: userPrompt,
+                timestamp: new Date().toISOString(),
+                executionMode: 'llm',
+                modelUsed: modelName,
+                apiKeyPresent: true,
+                intentDetected: 'search',
+                interpretation: {
+                  targetMunicipality,
+                  detectedTopic: parsed.understanding,
+                  isSpecificProductOrService: true,
+                  isRefinementIntent: false,
+                },
+                databaseFiltering: {
+                  totalBusinessesInCatalog: catalogBusinesses.length,
+                  totalPostsInCatalog: catalogPosts.length,
+                  businessesInTargetMunicipality: catalogBusinesses.filter((b) => normalizeText(b.city) === normalizeText(targetMunicipality)).length,
+                  eligiblePostsAfterValidity: catalogPosts.length,
+                  matchedBusinessesCount: matchedBusinesses.length,
+                  matchedPostsCount: matchedPosts.length,
+                  selectedEntities: [
+                    ...matchedBusinesses.map((b) => ({ id: b.id, name: b.name, type: 'business' as const, category: b.subCategory || b.categoryId, city: b.city })),
+                    ...matchedPosts.map((p) => ({ id: p.id, name: p.title, type: 'post' as const, category: p.planCategoryName || p.categoryId, city: p.businessCity })),
+                  ],
+                },
+                steps: [
+                  {
+                    step: '1',
+                    title: 'Interpretación Semántica con Gemini',
+                    status: 'success',
+                    details: `Gemini comprendió: "${parsed.understanding}". Coincidencia exacta en municipio: ${parsed.exactMatchInRequestedCity ? 'Sí' : 'No'}.`,
+                  },
+                  {
+                    step: '2',
+                    title: 'Filtrado Autónomo en Base de Datos',
+                    status: 'success',
+                    details: `Comercios seleccionados: ${matchedBusinesses.length}. Ofertas seleccionadas: ${matchedPosts.length}.`,
+                  },
+                ],
+                antiHallucination: {
+                  allEntitiesVerifiedInCatalog: true,
+                  hallucinationsDetected: 0,
+                  correctedEntities: [],
+                },
+              },
+            };
+          }
+        } catch (mErr: any) {
+          console.warn(`Intento de búsqueda LLM con ${modelName} falló:`, mErr?.message || mErr);
+        }
+      }
+    } catch (llmErr) {
+      console.warn('Fallo en búsqueda con LLM, recurriendo a búsqueda determinista:', llmErr);
+    }
+  }
+
+  // 2. Deterministic fallback if Gemini is offline
   const { matchedBusinesses, matchedPosts, queryTopic, exactMatchInMunicipality } = searchBusinessesAndPosts(
     userPrompt,
     catalogBusinesses,
@@ -2215,7 +2399,6 @@ export async function generateOliSearchResponse(
   );
 
   if (matchedBusinesses.length === 0) {
-    const ai = getGenAI();
     let noMatchText = `¡Listo veci! Estuve buscando locales de ${queryTopic} en ${targetMunicipality} y Sabana Centro, pero en este momento no tenemos uno registrado con ese servicio específico en OleVeci. Sin embargo, te puedo conectar con otros comercios recomendados del municipio o armarte un plan. ¿Qué más te gustaría encontrar?`;
 
     if (ai) {
@@ -2255,8 +2438,7 @@ Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
   const firstBiz = matchedBusinesses[0];
   const secondBiz = matchedBusinesses[1];
 
-  // Try intelligent text generation via Gemini 3.8 Flash
-  const ai = getGenAI(input.apiKey);
+  // Try intelligent text generation via Gemini cascade
   if (ai) {
     try {
       const bizSummary = matchedBusinesses.slice(0, 3).map((b) => ({
