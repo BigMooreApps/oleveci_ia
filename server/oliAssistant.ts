@@ -208,9 +208,14 @@ export function sanitizeSpokenText(
       if (normPost && normPost.length > 5 && normCleaned.includes(normPost)) return true;
     }
 
+    if (targetStop.activity) {
+      const normAct = normalizeText(targetStop.activity).replace(/[^a-z0-9 ]/g, ' ').trim();
+      if (normAct && (normCleaned.includes(normAct) || (normAct.includes('cafe') && normCleaned.includes('cafe')))) return true;
+    }
+
     const genericWords = new Set([
-      'cafe', 'bar', 'hotel', 'restaurante', 'artesanal', 'glamping', 'gastrobar',
-      'pizzeria', 'hamburguesas', 'comidas', 'parque', 'sabana', 'centro', 'norte',
+      'bar', 'hotel', 'restaurante', 'artesanal', 'glamping', 'gastrobar',
+      'comidas', 'parque', 'sabana', 'centro', 'norte',
       'campestre', 'tradicional', 'del', 'los', 'las', 'para', 'por', 'con', 'and', 'mas'
     ]);
     const tokens = normBiz.split(' ').filter((w) => w.length > 3 && !genericWords.has(w));
@@ -2419,26 +2424,71 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
     const eligiblePosts = getEligiblePlanPosts(catalogPosts, dateInfo.targetDate, dateInfo.dayOfWeek, businessMap);
 
     const normPrompt = normalizeText(userPrompt);
+    const promptTokens = normPrompt
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !SPANISH_STOP_WORDS.has(w));
 
     // Dynamic rotation seed so user gets fresh and varied recommendations rather than repeating the same 3 spots
     const seed = (normPrompt.length * 29 + (dateInfo.dayOfWeek || 0) * 17) % 97;
-    const sortedPosts = [...eligiblePosts].sort((a, b) => {
-      const aInCity = a.businessCity && normalizeText(a.businessCity) === normalizeText(targetCity) ? 1 : 0;
-      const bInCity = b.businessCity && normalizeText(b.businessCity) === normalizeText(targetCity) ? 1 : 0;
-      if (aInCity !== bInCity) return bInCity - aInCity;
 
-      const aTitleMatch = normPrompt.includes(normalizeText(a.title)) ? 1 : 0;
-      const bTitleMatch = normPrompt.includes(normalizeText(b.title)) ? 1 : 0;
-      if (aTitleMatch !== bTitleMatch) return bTitleMatch - aTitleMatch;
+    const scoredEligible = eligiblePosts.map((p) => {
+      const b = businessMap.get(p.businessId);
+      const postText = normalizeText(
+        `${p.title} ${p.description || ''} ${p.categoryId || ''} ${p.planCategoryId || ''} ${(p.tags || []).join(' ')} ${b?.name || ''} ${b?.subCategory || ''}`
+      );
+      let matchScore = 0;
 
-      // Seed-based tie breaking for variety
-      const hashA = (a.id.charCodeAt(a.id.length - 1) + seed) % 23;
-      const hashB = (b.id.charCodeAt(b.id.length - 1) + seed) % 23;
+      // Exact prompt token matches
+      for (const token of promptTokens) {
+        if (textContainsTerm(normalizeText(p.title), token)) matchScore += 40;
+        else if (textContainsTerm(normalizeText(b?.name || ''), token)) matchScore += 30;
+        else if (textContainsTerm(postText, token)) matchScore += 20;
+      }
+
+      // Check common activity intents
+      if (normPrompt.includes('auto') || normPrompt.includes('carro') || normPrompt.includes('lavar')) {
+        if (postText.includes('lavado') || postText.includes('autospa') || postText.includes('vapor') || postText.includes('auto')) matchScore += 60;
+      }
+      if (normPrompt.includes('cafe') || normPrompt.includes('capuchino') || normPrompt.includes('croissant')) {
+        if (postText.includes('cafe') || postText.includes('capuchino') || postText.includes('croissant')) matchScore += 50;
+      }
+      if (normPrompt.includes('almorzar') || normPrompt.includes('almuerzo') || normPrompt.includes('pizza') || normPrompt.includes('comer') || normPrompt.includes('restaurante')) {
+        if (postText.includes('pizza') || postText.includes('almuerzo') || postText.includes('burger') || postText.includes('comida') || p.categoryId === 'cat_restaurantes') matchScore += 60;
+      }
+      if (normPrompt.includes('fiesta') || normPrompt.includes('rumba') || normPrompt.includes('coctel') || normPrompt.includes('trago') || normPrompt.includes('bar')) {
+        if (postText.includes('fiesta') || postText.includes('vino') || postText.includes('trago') || postText.includes('aguardiente') || postText.includes('gastrobar') || postText.includes('cava') || p.categoryId === 'cat_planes_eventos') matchScore += 60;
+      }
+
+      const inCity = (b?.city && normalizeText(b.city) === normalizeText(targetCity)) ||
+                     (p.businessCity && normalizeText(p.businessCity) === normalizeText(targetCity));
+      if (inCity) matchScore += 35;
+
+      return { post: p, matchScore };
+    });
+
+    scoredEligible.sort((a, b) => {
+      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+      const hashA = (a.post.id.charCodeAt(a.post.id.length - 1) + seed) % 23;
+      const hashB = (b.post.id.charCodeAt(b.post.id.length - 1) + seed) % 23;
       return hashA - hashB;
     });
 
-    // Condensed catalog for Gemini (up to 15 eligible and active posts) with both business and post schedules
-    const catalogSummary = sortedPosts.slice(0, 15).map((p) => {
+    // Pick diverse venues (at most 2 posts per business) so all relevant venues fit in catalogSummary
+    const seenBizCount = new Map<string, number>();
+    const sortedPosts: Post[] = [];
+    for (const item of scoredEligible) {
+      const bId = item.post.businessId;
+      const count = seenBizCount.get(bId) || 0;
+      if (count < 2) {
+        sortedPosts.push(item.post);
+        seenBizCount.set(bId, count + 1);
+      }
+      if (sortedPosts.length >= 18) break;
+    }
+
+    // Condensed catalog for Gemini (up to 18 eligible, diverse, and active posts) with both business and post schedules
+    const catalogSummary = sortedPosts.slice(0, 18).map((p) => {
       const b = businessMap.get(p.businessId);
       const postScheduleSummary = p.validitySchedule?.scheduleTable
         ? p.validitySchedule.scheduleTable
@@ -2486,10 +2536,10 @@ REGLAS OBLIGATORIAS DE AUDITORÍA Y SEGURIDAD:
      * CONSERVA LAS DEMÁS PARADAS INTACTAS sin cambiarlas.
      * En 'spokenText' explica con calidez: "¡Listo veci! Ya te cambié la [primera/segunda] parada por [comercio]..." y narra el plan completo.
 3. BREVEDAD Y LACONISMO EN EL CHAT (ESTILO WHATSAPP - MÁXIMO 2 A 3 ORACIONES):
-   - El texto 'spokenText' DEBE SER CONCISO, FRESCO Y DIRECTO (máximo 2 a 3 oraciones cortas, no más de 35 palabras).
+   - El texto 'spokenText' DEBE SER CONCISO, FRESCO Y DIRECTO (máximo 2 a 3 oraciones cortas, no más de 40 palabras).
    - En móviles la gente NO lee párrafos largos. Prohibido recitar direcciones exactas, horarios detallados o repetir listas de precios en prosa porque TODO eso ya se muestra automáticamente en las tarjetas interactivas de la pantalla.
-   - En planes: menciona de forma fluida el punto de inicio y el cierre en una sola frase amena.
-     Ejemplo: "¡Listo veci! Te armé este plan en Cajicá: arrancamos con capuchino en Café & Trigo y rematamos con unas ricas alitas en La Brasa."
+   - En planes: menciona amena y fluidamente cada comercio de las paradas por su nombre en la narración.
+     Ejemplo: "¡Listo veci! Te armé este planazo en Cajicá: arrancamos lavando el carro en AutoSpa, luego cafecito en Café & Trigo, almorzamos pizza en Bella Sabana y rematamos de rumba en Cava Sabana por 128 mil pesos."
    - Si el usuario hace una pregunta sobre precios o aclaraciones (ej: "¿los precios son por persona o en pareja?"): responde puntualmente en 2 oraciones sencillas sin volver a recitar todo el itinerario.
 4. PROHIBICIÓN TOTAL DEL SIGNO '$':
    - NUNCA uses el símbolo '$' en 'spokenText' ni en ningún texto generado.
@@ -2507,7 +2557,12 @@ REGLAS OBLIGATORIAS DE AUDITORÍA Y SEGURIDAD:
      Acláralo de forma transparente: "¡Listo veci! En este momento no tenemos publicaciones de [producto] en [municipio] registradas en la app, pero te armé esta sugerencia alternativa..."
      Establece 'isAlternativeSuggestion: true' y 'alternativeNotice'.
 9. CATÁLOGO REAL:
-   - Utiliza ÚNICAMENTE los postId y businessId que existen en el JSON provisto.`;
+   - Utiliza ÚNICAMENTE los postId y businessId que existen en el JSON provisto.
+10. CONSISTENCIA TOTAL ENTRE SPOKENTEXT Y EL ARREGLO STOPS:
+   - CADA negocio o parada mencionada en 'spokenText' DEBE existir como un elemento en el arreglo 'stops'. NUNCA menciones en 'spokenText' un negocio o comida (ej. Bella Sabana) que no esté incluido en 'stops'.
+   - Si el usuario solicita explícitamente múltiples actividades consecutivas (ej. "lavar el auto, café, almorzar y fiesta"):
+     * DEBES incluir una parada para CADA actividad solicitada por el usuario (en este caso, las 4 paradas completas).
+     * Si la suma de los costos supera el presupuesto (ej. suma 127.600 pesos y el presupuesto es 100.000 pesos): NO descartes las paradas que el usuario pidió expresamente; genera todas las paradas solicitadas, asigna 'budgetStatus': 'over_budget' y menciona con amabilidad en 'spokenText' el valor total.`;
 
     const userPromptContent = `Solicitud del usuario: "${userPrompt}"
 Municipio objetivo: "${targetCity}"
@@ -2605,6 +2660,7 @@ ${JSON.stringify(catalogSummary)}`;
     if (!parsed.stops || parsed.stops.length === 0) {
       return generateFallbackOliPlan(input);
     }
+
 
     // Backend Validation and Sanitization of Gemini's response (Section 6 & 11)
     const seenBiz = new Set<string>();
