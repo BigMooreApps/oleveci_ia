@@ -32,7 +32,7 @@ import { Post, Business } from '../types';
 import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
-import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan } from '../../server/oliAssistant';
+import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan, formatPriceCOP } from '../../server/oliAssistant';
 import { OliChatLogModal } from './OliChatLogModal';
 import { OliWhatsAppModal } from './OliWhatsAppModal';
 
@@ -684,146 +684,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
                       </div>
                     </div>
 
-                    {/* BUSINESS SEARCH RESULTS (Directly in chat without leaving) */}
-                    {matchedBiz.length > 0 && (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 px-1">
-                          <Store className="w-4 h-4 text-[#0066FF]" />
-                          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                            Comercios y Servicios Encontrados ({matchedBiz.length})
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3">
-                          {matchedBiz.map((biz) => {
-                            const waClean = (biz.whatsapp || biz.phone || '').replace(/\D/g, '');
-                            const waUrl = waClean
-                              ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
-                                  `¡Hola! Los encontré en OleVeci recomendados por Oli. Quisiera más información sobre sus servicios.`
-                                )}`
-                              : null;
-
-                            return (
-                              <div
-                                key={biz.id}
-                                className="w-full bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between group"
-                              >
-                                <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
-                                    <img
-                                      src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
-                                      alt={biz.name}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                  </div>
-
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
-                                        {biz.name}
-                                      </h3>
-                                      {biz.verified && (
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                      )}
-                                      {biz.subCategory && (
-                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                                          {biz.subCategory}
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
-                                      <MapPin className="w-3 h-3 text-[#0066FF] shrink-0" />
-                                      <span className="truncate">
-                                        {biz.city} · {biz.address}
-                                      </span>
-                                    </div>
-
-                                    {biz.description && (
-                                      <p className="text-xs text-slate-600 mt-1.5 line-clamp-2 leading-relaxed">
-                                        {biz.description}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {/* Direct Actions */}
-                                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                                  {waUrl && (
-                                    <a
-                                      href={waUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95"
-                                      title="Escribir al WhatsApp del negocio"
-                                    >
-                                      <WhatsAppIcon className="w-4 h-4 fill-white" />
-                                      <span>WhatsApp</span>
-                                    </a>
-                                  )}
-
-                                  <button
-                                    type="button"
-                                    onClick={() => onSelectBusiness?.(biz.id)}
-                                    className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
-                                    title="Ver perfil completo del comercio en la app"
-                                  >
-                                    <span>Ver en app</span>
-                                    <ArrowRight className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* MATCHED POSTS / PROMOTIONS */}
-                    {matchedP.length > 0 && (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-2 px-1">
-                          <Tag className="w-4 h-4 text-emerald-600" />
-                          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                            Publicaciones y Promociones Disponibles
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {matchedP.map((post) => (
-                            <div
-                              key={post.id}
-                              onClick={() => onSelectPost?.(post)}
-                              className="bg-white rounded-xl border border-slate-200 p-2.5 flex items-center gap-3 hover:border-blue-400 hover:shadow-xs transition-all cursor-pointer group"
-                            >
-                              <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 shrink-0">
-                                <img
-                                  src={post.imageUrl || '/Logo_OleVeci.png'}
-                                  alt={post.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
-                                  {post.title}
-                                </h4>
-                                <span className="text-[10px] text-slate-500 block truncate">
-                                  {post.businessName} · {post.businessCity}
-                                </span>
-                                {(post.promotionalPrice || post.originalPrice) && (
-                                  <span className="text-[11px] font-extrabold text-emerald-600">
-                                    {(post.promotionalPrice || post.originalPrice || 0).toLocaleString('es-CO')} pesos
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* RICH ITINERARY PLAN CARD (When a plan was requested) */}
-                    {plan && plan.stops && plan.stops.length > 0 && (
+                    {/* CONDITIONAL DISPLAY: IF PLAN EXISTS -> SHOW ONLY ITINERARY. IF NO PLAN -> SHOW UNIFIED POST-FIRST RESULTS */}
+                    {plan && plan.stops && plan.stops.length > 0 ? (
+                      /* RICH ITINERARY PLAN CARD (Plan takes priority, no duplicate satellite cards below) */
                       <div className="w-full rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
                         {/* Header Banner */}
                         <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-4 sm:p-5 text-white">
@@ -840,191 +703,377 @@ export const OliSection: React.FC<OliSectionProps> = ({
                           <h2 className="text-base sm:text-xl font-black tracking-tight leading-snug">
                             {plan.planTitle}
                           </h2>
-                          <p className="text-xs sm:text-sm text-blue-100 mt-1 line-clamp-2">
-                            {plan.summary}
+                          <p className="text-xs text-blue-100 mt-1 line-clamp-2 font-normal">
+                            {plan.narrativeHook}
                           </p>
 
-                          {/* Plan Metadata Pill */}
-                          <div className="flex items-center gap-3 mt-3 text-xs text-white/90 flex-wrap">
-                            <span className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 text-white/80" />
-                              {plan.targetAudience}
-                            </span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Compass className="w-3.5 h-3.5 text-white/80" />
-                              {plan.stops.length} paradas
-                            </span>
-                            <span>•</span>
-                            <span className="font-bold text-amber-200">
-                              Total: {plan.totalEstimatedCost.toLocaleString('es-CO')} pesos
-                            </span>
+                          {/* Quick Stats Pill */}
+                          <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-white/20 text-xs">
+                            <div className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1 rounded-lg">
+                              <MapPin className="w-3.5 h-3.5 text-cyan-300" />
+                              <span>{plan.stops.length} paradas</span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1 rounded-lg font-bold">
+                              <span>Total estimado: {formatPriceCOP(plan.totalEstimatedCost)}</span>
+                            </div>
+
+                            {plan.costPerPerson && plan.personCount && plan.personCount > 1 && (
+                              <div className="flex items-center gap-1.5 bg-white/20 px-2.5 py-1 rounded-lg font-semibold text-[11px]">
+                                <span>~{formatPriceCOP(plan.costPerPerson)} / persona ({plan.personCount} personas)</span>
+                              </div>
+                            )}
+
+                            {plan.budgetStatus === 'over_budget' && (
+                              <span className="bg-amber-500/90 text-white font-bold text-[10px] px-2 py-0.5 rounded-md">
+                                Supera presupuesto
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        {/* Stops Timeline */}
+                        {/* Stops List */}
                         <div className="p-4 sm:p-5 space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                              Ruta parada por parada:
-                            </span>
-                            <span className="text-[11px] text-slate-500 font-medium">
-                              En orden cronológico
-                            </span>
-                          </div>
-
-                          <div className="space-y-3 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-blue-100">
+                          <div className="space-y-3">
                             {plan.stops.map((stop, sIdx) => {
-                              const matchingPost = posts.find((p) => p.id === stop.postId);
-                              const stopImage = stop.imageUrl || matchingPost?.imageUrl || '/Logo_OleVeci.png';
+                              const waClean = (stop.businessWhatsapp || stop.businessPhone || '').replace(/\D/g, '');
+                              const waUrl = waClean
+                                ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
+                                    `¡Hola! Vi en OleVeci su parada "${stop.activity}" en ${stop.businessName}. Quisiera más información.`
+                                  )}`
+                                : null;
 
                               return (
                                 <div
-                                  key={stop.postId || sIdx}
-                                  className="relative flex items-start gap-3 pl-1"
+                                  key={sIdx}
+                                  className="relative flex gap-3.5 p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all group"
                                 >
-                                  <div className="w-6 h-6 rounded-full bg-[#0066FF] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs ring-4 ring-white z-10 mt-1">
+                                  {/* Stop Order Badge */}
+                                  <div className="w-7 h-7 rounded-full bg-[#0066FF] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
                                     {sIdx + 1}
                                   </div>
 
-                                  <div className="flex-1 bg-slate-50 hover:bg-blue-50/40 border border-slate-200/80 rounded-2xl p-3 sm:p-3.5 transition-colors">
-                                    <div className="flex items-start gap-3">
-                                      {/* Stop Publication Thumbnail */}
-                                      <div
-                                        onClick={() => {
-                                          if (matchingPost && onSelectPost) {
-                                            onSelectPost(matchingPost);
-                                          }
-                                        }}
-                                        className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 bg-slate-200 border border-slate-200 shadow-2xs group ${
-                                          matchingPost && onSelectPost ? 'cursor-pointer hover:ring-2 hover:ring-[#0066FF]/40' : ''
-                                        }`}
-                                        title={matchingPost ? 'Toca para ver la publicación completa' : stop.businessName}
-                                      >
-                                        <img
-                                          src={stopImage}
-                                          alt={stop.postTitle || stop.businessName}
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                          onError={(e) => {
-                                            (e.currentTarget as HTMLImageElement).src = '/Logo_OleVeci.png';
-                                          }}
-                                        />
-                                        <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-950/80 backdrop-blur-xs text-[9px] sm:text-[10px] font-bold text-white shadow-xs">
-                                          {stop.time}
-                                        </span>
-                                      </div>
+                                  {/* Thumbnail */}
+                                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-200 shrink-0 border border-slate-200">
+                                    <img
+                                      src={stop.imageUrl || '/Logo_OleVeci.png'}
+                                      alt={stop.businessName}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    />
+                                  </div>
 
-                                      {/* Stop Details */}
-                                      <div className="min-w-0 flex-1 flex flex-col justify-between">
-                                        <div>
-                                          <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                              <span className="text-[11px] font-bold text-[#0066FF] bg-blue-100/70 px-2 py-0.5 rounded-md inline-block mb-1">
-                                                {stop.time}
-                                              </span>
-                                              <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">
-                                                {stop.businessName}
-                                              </h4>
-                                            </div>
+                                  {/* Details */}
+                                  <div className="min-w-0 flex-1 space-y-1">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
+                                        {stop.businessName}
+                                      </h4>
+                                      <span className="text-xs font-black text-emerald-600 shrink-0">
+                                        {formatPriceCOP(stop.cost)}
+                                      </span>
+                                    </div>
 
-                                            {/* Cost Pill and Remove Action */}
-                                            <div className="flex items-center gap-1.5 shrink-0">
-                                              <span className="text-xs sm:text-sm font-extrabold text-emerald-700 block whitespace-nowrap">
-                                                {stop.cost.toLocaleString('es-CO')} pesos
-                                              </span>
-                                              {plan.stops.length > 1 && (
-                                                <button
-                                                  type="button"
-                                                  onClick={() => handleRemoveStop(index, sIdx)}
-                                                  className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                                                  title="Eliminar esta parada del plan y recalcular presupuesto"
-                                                >
-                                                  <X className="w-3.5 h-3.5" />
-                                                </button>
-                                              )}
-                                            </div>
-                                          </div>
+                                    <p className="text-xs font-semibold text-[#0066FF] line-clamp-1">
+                                      {stop.activity}
+                                    </p>
 
-                                          {/* Post title */}
-                                          {stop.postTitle && (
-                                            <p className="text-xs text-blue-700 font-bold mt-1 line-clamp-1">
-                                              {stop.postTitle}
-                                            </p>
-                                          )}
+                                    <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                                      {stop.time && <span>🕒 {stop.time}</span>}
+                                      {stop.businessAddress && (
+                                        <span className="truncate">📍 {stop.businessAddress}</span>
+                                      )}
+                                    </div>
 
-                                          {/* Real post description from catalog without redundant repetitive prefixes */}
-                                          {matchingPost?.description && matchingPost.description.trim() !== stop.postTitle.trim() && (
-                                            <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
-                                              {matchingPost.description}
-                                            </p>
-                                          )}
-                                        </div>
+                                    {stop.whySelected && (
+                                      <p className="text-[11px] text-slate-600 italic line-clamp-1">
+                                        "{stop.whySelected}"
+                                      </p>
+                                    )}
 
-                                        <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2 flex-wrap">
-                                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 min-w-0">
-                                            <MapPin className="w-3 h-3 text-[#0066FF] shrink-0" />
-                                            <span className="truncate">
-                                              {stop.businessCity} · {stop.businessAddress}
-                                            </span>
-                                          </div>
+                                    {/* Action Links */}
+                                    <div className="flex items-center gap-2 pt-1.5 flex-wrap">
+                                      {waUrl && (
+                                        <a
+                                          href={waUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-2xs"
+                                        >
+                                          <WhatsAppIcon className="w-3 h-3 fill-white" />
+                                          <span>WhatsApp</span>
+                                        </a>
+                                      )}
 
-                                          {matchingPost && onSelectPost && (
-                                            <button
-                                              type="button"
-                                              onClick={() => onSelectPost(matchingPost)}
-                                              className="text-[11px] font-bold text-[#0066FF] hover:text-[#0056d6] hover:underline flex items-center gap-1 cursor-pointer shrink-0 ml-auto"
-                                            >
-                                              <span>Ver publicación</span>
-                                              <ArrowRight className="w-3 h-3" />
-                                            </button>
-                                          )}
-                                        </div>
-                                      </div>
+                                      {stop.businessId && (
+                                        <button
+                                          type="button"
+                                          onClick={() => onSelectBusiness?.(stop.businessId)}
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold transition-all cursor-pointer"
+                                        >
+                                          <span>Ver comercio</span>
+                                          <ArrowRight className="w-3 h-3 text-slate-400" />
+                                        </button>
+                                      )}
+
+                                      {/* Remove stop button */}
+                                      {plan.stops && plan.stops.length > 1 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemoveStop(index, sIdx)}
+                                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-[11px] transition-all cursor-pointer ml-auto"
+                                          title="Quitar esta parada del plan"
+                                        >
+                                          <X className="w-3 h-3" />
+                                          <span className="hidden sm:inline">Quitar</span>
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
                               );
                             })}
                           </div>
-                        </div>
 
-                        {/* Actions Toolbar */}
-                        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
-                          <div className="flex items-center gap-2">
+                          {/* Footer Actions */}
+                          <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={handleOpenInEditor}
+                                className="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#0066FF] to-[#0052cc] hover:from-blue-700 hover:to-blue-900 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                              >
+                                <Compass className="w-4 h-4" />
+                                <span>Abrir en Diseñador de Rutas</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={handleSharePlan}
+                                className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                              >
+                                <Share2 className="w-4 h-4 text-emerald-600" />
+                                <span>Compartir Plan</span>
+                              </button>
+                            </div>
+
                             <button
                               type="button"
-                              onClick={handleOpenInEditor}
-                              className="px-3.5 py-2 rounded-xl bg-[#0066FF] hover:bg-[#0056d6] text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                              onClick={handleSavePlan}
+                              disabled={isSaved}
+                              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs ${
+                                isSaved
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                              }`}
                             >
-                              <Compass className="w-4 h-4" />
-                              <span>Abrir en el Mapa / Editor</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={handleSharePlan}
-                              className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs"
-                            >
-                              <Share2 className="w-4 h-4 text-emerald-600" />
-                              <span>Compartir Plan</span>
+                              <Bookmark className="w-4 h-4" />
+                              <span>{isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}</span>
                             </button>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={handleSavePlan}
-                            disabled={isSaved}
-                            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs ${
-                              isSaved
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
-                                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                            }`}
-                          >
-                            <Bookmark className="w-4 h-4" />
-                            <span>{isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}</span>
-                          </button>
                         </div>
                       </div>
+                    ) : (
+                      /* SEARCH / RECOMMENDATION MODE: POST-FIRST UNIFIED RESULTS (NO DUPLICATES) */
+                      (() => {
+                        const postsList = matchedP || [];
+                        const businessesWithPosts = new Set(postsList.map((p) => p.businessId));
+                        const directoryBusinesses = (matchedBiz || []).filter((b) => !businessesWithPosts.has(b.id));
+
+                        const totalCount = postsList.length + directoryBusinesses.length;
+                        if (totalCount === 0) return null;
+
+                        return (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between px-1">
+                              <div className="flex items-center gap-2">
+                                <Tag className="w-4 h-4 text-[#0066FF]" />
+                                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                  {postsList.length > 0 ? 'Opciones y Anuncios Disponibles' : 'Comercios Encontrados'}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-slate-400 font-medium">
+                                {totalCount} {totalCount === 1 ? 'opción' : 'opciones'}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-2.5">
+                              {/* 1. Prioritize Posts / Anuncios (The Differential Value of OleVeci) */}
+                              {postsList.slice(0, 3).map((post) => {
+                                const waClean = (post.businessWhatsapp || post.businessPhone || '').replace(/\D/g, '');
+                                const waUrl = waClean
+                                  ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
+                                      `¡Hola! Vi en OleVeci su publicación "${post.title}". Quisiera más información.`
+                                    )}`
+                                  : null;
+
+                                return (
+                                  <div
+                                    key={post.id}
+                                    className="w-full bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group cursor-pointer"
+                                    onClick={() => onSelectPost?.(post)}
+                                  >
+                                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative">
+                                        <img
+                                          src={post.imageUrl || '/Logo_OleVeci.png'}
+                                          alt={post.title}
+                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                        {(post.promotionalPrice || post.originalPrice) && (
+                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[10px] font-black text-emerald-400 text-center py-0.5">
+                                            ${(post.promotionalPrice || post.originalPrice || 0).toLocaleString('es-CO')}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div className="min-w-0 flex-1 space-y-1">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug">
+                                            {post.title}
+                                          </h4>
+                                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            Anuncio Destacado
+                                          </span>
+                                        </div>
+
+                                        <p className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                                          <Store className="w-3 h-3 text-[#0066FF]" />
+                                          <span>{post.businessName}</span>
+                                          <span className="text-slate-400 font-normal">· {post.businessCity}</span>
+                                        </p>
+
+                                        {post.businessAddress && (
+                                          <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                            <span className="truncate">{post.businessAddress}</span>
+                                          </p>
+                                        )}
+
+                                        {post.description && (
+                                          <p className="text-xs text-slate-600 line-clamp-1">
+                                            {post.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div
+                                      className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {waUrl && (
+                                        <a
+                                          href={waUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95"
+                                          title="Escribir al WhatsApp del negocio"
+                                        >
+                                          <WhatsAppIcon className="w-4 h-4 fill-white" />
+                                          <span>WhatsApp</span>
+                                        </a>
+                                      )}
+
+                                      <button
+                                        type="button"
+                                        onClick={() => onSelectPost?.(post)}
+                                        className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                                        title="Ver anuncio completo"
+                                      >
+                                        <span>Ver oferta</span>
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+
+                              {/* 2. Directory-Only Businesses (Only for businesses without active promotions) */}
+                              {directoryBusinesses.slice(0, 2).map((biz) => {
+                                const waClean = (biz.whatsapp || biz.phone || '').replace(/\D/g, '');
+                                const waUrl = waClean
+                                  ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
+                                      `¡Hola! Los encontré en OleVeci recomendados por Oli. Quisiera más información sobre sus servicios.`
+                                    )}`
+                                  : null;
+
+                                return (
+                                  <div
+                                    key={biz.id}
+                                    className="w-full bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group"
+                                  >
+                                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+                                        <img
+                                          src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
+                                          alt={biz.name}
+                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                      </div>
+
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
+                                            {biz.name}
+                                          </h3>
+                                          {biz.verified && (
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                          )}
+                                          {biz.subCategory && (
+                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                              {biz.subCategory}
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
+                                          <MapPin className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                          <span className="truncate">
+                                            {biz.city} · {biz.address}
+                                          </span>
+                                        </div>
+
+                                        {biz.description && (
+                                          <p className="text-xs text-slate-600 mt-1 line-clamp-1">
+                                            {biz.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Direct Actions */}
+                                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                                      {waUrl && (
+                                        <a
+                                          href={waUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95"
+                                          title="Escribir al WhatsApp del negocio"
+                                        >
+                                          <WhatsAppIcon className="w-4 h-4 fill-white" />
+                                          <span>WhatsApp</span>
+                                        </a>
+                                      )}
+
+                                      <button
+                                        type="button"
+                                        onClick={() => onSelectBusiness?.(biz.id)}
+                                        className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                                        title="Ver perfil completo del comercio en la app"
+                                      >
+                                        <span>Ver en app</span>
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()
                     )}
                   </div>
                 </div>

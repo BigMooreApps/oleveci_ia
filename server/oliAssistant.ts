@@ -16,6 +16,8 @@ import {
   isBusinessOpen,
 } from './oliValidator';
 
+export { formatPriceCOP };
+
 export interface OliPlanStop {
   postId: string;
   businessId: string;
@@ -179,21 +181,61 @@ export function sanitizeSpokenText(
     cleaned = cleaned.replace(/^listo veci[!,.]?/i, '¡Listo veci!');
   }
 
-  // 2. Strict Check for Plans: Every single stop MUST be mentioned
-  if (!isSearch && stops.length > 0) {
-    for (let i = 0; i < stops.length; i++) {
-      const stop = stops[i];
-      const bizName = stop.businessName.trim();
-      const normCleaned = normalizeText(cleaned);
-      const normBiz = normalizeText(bizName);
+  // Helper: Checks if a stop was already mentioned naturally without requiring exact literal syntax
+  const isStopMentioned = (rawText: string, targetStop: OliPlanStop): boolean => {
+    if (!rawText || !targetStop) return false;
+    const normCleaned = normalizeText(rawText)
+      .replace(/[&]/g, ' ')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-      if (normBiz && !normCleaned.includes(normBiz)) {
-        // Stop was omitted by the generator! Append it naturally in sequence
-        const costStr = formatPriceForSpeech(stop.cost);
-        if (i === stops.length - 1 && stops.length > 1) {
-          cleaned += ` Y para rematar, cerramos en ${bizName} para ${stop.activity} (${costStr}).`;
-        } else {
-          cleaned += ` Luego pasamos por ${bizName} para ${stop.activity} (${costStr}).`;
+    const bizName = targetStop.businessName ? targetStop.businessName.trim() : '';
+    const normBiz = normalizeText(bizName)
+      .replace(/[&]/g, ' ')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (normBiz && normCleaned.includes(normBiz)) return true;
+
+    if (targetStop.postTitle) {
+      const normPost = normalizeText(targetStop.postTitle)
+        .replace(/[&]/g, ' ')
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (normPost && normPost.length > 5 && normCleaned.includes(normPost)) return true;
+    }
+
+    const genericWords = new Set([
+      'cafe', 'bar', 'hotel', 'restaurante', 'artesanal', 'glamping', 'gastrobar',
+      'pizzeria', 'hamburguesas', 'comidas', 'parque', 'sabana', 'centro', 'norte',
+      'campestre', 'tradicional', 'del', 'los', 'las', 'para', 'por', 'con', 'and', 'mas'
+    ]);
+    const tokens = normBiz.split(' ').filter((w) => w.length > 3 && !genericWords.has(w));
+    if (tokens.length > 0 && tokens.some((tok) => normCleaned.includes(tok))) {
+      return true;
+    }
+    return false;
+  };
+
+  // 2. Strict Check for Plans: Only insert stop if truly omitted by the generator
+  if (!isSearch && stops.length > 0) {
+    const lower = cleaned.toLowerCase();
+    const isQnAReply = lower.includes('por persona') || lower.includes('en pareja') || lower.includes('aclaracion') || lower.includes('para compartir');
+
+    if (!isQnAReply) {
+      for (let i = 0; i < stops.length; i++) {
+        const stop = stops[i];
+        if (!isStopMentioned(cleaned, stop)) {
+          const bizName = stop.businessName.trim();
+          const costStr = formatPriceForSpeech(stop.cost);
+          if (i === stops.length - 1 && stops.length > 1) {
+            cleaned += ` Y para rematar, cerramos en ${bizName} para ${stop.activity} (${costStr}).`;
+          } else {
+            cleaned += ` Luego pasamos por ${bizName} para ${stop.activity} (${costStr}).`;
+          }
         }
       }
     }
@@ -330,6 +372,24 @@ export function detectSearchIntent(prompt: string): boolean {
     'que planes hay',
     'hacer un recorrido',
     'puebliar',
+    'luego de esto quiero',
+    'luego quiero',
+    'luego voy',
+    'luego vamos',
+    'despues de esto quiero',
+    'después de esto quiero',
+    'despues quiero',
+    'después quiero',
+    'despues vamos',
+    'después vamos',
+    'elijo la opcion',
+    'elijo la opción',
+    'primera parada',
+    'segunda parada',
+    'tercera parada',
+    'cuarta parada',
+    'parada del plan',
+    'parada del itinerario',
   ];
 
   if (planSignals.some((sig) => norm.includes(sig))) {
@@ -2334,9 +2394,12 @@ REGLAS OBLIGATORIAS DE AUDITORÍA Y SEGURIDAD:
      * Selecciona una publicación del catálogo real que coincida con lo pedido (ej: Pizzería Bella Sabana para pizza, Fogón Sabanero para pollo).
      * CONSERVA LAS DEMÁS PARADAS INTACTAS sin cambiarlas.
      * En 'spokenText' explica con calidez: "¡Listo veci! Ya te cambié la [primera/segunda] parada por [comercio]..." y narra el plan completo.
-3. NARRACIÓN CRONOLÓGICA COMPLETA DE TODAS LAS PARADAS (CRÍTICO):
-   - Si el plan tiene 2 paradas: menciona la parada 1 y la parada 2.
-   - Si el plan tiene 3 paradas: DEBES MENCIONAR LAS 3 PARADAS EN ORDEN CRONOLÓGICO SIN OMITIR NINGUNA.
+3. BREVEDAD Y LACONISMO EN EL CHAT (ESTILO WHATSAPP - MÁXIMO 2 A 3 ORACIONES):
+   - El texto 'spokenText' DEBE SER CONCISO, FRESCO Y DIRECTO (máximo 2 a 3 oraciones cortas, no más de 35 palabras).
+   - En móviles la gente NO lee párrafos largos. Prohibido recitar direcciones exactas, horarios detallados o repetir listas de precios en prosa porque TODO eso ya se muestra automáticamente en las tarjetas interactivas de la pantalla.
+   - En planes: menciona de forma fluida el punto de inicio y el cierre en una sola frase amena.
+     Ejemplo: "¡Listo veci! Te armé este plan en Cajicá: arrancamos con capuchino en Café & Trigo y rematamos con unas ricas alitas en La Brasa."
+   - Si el usuario hace una pregunta sobre precios o aclaraciones (ej: "¿los precios son por persona o en pareja?"): responde puntualmente en 2 oraciones sencillas sin volver a recitar todo el itinerario.
 4. PROHIBICIÓN TOTAL DEL SIGNO '$':
    - NUNCA uses el símbolo '$' en 'spokenText' ni en ningún texto generado.
    - Expresa siempre los precios en pesos colombianos con palabras o números acompañados de "pesos" o "mil pesos".

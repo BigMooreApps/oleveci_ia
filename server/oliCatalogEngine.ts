@@ -86,19 +86,60 @@ export function sanitizeSpokenText(
     cleaned = cleaned.replace(/^listo veci[!,.]?/i, '¡Listo veci!');
   }
 
-  if (!isSearch && stops.length > 0) {
-    for (let i = 0; i < stops.length; i++) {
-      const stop = stops[i];
-      const bizName = stop.businessName.trim();
-      const normCleaned = normalizeText(cleaned);
-      const normBiz = normalizeText(bizName);
+  // Helper: Checks if a stop was already mentioned naturally without requiring exact literal syntax
+  const isStopMentioned = (rawText: string, targetStop: OliPlanStop): boolean => {
+    if (!rawText || !targetStop) return false;
+    const normCleaned = normalizeText(rawText)
+      .replace(/[&]/g, ' ')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-      if (normBiz && !normCleaned.includes(normBiz)) {
-        const costStr = formatPriceForSpeech(stop.cost);
-        if (i === stops.length - 1 && stops.length > 1) {
-          cleaned += ` Y para rematar, cerramos en ${bizName} para ${stop.activity} (${costStr}).`;
-        } else {
-          cleaned += ` Luego pasamos por ${bizName} para ${stop.activity} (${costStr}).`;
+    const bizName = targetStop.businessName ? targetStop.businessName.trim() : '';
+    const normBiz = normalizeText(bizName)
+      .replace(/[&]/g, ' ')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (normBiz && normCleaned.includes(normBiz)) return true;
+
+    if (targetStop.postTitle) {
+      const normPost = normalizeText(targetStop.postTitle)
+        .replace(/[&]/g, ' ')
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (normPost && normPost.length > 5 && normCleaned.includes(normPost)) return true;
+    }
+
+    const genericWords = new Set([
+      'cafe', 'bar', 'hotel', 'restaurante', 'artesanal', 'glamping', 'gastrobar',
+      'pizzeria', 'hamburguesas', 'comidas', 'parque', 'sabana', 'centro', 'norte',
+      'campestre', 'tradicional', 'del', 'los', 'las', 'para', 'por', 'con', 'and', 'mas'
+    ]);
+    const tokens = normBiz.split(' ').filter((w) => w.length > 3 && !genericWords.has(w));
+    if (tokens.length > 0 && tokens.some((tok) => normCleaned.includes(tok))) {
+      return true;
+    }
+    return false;
+  };
+
+  if (!isSearch && stops.length > 0) {
+    const lower = cleaned.toLowerCase();
+    const isQnAReply = lower.includes('por persona') || lower.includes('en pareja') || lower.includes('aclaracion') || lower.includes('para compartir');
+
+    if (!isQnAReply) {
+      for (let i = 0; i < stops.length; i++) {
+        const stop = stops[i];
+        if (!isStopMentioned(cleaned, stop)) {
+          const bizName = stop.businessName.trim();
+          const costStr = formatPriceForSpeech(stop.cost);
+          if (i === stops.length - 1 && stops.length > 1) {
+            cleaned += ` Y para rematar, cerramos en ${bizName} para ${stop.activity} (${costStr}).`;
+          } else {
+            cleaned += ` Luego pasamos por ${bizName} para ${stop.activity} (${costStr}).`;
+          }
         }
       }
     }
@@ -224,6 +265,24 @@ export function detectSearchIntent(prompt: string): boolean {
     'que plan hay',
     'que planes hay',
     'hacer un recorrido',
+    'luego de esto quiero',
+    'luego quiero',
+    'luego voy',
+    'luego vamos',
+    'despues de esto quiero',
+    'después de esto quiero',
+    'despues quiero',
+    'después quiero',
+    'despues vamos',
+    'después vamos',
+    'elijo la opcion',
+    'elijo la opción',
+    'primera parada',
+    'segunda parada',
+    'tercera parada',
+    'cuarta parada',
+    'parada del plan',
+    'parada del itinerario',
   ];
 
   if (planSignals.some((sig) => norm.includes(sig))) {
