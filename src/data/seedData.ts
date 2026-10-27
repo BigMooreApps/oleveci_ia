@@ -1249,7 +1249,7 @@ export const INITIAL_POSTS: Post[] = [
     title: '¡Bienvenido a OleVeci! Tu Guía Local',
     description: '¡Bienvenido a OleVeci.com! Acá encontrarás los mejores planes, promos y experiencias en tu municipio. Descubre lo mejor de Cajicá, Chía, Zipaquirá y Sabana Centro.',
     imageUrl: '/videos/poster_bienvenida.jpg',
-    videoUrl: '/videos/bienvenida_oleveci.webm',
+    videoUrl: '/videos/bienvenida_oleveci.mp4',
     mediaType: 'video',
     originalPrice: undefined,
     promotionalPrice: undefined,
