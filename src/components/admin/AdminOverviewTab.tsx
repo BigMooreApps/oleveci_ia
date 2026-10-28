@@ -871,29 +871,22 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Header Toolbar with Territory & Cut Date Range Filters */}
-      <div className="bg-gradient-to-r from-white via-sky-50/30 to-amber-50/20 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-sky-100 shadow-sm space-y-4">
+      {/* 1. Header Toolbar with Territory & Cut Date Range Filters (Estilo Unificado Admin) */}
+      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
         {/* Title & Brand Row */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-white border border-sky-200 shadow-sm flex items-center justify-center shrink-0">
-              <OleVeciIcon size={28} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base sm:text-lg font-bold text-[#041f5e] leading-snug">
-                  Centro de Inteligencia & Métricas de Red
-                </h2>
-                <SunburstSparks />
-              </div>
-              <p className="text-xs text-slate-500 font-normal mt-0.5">
-                Supervisión en tiempo real de facturación, retención, tracción comunitaria y retorno vecinal
-              </p>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#007af7]" />
+              <span>Centro de Inteligencia & Métricas de Red</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Supervisión en tiempo real de facturación, retención, tracción comunitaria y retorno vecinal
+            </p>
           </div>
 
           {/* Toggle Formula Explanations Button */}
-          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
             <button
               type="button"
               onClick={() => setShowFormulaExplanation(!showFormulaExplanation)}
@@ -911,7 +904,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         </div>
 
         {/* Filter Controls Row (Territory + Exact Date Cut Picker) */}
-        <div className="pt-3 border-t border-sky-100/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Territory Dropdown */}
           <div className="relative">
             <select
@@ -919,7 +912,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               aria-label="Filtrar por Municipio"
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="text-xs font-semibold bg-white border border-sky-200/90 rounded-2xl px-3.5 py-2 text-[#041f5e] hover:border-[#007af7] focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer shadow-2xs w-full sm:w-auto transition"
+              className="text-xs font-semibold bg-white border border-slate-200/90 rounded-xl px-3 py-1.5 text-slate-800 hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer shadow-2xs w-full sm:w-auto transition"
             >
               <option value="all">📍 Todos los Municipios ({municipalities.length})</option>
               {municipalities.map((m) => (
@@ -930,8 +923,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </select>
           </div>
 
-          {/* Compact Date Range Filter (Identical to "Mi Espacio") */}
-          <div className="flex items-center bg-white rounded-2xl border border-sky-200/90 shadow-2xs px-3.5 py-1.5 gap-2.5 text-xs self-start sm:self-auto hover:border-sky-300 transition">
+          {/* Compact Date Range Filter */}
+          <div className="flex items-center bg-white rounded-xl border border-slate-200/90 shadow-2xs px-3 py-1.5 gap-2.5 text-xs self-start sm:self-auto hover:border-sky-300 transition">
             <Calendar className="w-3.5 h-3.5 text-[#007af7] shrink-0" />
             <div className="flex items-center gap-1.5 font-medium text-slate-700">
               <span className="text-[10px] text-slate-400 uppercase select-none font-semibold">Del</span>
