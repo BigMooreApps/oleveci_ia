@@ -162,90 +162,28 @@ export function sanitizeSpokenText(
   isSearch = false,
   isAlternative = false
 ): string {
-  let cleaned = sanitizeCurrencyText(text || '');
+  let cleaned = sanitizeCurrencyText(text || '').trim();
 
-  // 1. Mandatory Greeting: Must start with "¡Listo veci!"
-  const trimmed = cleaned.trim();
-  const lowerTrimmed = trimmed.toLowerCase();
-
-  if (!lowerTrimmed.startsWith('¡listo veci!') && !lowerTrimmed.startsWith('listo veci')) {
+  // If empty, supply minimal friendly fallback
+  if (!cleaned) {
     if (isSearch) {
-      cleaned = `¡Listo veci! ${trimmed}`;
+      cleaned = '¡Listo veci! Aquí tienes las opciones que encontré para ti.';
     } else if (isRefinement) {
-      cleaned = `¡Listo veci! Ya te ajusté el plan: ${trimmed}`;
-    } else if (isAlternative) {
-      cleaned = `¡Listo veci! ${trimmed}`;
+      cleaned = '¡Listo veci! Tu plan fue actualizado. Abajo puedes ver los cambios.';
     } else {
-      cleaned = `¡Listo veci! ${trimmed}`;
+      cleaned = `¡Listo veci! Tu plan ya quedó armado con ${stops.length} paradas. Abajo tienes todos los detalles.`;
     }
-  } else if (lowerTrimmed.startsWith('listo veci!') || lowerTrimmed.startsWith('listo veci,')) {
-    // Ensure the exclamation mark
-    cleaned = cleaned.replace(/^listo veci[!,.]?/i, '¡Listo veci!');
   }
 
-  // Helper: Checks if a stop was already mentioned naturally without requiring exact literal syntax
-  const isStopMentioned = (rawText: string, targetStop: OliPlanStop): boolean => {
-    if (!rawText || !targetStop) return false;
-    const normCleaned = normalizeText(rawText)
-      .replace(/[&]/g, ' ')
-      .replace(/[^a-z0-9 ]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+  // Clean extra linebreaks and spaces
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
 
-    const bizName = targetStop.businessName ? targetStop.businessName.trim() : '';
-    const normBiz = normalizeText(bizName)
-      .replace(/[&]/g, ' ')
-      .replace(/[^a-z0-9 ]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    if (normBiz && normCleaned.includes(normBiz)) return true;
-
-    if (targetStop.postTitle) {
-      const normPost = normalizeText(targetStop.postTitle)
-        .replace(/[&]/g, ' ')
-        .replace(/[^a-z0-9 ]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      if (normPost && normPost.length > 5 && normCleaned.includes(normPost)) return true;
-    }
-
-    if (targetStop.activity) {
-      const normAct = normalizeText(targetStop.activity).replace(/[^a-z0-9 ]/g, ' ').trim();
-      if (normAct && (normCleaned.includes(normAct) || (normAct.includes('cafe') && normCleaned.includes('cafe')))) return true;
-    }
-
-    const genericWords = new Set([
-      'bar', 'hotel', 'restaurante', 'artesanal', 'glamping', 'gastrobar',
-      'comidas', 'parque', 'sabana', 'centro', 'norte',
-      'campestre', 'tradicional', 'del', 'los', 'las', 'para', 'por', 'con', 'and', 'mas'
-    ]);
-    const tokens = normBiz.split(' ').filter((w) => w.length > 3 && !genericWords.has(w));
-    if (tokens.length > 0 && tokens.some((tok) => normCleaned.includes(tok))) {
-      return true;
-    }
-    return false;
-  };
-
-  // 2. Strict Check for Plans: Only insert stop if truly omitted by the generator
-  if (!isSearch && stops.length > 0) {
-    const lower = cleaned.toLowerCase();
-    const isQnAReply = lower.includes('por persona') || lower.includes('en pareja') || lower.includes('aclaracion') || lower.includes('para compartir');
-
-    if (!isQnAReply) {
-      for (let i = 0; i < stops.length; i++) {
-        const stop = stops[i];
-        if (!isStopMentioned(cleaned, stop)) {
-          const bizName = stop.businessName.trim();
-          const costStr = formatPriceForSpeech(stop.cost);
-          if (i === stops.length - 1 && stops.length > 1) {
-            cleaned += ` Y para rematar, cerramos en ${bizName} para ${stop.activity} (${costStr}).`;
-          } else {
-            cleaned += ` Luego pasamos por ${bizName} para ${stop.activity} (${costStr}).`;
-          }
-        }
-      }
-    }
+  // 1. Mandatory Greeting: Must start with "¡Listo veci!"
+  const lowerTrimmed = cleaned.toLowerCase();
+  if (!lowerTrimmed.startsWith('¡listo veci!') && !lowerTrimmed.startsWith('¡listo veci,') && !lowerTrimmed.startsWith('listo veci')) {
+    cleaned = `¡Listo veci! ${cleaned}`;
+  } else if (lowerTrimmed.startsWith('listo veci!') || lowerTrimmed.startsWith('listo veci,')) {
+    cleaned = cleaned.replace(/^listo veci[!,.]?/i, '¡Listo veci!');
   }
 
   // Guarantee ZERO residual dollar signs
@@ -1115,7 +1053,7 @@ export function handleRefinementPlan(
         resolvedBudget <= 0
       );
 
-      let spokenText = `¡Listo veci! Te sumé ${newStop.businessName} para ${newStop.activity} al plan. Ahora el recorrido queda con ${existingStops.length} paradas: primero ${existingStops[0].businessName}, luego ${existingStops.slice(1, -1).map(s => s.businessName).join(', ')} y cerramos en ${newStop.businessName}. En total todo les sale en ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
+      let spokenText = `¡Listo veci! Tu plan fue actualizado y ahora tiene ${existingStops.length} paradas.`;
       spokenText = sanitizeSpokenText(spokenText, existingStops, true, false, false);
 
       return {
@@ -1280,19 +1218,11 @@ export function handleRefinementPlan(
     isOpenBudget
   );
 
-  const ordinalLabels = ['primera', 'segunda', 'tercera', 'cuarta'];
+  const ordinalLabels = ['primera', 'segunda', 'tercera', 'cuarta', 'quinta'];
   const replacedStop = existingStops[targetIndex];
   const targetLabel = ordinalLabels[targetIndex] || `parada ${targetIndex + 1}`;
 
-  let spokenText = `¡Listo veci! Ya te cambié la ${targetLabel} parada por ${replacedStop.businessName} para ${replacedStop.activity}. `;
-  if (existingStops.length === 1) {
-    spokenText += `El plan queda en ${existingStops[0].businessName} con un total estimado de ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
-  } else if (existingStops.length === 2) {
-    spokenText += `Ahora el recorrido inicia en ${existingStops[0].businessName} para ${existingStops[0].activity}, y luego pasamos a ${existingStops[1].businessName} para ${existingStops[1].activity}. En total les sale en ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
-  } else {
-    spokenText += `El recorrido completo queda así: primero ${existingStops[0].businessName} para ${existingStops[0].activity}, luego ${existingStops[1].businessName} para ${existingStops[1].activity}, y cerramos en ${existingStops[2].businessName} para ${existingStops[2].activity}. En total todo les sale en ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
-  }
-
+  let spokenText = `¡Listo veci! Ya cambié la ${targetLabel} parada por ${replacedStop.businessName}.`;
   spokenText = sanitizeSpokenText(spokenText, existingStops, true, false, false);
 
   return {
@@ -1621,27 +1551,12 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
 
   const totalCostSpeech = formatPriceForSpeech(budgetSummary.totalEstimatedCost);
 
-  // 9. Construct spokenText narrating all stops in chronological order
-  let spokenText = '';
+  // 9. Construct concise spokenText
+  let spokenText = `¡Listo veci! Tu plan ya quedó armado con ${stops.length} paradas en ${targetCity}. Abajo tienes todos los detalles para contactarlos.`;
   if (isAlternativeSuggestion && topic) {
-    spokenText = `¡Listo veci! Te cuento que en este momento no tenemos publicaciones ni locales de ${topic} en ${targetCity} registrados en la app. Pero para no dejarte con el antojo de comer rico, te armé esta sugerencia alternativa con los mejores comercios gastronómicos del municipio: `;
+    spokenText = `¡Listo veci! En ${targetCity} no tenemos ${topic}, pero te armé este plan con la mejor gastronomía local.`;
   } else if (isRefinement) {
-    spokenText = `¡Listo veci! Ya te ajusté el plan: le dimos el toque exacto que me pediste. `;
-  } else if (topic) {
-    spokenText = `¡Listo veci! Te tengo el plan perfecto para disfrutar de ${topic} en ${targetCity}. `;
-  } else {
-    spokenText = `¡Listo veci! Te tengo el plan para ${dateInfo.dayName} que te va a encantar en ${targetCity}. `;
-  }
-
-  if (stops.length === 1) {
-    spokenText += `Arrancan en ${stops[0].businessName} para ${stops[0].activity}. En total les sale en ${totalCostSpeech}. ¿Cómo la ves?`;
-  } else if (stops.length === 2) {
-    spokenText += `Arrancan primero en ${stops[0].businessName} para ${stops[0].activity}, y después se van para ${stops[1].businessName} para ${stops[1].activity}. En total todo les sale en ${totalCostSpeech}. ¿Qué te parece este planazo?`;
-  } else if (stops.length === 3) {
-    spokenText += `Arrancan primero en ${stops[0].businessName} para ${stops[0].activity}, después se van para ${stops[1].businessName} para ${stops[1].activity}, y para rematar cierran en ${stops[2].businessName} para ${stops[2].activity}. En total todo les sale en ${totalCostSpeech}. ¿Cómo la ves?`;
-  } else {
-    const intermediate = stops.slice(1, -1).map((s) => `luego pasamos por ${s.businessName} para ${s.activity}`).join(', ');
-    spokenText += `Arrancan primero en ${stops[0].businessName} para ${stops[0].activity}, ${intermediate}, y para rematar cierran en ${stops[stops.length - 1].businessName} para ${stops[stops.length - 1].activity}. En total todo les sale en ${totalCostSpeech}. ¿Cómo la ves?`;
+    spokenText = `¡Listo veci! Tu plan fue actualizado. Abajo puedes ver los cambios.`;
   }
 
   spokenText = sanitizeSpokenText(spokenText, stops, isRefinement, false, isAlternativeSuggestion);
@@ -2629,11 +2544,11 @@ Genera la respuesta hablada de Oli:
   // Fallback to template if Gemini wasn't available or errored
   if (!spokenText) {
     if (!exactMatchInMunicipality && targetMunicipality) {
-      spokenText = `¡Listo veci! En ${targetMunicipality} no encontré un comercio exacto de ${queryTopic}, pero te encontré una excelente opción muy cerca: ${firstBiz.name} en ${firstBiz.city}, ubicado en ${firstBiz.address}. ${firstBiz.description || ''} ¡Toca el botón verde para contactarlos directo por WhatsApp o ver su perfil!`;
+      spokenText = `¡Listo veci! En ${targetMunicipality} no encontré un comercio exacto de ${queryTopic}, pero te recomiendo ${firstBiz.name} en ${firstBiz.city}. Abajo puedes ver su información y contactarlos por WhatsApp.`;
     } else if (matchedBusinesses.length === 1) {
-      spokenText = `¡Listo veci! Te encontré la mejor opción en ${firstBiz.city}: ${firstBiz.name}, ubicado en ${firstBiz.address}. ${firstBiz.description || ''} ¡Puedes escribirles directo al WhatsApp o ver su ficha en OleVeci!`;
+      spokenText = `¡Listo veci! En ${firstBiz.city} te recomiendo ${firstBiz.name}. Abajo puedes ver su ubicación y escribirles por WhatsApp.`;
     } else {
-      spokenText = `¡Listo veci! Te encontré opciones recomendadas de ${queryTopic}: primero ${firstBiz.name} en ${firstBiz.city} (${firstBiz.address}), y también ${secondBiz.name} en ${secondBiz.city}. Puedes escribirles directo por WhatsApp o ver sus promociones en pantalla.`;
+      spokenText = `¡Listo veci! En ${firstBiz.city} te recomiendo ${firstBiz.name} y ${secondBiz.name}. Abajo puedes ver sus detalles y contactarlos.`;
     }
   }
 
@@ -3084,10 +2999,15 @@ Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin li
 4. COHERENCIA DE OFERTAS:
    - En 'selectedPostIds' pon ÚNICAMENTE ofertas que apliquen a lo que pidió. Si no hay ofertas específicas de ese servicio, pon arreglo vacío []. NUNCA pongas ofertas de lavado cuando pidieron mecánica, ni ofertas de té cuando pidieron café.
 
-5. SPOKENTEXT:
+5. SPOKENTEXT (ESTILO ULTRA-CORTO Y CONCISO):
    - Comienza obligatoriamente con "¡Listo veci!".
-   - Breve y directo (máximo 2 a 3 oraciones cortas, estilo WhatsApp).
-   - Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directamente o ver su ficha.
+   - MÁXIMO 1 A 2 ORACIONES CORTAS (estilo WhatsApp directo y ejecutivo):
+     * Si es plan nuevo: "¡Listo veci! Tu plan ya quedó armado con [N] paradas en [municipio]. En pantalla tienes todos los detalles para contactar a cada veci."
+     * Si es cambio/refinamiento: "¡Listo veci! Ya cambié la [parada X] por [comercio o actividad solicitada]."
+     * Si es agregar paradas: "¡Listo veci! Tu plan fue actualizado y ahora tiene [N] paradas."
+     * Si es eliminar parada: "¡Listo veci! Ya eliminé esa parada de tu plan."
+     * Si es búsqueda puntual de comercio o servicio: "¡Listo veci! En [municipio] te recomiendo [Comercio], en pantalla tienes su botón de WhatsApp."
+   - PROHIBIDO TERMINANTEMENTE recitar el itinerario o repetir las paradas una por una en este texto; las paradas ya se muestran en las tarjetas visuales de abajo.
    - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.
 
 6. ESTRUCTURA OBLIGATORIA DEL JSON:
@@ -3097,7 +3017,7 @@ Tu respuesta DEBE ser un único objeto JSON válido con los siguientes campos:
   "understanding": "resumen breve de lo interpretado",
   "targetMunicipality": "${targetCity}",
   "exactMatchInRequestedCity": true,
-  "spokenText": "¡Listo veci! [tu narración cálida en español colombiano sabanero, máximo 2-3 oraciones, cero signos $]",
+  "spokenText": "¡Listo veci! [máximo 1 o 2 oraciones concisas, cero repetición de paradas, cero signos $]",
   "planTitle": "título creativo del plan",
   "stops": [
     {

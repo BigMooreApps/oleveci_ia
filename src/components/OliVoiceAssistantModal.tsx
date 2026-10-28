@@ -29,6 +29,8 @@ import {
   Wand2,
   Bookmark,
   MessageCircle,
+  Trash2,
+  Check,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Post, Business } from '../types';
@@ -76,6 +78,8 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
     Array<{ sender: 'user' | 'oli'; text: string; plan?: OliPlanResponse }>
   >([]);
   const [isSaved, setIsSaved] = useState(false);
+  const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
+  const [editingMessageText, setEditingMessageText] = useState('');
 
   // Audio / Speech State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -257,8 +261,69 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
     }
   };
 
+  // Edit & Delete handlers for user messages in modal
+  const handleStartEdit = (index: number, currentText: string) => {
+    setEditingMessageIndex(index);
+    setEditingMessageText(currentText);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageIndex(null);
+    setEditingMessageText('');
+  };
+
+  const handleSaveEdit = (index: number) => {
+    const trimmed = editingMessageText.trim();
+    if (!trimmed) {
+      handleCancelEdit();
+      return;
+    }
+
+    // 1. History prior to this message
+    const priorHistory = chatHistory.slice(0, index);
+
+    // 2. Recover the previousPlan as of that point in time
+    let planAtThatPoint: OliPlanResponse | null = null;
+    for (let i = index - 1; i >= 0; i--) {
+      if (chatHistory[i]?.sender === 'oli' && chatHistory[i]?.plan?.stops?.length) {
+        planAtThatPoint = chatHistory[i].plan!;
+        break;
+      }
+    }
+
+    setEditingMessageIndex(null);
+    setEditingMessageText('');
+
+    // 3. Re-send with edited text, prior history, and the previous plan as of that point
+    handleSendMessage(trimmed, priorHistory, planAtThatPoint);
+  };
+
+  const handleDeleteMessage = (index: number) => {
+    // 1. Slices history before this user turn (excluding this user message and any answer after it)
+    const priorHistory = chatHistory.slice(0, index);
+
+    // 2. Recover the previousPlan as of that point in time
+    let planAtThatPoint: OliPlanResponse | null = null;
+    for (let i = index - 1; i >= 0; i--) {
+      if (chatHistory[i]?.sender === 'oli' && chatHistory[i]?.plan?.stops?.length) {
+        planAtThatPoint = chatHistory[i].plan!;
+        break;
+      }
+    }
+
+    setCurrentPlan(planAtThatPoint);
+    setChatHistory(priorHistory);
+    if (editingMessageIndex === index) {
+      handleCancelEdit();
+    }
+  };
+
   // Send request to Oli backend
-  const handleSendMessage = async (textToSend?: string) => {
+  const handleSendMessage = async (
+    textToSend?: string,
+    historyOverride?: any[],
+    previousPlanOverride?: OliPlanResponse | null
+  ) => {
     const prompt = (textToSend || inputMessage).trim();
     if (!prompt || isLoading) return;
 
@@ -266,9 +331,12 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
     setIsLoading(true);
     setIsSaved(false);
 
+    const baseHistory = historyOverride !== undefined ? historyOverride : chatHistory;
+    const activePlan = previousPlanOverride !== undefined ? previousPlanOverride : currentPlan;
+
     // Append to local history
     const updatedHistory = [
-      ...chatHistory,
+      ...baseHistory,
       { sender: 'user' as const, text: prompt },
     ];
     setChatHistory(updatedHistory);
@@ -281,8 +349,8 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
         body: JSON.stringify({
           userPrompt: prompt,
           currentCity: currentCity || 'Chía',
-          userBudget: currentPlan?.userBudget || 0,
-          previousPlan: currentPlan || null,
+          userBudget: activePlan?.userBudget || 0,
+          previousPlan: activePlan || null,
           messageHistory: updatedHistory.map((m) => ({ sender: m.sender, text: m.text })),
         }),
       });
@@ -294,8 +362,8 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
       const planData: OliPlanResponse = await response.json();
       setCurrentPlan(planData);
 
-      setChatHistory((prev) => [
-        ...prev,
+      setChatHistory([
+        ...updatedHistory,
         {
           sender: 'oli',
           text: planData.spokenText,
@@ -311,8 +379,8 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
       console.error('Error generating plan with Oli:', err);
       const fallbackText =
         '¡Listo veci! Te tengo el plan perfecto para salir a disfrutar en la Sabana. Déjame organizarlo con calma o intenta decirme si prefieres algo familiar, romántico o con amigos.';
-      setChatHistory((prev) => [
-        ...prev,
+      setChatHistory([
+        ...updatedHistory,
         {
           sender: 'oli',
           text: fallbackText,
@@ -507,40 +575,129 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
           )}
 
           {/* Chat Messages */}
-          {chatHistory.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-2`}
-            >
+          {chatHistory.map((msg, index) => {
+            const isUser = msg.sender === 'user';
+            const isEditingThis = editingMessageIndex === index;
+
+            return (
               <div
-                className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg ${
-                  msg.sender === 'user'
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-br-sm'
-                    : 'bg-slate-800/90 border border-cyan-500/30 text-slate-100 rounded-bl-sm'
-                }`}
+                key={index}
+                className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-2`}
               >
-                {msg.sender === 'oli' && (
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-cyan-500/20 text-cyan-300 text-xs font-semibold">
-                    <span className="flex items-center gap-1.5">
-                      <img
-                        src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
-                        alt="Oli"
-                        className="w-5 h-5 object-contain"
-                      />
-                      <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
-                      Oli dice:
-                    </span>
-                    <button
-                      onClick={() => playOliSpokenText(msg.text)}
-                      className="px-2 py-0.5 rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      Escuchar de nuevo
-                    </button>
+                {isUser && isEditingThis ? (
+                  <div className="w-full max-w-[90%] sm:max-w-[85%] rounded-2xl p-4 bg-slate-900 border border-cyan-500/50 shadow-xl space-y-3">
+                    <div className="flex items-center justify-between text-xs text-cyan-300 border-b border-cyan-500/20 pb-1.5 font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <Pencil className="w-3.5 h-3.5 text-cyan-400" />
+                        Editando tu solicitud
+                      </span>
+                      <span className="text-[10px] text-slate-400">Presiona Enter para actualizar</span>
+                    </div>
+                    <textarea
+                      value={editingMessageText}
+                      onChange={(e) => setEditingMessageText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSaveEdit(index);
+                        } else if (e.key === 'Escape') {
+                          handleCancelEdit();
+                        }
+                      }}
+                      autoFocus
+                      rows={2}
+                      className="w-full bg-slate-950/80 border border-cyan-500/40 rounded-xl p-2.5 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 resize-none"
+                      placeholder="Modifica tu mensaje..."
+                    />
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveEdit(index)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all cursor-pointer shadow-sm flex items-center gap-1"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        Guardar y actualizar
+                      </button>
+                    </div>
+                  </div>
+                ) : isUser ? (
+                  <div className="group relative max-w-[90%] sm:max-w-[85%]">
+                    {/* Action buttons (Editar y Borrar) on hover */}
+                    <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity absolute -top-3.5 right-2 hidden sm:flex items-center gap-1 bg-slate-800 border border-cyan-500/30 rounded-full px-2 py-0.5 shadow-sm text-slate-300 z-10">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(index, msg.text)}
+                        className="hover:text-cyan-400 p-1 rounded-full transition-colors cursor-pointer"
+                        title="Editar mensaje"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      <span className="w-px h-3 bg-slate-700" />
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMessage(index)}
+                        className="hover:text-rose-400 p-1 rounded-full transition-colors cursor-pointer"
+                        title="Eliminar mensaje"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <div className="rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-br-sm">
+                      <p className="whitespace-pre-line">{msg.text}</p>
+                      {/* Mobile action buttons */}
+                      <div className="flex sm:hidden items-center gap-2 text-[11px] text-cyan-200/90 font-medium pt-1 mt-1 border-t border-white/20">
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(index, msg.text)}
+                          className="inline-flex items-center gap-1 hover:underline cursor-pointer"
+                        >
+                          <Pencil className="w-2.5 h-2.5" />
+                          Editar
+                        </button>
+                        <span>·</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMessage(index)}
+                          className="inline-flex items-center gap-1 hover:underline text-rose-200 cursor-pointer"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                          Borrar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-lg bg-slate-800/90 border border-cyan-500/30 text-slate-100 rounded-bl-sm">
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-cyan-500/20 text-cyan-300 text-xs font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <img
+                          src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
+                          alt="Oli"
+                          className="w-5 h-5 object-contain"
+                        />
+                        <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
+                        Oli dice:
+                      </span>
+                      <button
+                        onClick={() => playOliSpokenText(msg.text)}
+                        className="px-2 py-0.5 rounded-md bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        Escuchar de nuevo
+                      </button>
+                    </div>
+                    <p className="whitespace-pre-line">{msg.text}</p>
                   </div>
                 )}
-                <p className="whitespace-pre-line">{msg.text}</p>
-              </div>
 
               {/* Render Plan Card if this Oli response produced an itinerary plan */}
               {msg.plan && msg.plan.stops && msg.plan.stops.length > 0 && (
@@ -861,8 +1018,9 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
                   </div>
                 </div>
               )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
 
           {/* Loading Animation while Oli is thinking */}
           {isLoading && (

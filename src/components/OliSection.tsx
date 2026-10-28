@@ -26,6 +26,9 @@ import {
   Tag,
   X,
   ScrollText,
+  Pencil,
+  Trash2,
+  Check,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Post, Business } from '../types';
@@ -109,6 +112,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [currentPlan, setCurrentPlan] = useState<OliPlanResponse | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSaved, setIsSaved] = useState(false);
+  const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
+  const [editingMessageText, setEditingMessageText] = useState('');
 
   // Full Chat Conversation Log & WhatsApp Modal State
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -236,8 +241,69 @@ export const OliSection: React.FC<OliSectionProps> = ({
     }, 100);
   };
 
-  // Send prompt to Oli
-  const handleSendMessage = async (textToSend?: string) => {
+  // Edit & Delete handlers for user messages
+  const handleStartEdit = (index: number, currentText: string) => {
+    setEditingMessageIndex(index);
+    setEditingMessageText(currentText);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageIndex(null);
+    setEditingMessageText('');
+  };
+
+  const handleSaveEdit = (index: number) => {
+    const trimmed = editingMessageText.trim();
+    if (!trimmed) {
+      handleCancelEdit();
+      return;
+    }
+
+    // 1. History prior to this message
+    const priorHistory = chatHistory.slice(0, index);
+
+    // 2. Recover the previousPlan as of that point in time
+    let planAtThatPoint: OliPlanResponse | null = null;
+    for (let i = index - 1; i >= 0; i--) {
+      if (chatHistory[i]?.sender === 'oli' && chatHistory[i]?.plan?.stops?.length) {
+        planAtThatPoint = chatHistory[i].plan!;
+        break;
+      }
+    }
+
+    setEditingMessageIndex(null);
+    setEditingMessageText('');
+
+    // 3. Re-send with edited text, prior history, and the previous plan as of that point
+    handleSendMessage(trimmed, priorHistory, planAtThatPoint);
+  };
+
+  const handleDeleteMessage = (index: number) => {
+    // 1. Slices history before this user turn (excluding this user message and any answer after it)
+    const priorHistory = chatHistory.slice(0, index);
+
+    // 2. Recover the previousPlan as of that point in time
+    let planAtThatPoint: OliPlanResponse | null = null;
+    for (let i = index - 1; i >= 0; i--) {
+      if (chatHistory[i]?.sender === 'oli' && chatHistory[i]?.plan?.stops?.length) {
+        planAtThatPoint = chatHistory[i].plan!;
+        break;
+      }
+    }
+
+    setCurrentPlan(planAtThatPoint);
+    setChatHistory(priorHistory);
+    if (editingMessageIndex === index) {
+      handleCancelEdit();
+    }
+  };
+
+  // Send prompt to Oli (supports history and plan overrides for message editing)
+  const handleSendMessage = async (
+    textToSend?: string,
+    historyOverride?: ChatMessage[],
+    previousPlanOverride?: OliPlanResponse | null
+  ) => {
     const prompt = (textToSend || inputMessage).trim();
     if (!prompt || isLoading) return;
 
@@ -248,8 +314,11 @@ export const OliSection: React.FC<OliSectionProps> = ({
     const now = new Date();
     const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    const baseHistory = historyOverride !== undefined ? historyOverride : chatHistory;
+    const activePlan = previousPlanOverride !== undefined ? previousPlanOverride : currentPlan;
+
     const updatedHistory: ChatMessage[] = [
-      ...chatHistory,
+      ...baseHistory,
       { sender: 'user' as const, text: prompt, timestamp: timeString },
     ];
     setChatHistory(updatedHistory);
@@ -261,8 +330,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
         body: JSON.stringify({
           userPrompt: prompt,
           currentCity: currentCity || 'Cajicá',
-          userBudget: currentPlan?.userBudget || 0,
-          previousPlan: currentPlan || null,
+          userBudget: activePlan?.userBudget || 0,
+          previousPlan: activePlan || null,
           messageHistory: updatedHistory.map((m) => ({ sender: m.sender, text: m.text })),
         }),
       });
@@ -303,8 +372,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
       }
 
       const responseTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setChatHistory((prev) => [
-        ...prev,
+      setChatHistory([
+        ...updatedHistory,
         {
           sender: 'oli',
           text: responseData.spokenText,
@@ -316,21 +385,18 @@ export const OliSection: React.FC<OliSectionProps> = ({
           auditTrace: responseData.auditTrace,
         },
       ]);
-
-      // playOliSpokenText(responseData.spokenText);
     } catch (err: any) {
       console.error('Error generating response with Oli:', err);
       const fallbackText =
         '¡Listo veci! Te tengo toda la información de Sabana Centro. Cuéntame si buscas una papelería, un taller de autos, un restaurante o armar un plan.';
-      setChatHistory((prev) => [
-        ...prev,
+      setChatHistory([
+        ...updatedHistory,
         {
           sender: 'oli',
           text: fallbackText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
-      // speakWithBrowserTTS(fallbackText);
     } finally {
       setIsLoading(false);
     }
@@ -609,21 +675,115 @@ export const OliSection: React.FC<OliSectionProps> = ({
               const isUser = msg.sender === 'user';
 
               if (isUser) {
+                const isEditingThis = editingMessageIndex === index;
+
                 return (
                   <div
                     key={index}
                     className="w-full flex justify-end gap-2.5 sm:gap-3 items-end animate-in fade-in slide-in-from-bottom-2 duration-300"
                   >
-                    <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-br-xs bg-[#0066FF] text-white p-3.5 sm:p-4 shadow-sm">
-                      <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-medium">
-                        {msg.text}
-                      </p>
-                      {msg.timestamp && (
-                        <span className="text-[10px] text-blue-100/80 font-medium block text-right mt-1.5">
-                          {msg.timestamp}
-                        </span>
-                      )}
-                    </div>
+                    {isEditingThis ? (
+                      <div className="w-full max-w-[90%] sm:max-w-[80%] rounded-2xl rounded-br-xs bg-[#0056d6] text-white p-3.5 sm:p-4 shadow-md border border-blue-400/50 space-y-3">
+                        <div className="flex items-center justify-between text-xs text-blue-100 border-b border-blue-400/30 pb-1.5 font-medium">
+                          <span className="flex items-center gap-1.5">
+                            <Pencil className="w-3.5 h-3.5 text-blue-200" />
+                            Editando solicitud
+                          </span>
+                          <span className="text-[10px] text-blue-200/80">Presiona Enter para actualizar</span>
+                        </div>
+                        <textarea
+                          value={editingMessageText}
+                          onChange={(e) => setEditingMessageText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSaveEdit(index);
+                            } else if (e.key === 'Escape') {
+                              handleCancelEdit();
+                            }
+                          }}
+                          autoFocus
+                          rows={2}
+                          className="w-full bg-blue-900/60 border border-blue-300/40 rounded-xl p-2.5 text-xs sm:text-sm text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-white resize-none"
+                          placeholder="Modifica tu mensaje..."
+                        />
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer flex items-center gap-1"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEdit(index)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 hover:bg-blue-50 transition-all cursor-pointer shadow-sm flex items-center gap-1"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            Guardar y actualizar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="group relative max-w-[85%] sm:max-w-[75%]">
+                        {/* Action buttons (Editar y Borrar) on hover */}
+                        <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity absolute -top-3.5 right-2 hidden sm:flex items-center gap-1 bg-white border border-slate-200 rounded-full px-2 py-0.5 shadow-sm text-slate-500 z-10">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(index, msg.text)}
+                            className="hover:text-blue-600 p-1 rounded-full transition-colors cursor-pointer"
+                            title="Editar mensaje y recalcular plan"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <span className="w-px h-3 bg-slate-200" />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMessage(index)}
+                            className="hover:text-rose-600 p-1 rounded-full transition-colors cursor-pointer"
+                            title="Eliminar mensaje"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        <div className="rounded-2xl rounded-br-xs bg-[#0066FF] text-white p-3.5 sm:p-4 shadow-sm">
+                          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                            {msg.text}
+                          </p>
+                          <div className="flex items-center justify-between gap-2 mt-1.5">
+                            {/* Botones de acción táctiles en móvil */}
+                            <div className="flex sm:hidden items-center gap-2 text-[11px] text-blue-100/90 font-medium">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(index, msg.text)}
+                                className="inline-flex items-center gap-1 hover:underline cursor-pointer"
+                              >
+                                <Pencil className="w-2.5 h-2.5" />
+                                Editar
+                              </button>
+                              <span>·</span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMessage(index)}
+                                className="inline-flex items-center gap-1 hover:underline text-rose-200 cursor-pointer"
+                              >
+                                <Trash2 className="w-2.5 h-2.5" />
+                                Borrar
+                              </button>
+                            </div>
+                            {msg.timestamp && (
+                              <span className="text-[10px] text-blue-100/80 font-medium block ml-auto">
+                                {msg.timestamp}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0 mb-0.5 shadow-2xs">
                       <User className="w-4 h-4" />
                     </div>
