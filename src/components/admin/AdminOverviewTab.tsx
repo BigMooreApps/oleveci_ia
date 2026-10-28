@@ -173,6 +173,42 @@ const AdminDonutTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+// Branded Custom Tooltip for Captación Channels Pie/Donut Chart
+const AdminChannelPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const item = payload[0]?.payload;
+    if (!item) return null;
+    return (
+      <div className="bg-[#041f5e] text-white p-2.5 rounded-xl border border-white/20 shadow-xl text-xs min-w-[175px] select-none pointer-events-none z-50">
+        <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-white/10">
+          <div className="flex items-center gap-1.5 font-semibold text-white">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
+              style={{ backgroundColor: item.color }}
+            />
+            <span>{item.name}</span>
+          </div>
+          <span className="text-[10px] font-bold text-sky-200">
+            {item.percentage}%
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-slate-200 text-[11px]">
+          <span className="text-slate-300">Volumen:</span>
+          <span className="font-bold text-white">
+            {item.value.toLocaleString('es-CO')} {item.id === 'shares' ? 'compartidos' : item.id === 'qr' ? 'canjes' : 'contactos'}
+          </span>
+        </div>
+        {item.description && (
+          <div className="text-[10px] text-slate-300 mt-1">
+            {item.description}
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
 export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTab }) => {
   const {
     businesses,
@@ -193,6 +229,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
   const [tableFilter, setTableFilter] = useState<TableFilter>('top_leads');
   const [searchMerchant, setSearchMerchant] = useState<string>('');
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>([]);
+  const [channelViewMode, setChannelViewMode] = useState<'contacts' | 'all'>('contacts');
 
   const toggleMetric = (key: MetricKey) => {
     setSelectedMetrics((prev) =>
@@ -579,46 +616,89 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
     });
   }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap]);
 
-  // 8. CHANNELS DISTRIBUTION IN CUT
-  const channelData = useMemo(() => {
+  // 8. CHANNELS DISTRIBUTION IN CUT (Modern Pastel / Donut Chart)
+  const contactsPieData = useMemo(() => {
     return [
       {
+        id: 'whatsapp',
         name: 'WhatsApp Directo',
+        shortName: 'WhatsApp Directo',
         value: cutWhatsapp,
         color: '#00d8a5',
-        share: cutTotalLeads > 0 ? Math.round((cutWhatsapp / cutTotalLeads) * 100) : 0,
-        icon: '💬',
+        percentage: cutTotalLeads > 0 ? ((cutWhatsapp / cutTotalLeads) * 100).toFixed(1) : '0',
+        description: 'Chats y pedidos directos',
       },
       {
+        id: 'maps',
         name: 'Rutas Google Maps',
+        shortName: 'Rutas Maps',
         value: cutMaps,
         color: '#ff8400',
-        share: cutTotalLeads > 0 ? Math.round((cutMaps / cutTotalLeads) * 100) : 0,
-        icon: '📍',
+        percentage: cutTotalLeads > 0 ? ((cutMaps / cutTotalLeads) * 100).toFixed(1) : '0',
+        description: 'Cómo llegar al comercio',
       },
       {
+        id: 'calls',
         name: 'Llamadas Telefónicas',
+        shortName: 'Llamadas',
         value: cutCalls,
         color: '#007af7',
-        share: cutTotalLeads > 0 ? Math.round((cutCalls / cutTotalLeads) * 100) : 0,
-        icon: '📞',
+        percentage: cutTotalLeads > 0 ? ((cutCalls / cutTotalLeads) * 100).toFixed(1) : '0',
+        description: 'Consultas telefónicas',
+      },
+    ].filter((item) => item.value > 0);
+  }, [cutWhatsapp, cutMaps, cutCalls, cutTotalLeads]);
+
+  const allInteractionsPieData = useMemo(() => {
+    const totalAll = cutTotalLeads + cutShares + cutQrRedemptions;
+    return [
+      {
+        id: 'whatsapp',
+        name: 'WhatsApp Directo',
+        shortName: 'WhatsApp Directo',
+        value: cutWhatsapp,
+        color: '#00d8a5',
+        percentage: totalAll > 0 ? ((cutWhatsapp / totalAll) * 100).toFixed(1) : '0',
+        description: 'Chats y pedidos directos',
       },
       {
+        id: 'maps',
+        name: 'Rutas Google Maps',
+        shortName: 'Rutas Maps',
+        value: cutMaps,
+        color: '#ff8400',
+        percentage: totalAll > 0 ? ((cutMaps / totalAll) * 100).toFixed(1) : '0',
+        description: 'Cómo llegar al comercio',
+      },
+      {
+        id: 'shares',
         name: 'Boca a boca (Shares)',
+        shortName: 'Boca a boca',
         value: cutShares,
         color: '#6366f1',
-        share: cutTotalLeads > 0 ? Math.round((cutShares / (cutTotalLeads + cutShares)) * 100) : 0,
-        icon: '🔁',
+        percentage: totalAll > 0 ? ((cutShares / totalAll) * 100).toFixed(1) : '0',
+        description: 'Difusión compartida entre vecinos',
       },
       {
+        id: 'calls',
+        name: 'Llamadas Telefónicas',
+        shortName: 'Llamadas',
+        value: cutCalls,
+        color: '#007af7',
+        percentage: totalAll > 0 ? ((cutCalls / totalAll) * 100).toFixed(1) : '0',
+        description: 'Consultas telefónicas',
+      },
+      {
+        id: 'qr',
         name: 'Canjes QR en Local',
+        shortName: 'Canjes QR',
         value: cutQrRedemptions,
         color: '#a855f7',
-        share: cutTotalLeads > 0 ? Math.round((cutQrRedemptions / cutTotalLeads) * 100) : 0,
-        icon: '🎟️',
+        percentage: totalAll > 0 ? ((cutQrRedemptions / totalAll) * 100).toFixed(1) : '0',
+        description: 'Canjes físicos en el negocio',
       },
-    ];
-  }, [cutWhatsapp, cutMaps, cutCalls, cutShares, cutQrRedemptions, cutTotalLeads]);
+    ].filter((item) => item.value > 0);
+  }, [cutWhatsapp, cutMaps, cutShares, cutCalls, cutQrRedemptions, cutTotalLeads]);
 
   // 9. FINANCIAL PORTFOLIO COMPOSITION (Donut Chart)
   const financialDistributionData = useMemo(() => {
@@ -1348,9 +1428,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
       {/* 5. Channel Breakdown & Day of Week Demand Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Canales de Captación Vecinal */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
-          <div className="flex items-center justify-between">
+        {/* Canales de Captación Vecinal (Modern Donut / Pastel Chart) */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3.5">
+          {/* Header with Title and Mode Switcher */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
                 Canales de Captación en el Corte
@@ -1359,34 +1440,119 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 Distribución de puntos de contacto preferidos por los vecinos
               </p>
             </div>
-            <span className="text-xs font-semibold text-[#041f5e] bg-sky-50 border border-sky-100 px-2.5 py-0.5 rounded-full">
-              {cutTotalLeads} contactos
-            </span>
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <span className="text-xs font-bold text-[#041f5e] bg-sky-50 border border-sky-100 px-2.5 py-1 rounded-full shadow-2xs">
+                {cutTotalLeads.toLocaleString('es-CO')} contactos
+              </span>
+              <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium text-slate-600">
+                <button
+                  type="button"
+                  onClick={() => setChannelViewMode('contacts')}
+                  className={`px-2 py-0.5 rounded-md transition cursor-pointer ${
+                    channelViewMode === 'contacts'
+                      ? 'bg-white text-[#041f5e] font-semibold shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                  title="Puntos de contacto directo"
+                >
+                  Contactos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChannelViewMode('all')}
+                  className={`px-2 py-0.5 rounded-md transition cursor-pointer ${
+                    channelViewMode === 'all'
+                      ? 'bg-white text-[#041f5e] font-semibold shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                  title="Incluir boca a boca y canjes"
+                >
+                  Todos
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2.5">
-            {channelData.map((channel) => (
-              <div key={channel.name} className="p-2.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-sky-100 transition">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <div className="font-medium text-slate-700">
-                    <span>{channel.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-slate-900">{channel.value.toLocaleString('es-CO')}</span>
-                    <span className="text-[10px] font-normal text-slate-400">({channel.share}%)</span>
-                  </div>
-                </div>
-                <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.max(4, Math.min(100, channel.share))}%`,
-                      backgroundColor: channel.color,
-                    }}
+          {/* Chart + Channel Breakdown side-by-side */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center pt-1">
+            {/* Donut Chart (5 cols) */}
+            <div className="sm:col-span-5 h-44 flex items-center justify-center relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={channelViewMode === 'contacts' ? contactsPieData : allInteractionsPieData}
+                    innerRadius={46}
+                    outerRadius={68}
+                    paddingAngle={4}
+                    cornerRadius={5}
+                    dataKey="value"
+                  >
+                    {(channelViewMode === 'contacts' ? contactsPieData : allInteractionsPieData).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={<AdminChannelPieTooltip />}
+                    wrapperStyle={{ zIndex: 50, pointerEvents: 'none' }}
                   />
-                </div>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0 select-none">
+                <span className="text-xl sm:text-2xl font-black text-[#041f5e] leading-tight">
+                  {channelViewMode === 'contacts'
+                    ? cutTotalLeads.toLocaleString('es-CO')
+                    : (cutTotalLeads + cutShares + cutQrRedemptions).toLocaleString('es-CO')}
+                </span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  {channelViewMode === 'contacts' ? 'Contactos' : 'Total'}
+                </span>
               </div>
-            ))}
+            </div>
+
+            {/* Interactive Channels List (7 cols) */}
+            <div className="sm:col-span-7 space-y-1.5">
+              {(channelViewMode === 'contacts' ? contactsPieData : allInteractionsPieData).map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-2 rounded-xl bg-slate-50/70 hover:bg-sky-50/50 border border-slate-100 hover:border-sky-100 transition"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-xs font-semibold text-slate-800 truncate">
+                      {item.shortName}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-bold text-slate-900">
+                      {item.value.toLocaleString('es-CO')}
+                    </span>
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
+                      style={{
+                        backgroundColor: `${item.color}18`,
+                        color: item.color,
+                      }}
+                    >
+                      {item.percentage}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {channelViewMode === 'contacts' && (
+                <div className="pt-1.5 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 px-1">
+                  <span className="text-slate-400 font-medium">Boca a boca / QR:</span>
+                  <div className="flex items-center gap-2 font-semibold">
+                    <span className="text-indigo-600">{cutShares.toLocaleString('es-CO')} shares</span>
+                    <span>·</span>
+                    <span className="text-purple-600">{cutQrRedemptions} canjes</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
