@@ -325,6 +325,15 @@ export function isPlanRefinementIntent(prompt: string, previousPlan?: any): bool
     'parada 3',
     'mas barato',
     'mas economico',
+    'incluye',
+    'incluyelas',
+    'incluir',
+    'incluyela',
+    'adiciona',
+    'adicionar',
+    'suma',
+    'sumar',
+    'metele',
     'agrega',
     'agregar',
     'anade',
@@ -358,10 +367,15 @@ export function detectSearchIntent(prompt: string): boolean {
     'arma un plan',
     'armame un plan',
     'armanos un plan',
+    'armes un plan',
+    'armar un plan',
     'crea un plan',
     'creame un plan',
     'itinerario',
+    'un recorrido',
+    'recorrido',
     'ruta para el',
+    'plan para el',
     'ruta de cafe',
     'ruta gastronomica',
     'plan domingo',
@@ -413,6 +427,11 @@ export function detectSearchIntent(prompt: string): boolean {
   ];
 
   if (planSignals.some((sig) => norm.includes(sig))) {
+    return false;
+  }
+
+  // Multi-step sequenced activity requests (e.g. "primero ir a..., luego..., finalmente...") are multi-stop plans
+  if (norm.includes('primero') && (norm.includes('luego') || norm.includes('despues') || norm.includes('finalmente'))) {
     return false;
   }
 
@@ -816,7 +835,7 @@ export function getScheduleTimeForRole(
   else if (role === 'cafe_dessert') defaultTime = totalStops > 2 ? '4:00 PM' : '3:30 PM';
   else if (role === 'drinks_social') defaultTime = '6:30 PM';
   else {
-    const defaults = ['1:00 PM', '3:45 PM', '6:15 PM'];
+    const defaults = ['9:30 AM', '11:30 AM', '1:30 PM', '4:30 PM', '7:00 PM'];
     defaultTime = defaults[stopIndex] || '4:00 PM';
   }
 
@@ -857,6 +876,25 @@ export function getScheduleTimeForRole(
   }
 
   return defaultTime;
+}
+
+/**
+ * Extracts desired stop count from prompt (e.g. "4 paradas", "primero... luego... luego... finalmente...")
+ */
+export function extractDesiredStopCount(prompt: string): number {
+  const norm = normalizeText(prompt);
+  const match = norm.match(/(\d+)\s*paradas?/);
+  if (match) return Math.min(Math.max(parseInt(match[1], 10), 2), 6);
+  if (norm.includes('cuatro paradas') || norm.includes('4 paradas')) return 4;
+  if (norm.includes('cinco paradas') || norm.includes('5 paradas')) return 5;
+  if (norm.includes('dos paradas') || norm.includes('2 paradas')) return 2;
+
+  // Check sequenced activities ("primero ... luego ... luego ... finalmente/despues")
+  const sequences = (norm.match(/\b(primero|luego|despues|y despues|finalmente|por ultimo)\b/g) || []).length;
+  if (sequences >= 3) {
+    return Math.min(sequences, 5);
+  }
+  return 3;
 }
 
 /**
@@ -1015,6 +1053,82 @@ export function handleRefinementPlan(
   }
 
   const existingStops = [...previousPlan.stops];
+
+  // 1.5 Check for addition requests ("incluye las cervezas", "agrega una parada de café", "adiciona", "para que queden 4 paradas", etc.)
+  const isAddRequest =
+    normPrompt.includes('incluy') ||
+    normPrompt.includes('agrega') ||
+    normPrompt.includes('anad') ||
+    normPrompt.includes('adicion') ||
+    normPrompt.includes('suma') ||
+    normPrompt.includes('meter');
+
+  if (isAddRequest) {
+    const existingBizIds = new Set(existingStops.map((s) => s.businessId));
+    const targetCity = extractMunicipality(userPrompt, previousPlan.stops[0]?.businessCity || currentCity);
+
+    // Look for matching post in eligiblePosts from a business not already in the plan
+    const addCandidates = eligiblePosts.filter((p) => {
+      if (existingBizIds.has(p.businessId)) return false;
+      const b = businessMap.get(p.businessId);
+      const combined = normalizeText(
+        `${p.title} ${p.description || ''} ${(p.tags || []).join(' ')} ${b?.name || ''} ${b?.description || ''} ${p.categoryId || ''}`
+      );
+      if (normPrompt.includes('cerveza') || normPrompt.includes('pola') || normPrompt.includes('trago') || normPrompt.includes('bar')) {
+        return combined.includes('cerveza') || combined.includes('pola') || combined.includes('artesanal') || combined.includes('bar') || combined.includes('gastrobar');
+      }
+      if (normPrompt.includes('pizza')) return combined.includes('pizza');
+      if (normPrompt.includes('hamburguesa') || normPrompt.includes('burger')) return combined.includes('hamburguesa') || combined.includes('burger');
+      if (normPrompt.includes('almuerzo') || normPrompt.includes('almorzar') || normPrompt.includes('comer')) return classifyPostRole(p) === 'main_course';
+      if (normPrompt.includes('cafe') || normPrompt.includes('postre')) return classifyPostRole(p) === 'cafe_dessert';
+      return true;
+    });
+
+    if (addCandidates.length > 0) {
+      const newPost = addCandidates[0];
+      const newBiz = businessMap.get(newPost.businessId);
+      const postRole = classifyPostRole(newPost);
+      const stopTime = getScheduleTimeForRole(postRole, existingStops.length, existingStops.length + 1, newPost, newBiz);
+
+      const newStop: OliPlanStop = {
+        postId: newPost.id,
+        businessId: newPost.businessId,
+        businessName: newBiz?.name || 'Comercio Local',
+        businessCity: newBiz?.city || targetCity,
+        businessAddress: newBiz?.address || 'Zona Centro',
+        businessPhone: newBiz?.phone || '',
+        businessWhatsapp: newBiz?.whatsapp || '',
+        time: stopTime,
+        activity: generateActivityFromPost(newPost, newBiz),
+        postTitle: newPost.title,
+        imageUrl: newPost.imageUrl || newBiz?.coverImage || newBiz?.logo || '/Logo_OleVeci.png',
+        cost: newPost.promotionalPrice || newPost.originalPrice || newPost.approximatePrice || 25000,
+        whySelected: `Añadida al plan: ${newPost.title}`,
+      };
+
+      existingStops.push(newStop);
+
+      const budgetSummary = calculateItineraryBudget(
+        existingStops.map((s) => ({ cost: s.cost })),
+        resolvedBudget > 0 ? resolvedBudget : 100000,
+        previousPlan.personCount || 1,
+        resolvedBudget <= 0
+      );
+
+      let spokenText = `¡Listo veci! Te sumé ${newStop.businessName} para ${newStop.activity} al plan. Ahora el recorrido queda con ${existingStops.length} paradas: primero ${existingStops[0].businessName}, luego ${existingStops.slice(1, -1).map(s => s.businessName).join(', ')} y cerramos en ${newStop.businessName}. En total todo les sale en ${formatPriceForSpeech(budgetSummary.totalEstimatedCost)}.`;
+      spokenText = sanitizeSpokenText(spokenText, existingStops, true, false, false);
+
+      return {
+        ...previousPlan,
+        spokenText,
+        totalEstimatedCost: budgetSummary.totalEstimatedCost,
+        costPerPerson: budgetSummary.costPerPerson,
+        budgetStatus: budgetSummary.budgetStatus,
+        summary: `Itinerario ampliado a ${existingStops.length} paradas con ${newStop.businessName}.`,
+        stops: existingStops,
+      };
+    }
+  }
 
   // 2. Determine target stop index to replace
   let targetIndex = -1;
@@ -1451,7 +1565,8 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
     matchedPosts.push(...actualCityPosts);
   }
 
-  const finalPosts = buildCoherentItinerary(matchedPosts, candidatePosts, 3, isFoodRequest);
+  const desiredCount = extractDesiredStopCount(userPrompt);
+  const finalPosts = buildCoherentItinerary(matchedPosts, candidatePosts, desiredCount, isFoodRequest);
 
   // 7. Calculate Geo-distances between consecutive stops if coordinates exist
   let prevCoord: any = null;
@@ -1522,8 +1637,11 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
     spokenText += `Arrancan en ${stops[0].businessName} para ${stops[0].activity}. En total les sale en ${totalCostSpeech}. ¿Cómo la ves?`;
   } else if (stops.length === 2) {
     spokenText += `Arrancan primero en ${stops[0].businessName} para ${stops[0].activity}, y después se van para ${stops[1].businessName} para ${stops[1].activity}. En total todo les sale en ${totalCostSpeech}. ¿Qué te parece este planazo?`;
-  } else if (stops.length >= 3) {
+  } else if (stops.length === 3) {
     spokenText += `Arrancan primero en ${stops[0].businessName} para ${stops[0].activity}, después se van para ${stops[1].businessName} para ${stops[1].activity}, y para rematar cierran en ${stops[2].businessName} para ${stops[2].activity}. En total todo les sale en ${totalCostSpeech}. ¿Cómo la ves?`;
+  } else {
+    const intermediate = stops.slice(1, -1).map((s) => `luego pasamos por ${s.businessName} para ${s.activity}`).join(', ');
+    spokenText += `Arrancan primero en ${stops[0].businessName} para ${stops[0].activity}, ${intermediate}, y para rematar cierran en ${stops[stops.length - 1].businessName} para ${stops[stops.length - 1].activity}. En total todo les sale en ${totalCostSpeech}. ¿Cómo la ves?`;
   }
 
   spokenText = sanitizeSpokenText(spokenText, stops, isRefinement, false, isAlternativeSuggestion);
@@ -2244,30 +2362,34 @@ export async function generateOliSearchResponse(
 
   if (hasGroq || ai) {
     try {
-      const catalogSummary = catalogBusinesses.map((b) => ({
+      const targetNorm = normalizeText(targetMunicipality);
+      const cityBusinesses = catalogBusinesses.filter((b) => normalizeText(b.city) === targetNorm);
+      const nearbyBusinesses = catalogBusinesses.filter((b) => {
+        const bCity = normalizeText(b.city);
+        return bCity !== targetNorm && ['cajica', 'chia', 'cota', 'zipaquira'].includes(bCity);
+      });
+      const catalogToUse = cityBusinesses.length >= 5
+        ? cityBusinesses
+        : [...cityBusinesses, ...nearbyBusinesses.slice(0, 5)];
+
+      const catalogSummary = catalogToUse.map((b) => ({
         id: b.id,
         nombre: b.name,
         municipio: b.city,
-        categoria: b.categoryId,
-        subcategoria: b.subCategory,
-        descripcion: b.description,
-        direccion: b.address,
-        telefono: b.phone,
-        whatsapp: b.whatsapp,
+        categoria: b.subCategory || b.categoryId,
         publicaciones: catalogPosts
           .filter((p) => p.businessId === b.id && (!p.status || p.status === 'active') && !p.suspended)
           .map((p) => ({
             id: p.id,
             titulo: p.title,
-            precio: p.promotionalPrice || p.originalPrice || p.approximatePrice,
-            descripcion: p.description,
+            precio: p.promotionalPrice || p.originalPrice || p.approximatePrice || 0,
           })),
       }));
 
       const searchAiPrompt = `Consulta del usuario: "${userPrompt}"
 Municipio solicitado: "${targetMunicipality}"
-Catálogo real de comercios y ofertas disponibles en OleVeci:
-${JSON.stringify(catalogSummary, null, 2)}`;
+Catálogo de comercios y ofertas disponibles en OleVeci:
+${JSON.stringify(catalogSummary)}`;
 
       const responseSchema = {
         type: Type.OBJECT,
@@ -2614,54 +2736,63 @@ async function callGroqWithFallback(
 
   const candidateModels = [
     'openai/gpt-oss-120b',
-    'qwen/qwen3.8-27b',
     'openai/gpt-oss-20b',
   ];
 
   for (const model of candidateModels) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${key.trim()}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: 'system',
-              content: `${systemInstruction}\nIMPORTANTE: Responde ESTRICTAMENTE con un único objeto JSON válido sin texto adicional.`,
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.1,
-        }),
-        signal: controller.signal,
-      });
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${key.trim()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: 'system',
+                content: `${systemInstruction}\nIMPORTANTE: Responde ESTRICTAMENTE con un único objeto JSON válido sin texto adicional.`,
+              },
+              {
+                role: 'user',
+                content: `${prompt}\nIMPORTANTE: Tu respuesta DEBE ser un único objeto JSON válido.`,
+              },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.1,
+            max_tokens: 4000,
+          }),
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
 
-      if (!res.ok) {
-        const errText = await res.text();
-        console.warn(`Groq modelo ${model} retornó HTTP ${res.status}:`, errText);
-        continue;
+        if (res.status === 429 && attempt === 0) {
+          console.warn(`Groq modelo ${model} retornó 429 rate limit. Esperando 1.2s para reintentar...`);
+          await new Promise((r) => setTimeout(r, 1200));
+          continue;
+        }
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.warn(`Groq modelo ${model} retornó HTTP ${res.status}:`, errText);
+          break;
+        }
+
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content?.trim();
+        if (text) {
+          return { text, modelUsed: `groq/${model}` };
+        }
+      } catch (err: any) {
+        console.warn(`Intento con Groq ${model} falló o tardó demasiado:`, err?.message || err);
+        break;
       }
-
-      const data = await res.json();
-      const text = data.choices?.[0]?.message?.content?.trim();
-      if (text) {
-        return { text, modelUsed: `groq/${model}` };
-      }
-    } catch (err: any) {
-      console.warn(`Intento con Groq ${model} falló o tardó demasiado:`, err?.message || err);
     }
   }
 
@@ -2753,6 +2884,116 @@ async function callLLMWithFallback(
 }
 
 /**
+ * Inspects the user's prompt for explicitly sequenced or requested activities
+ * (e.g. lavado, barbería, almuerzo, cervezas, café) and verifies that every requested
+ * concept is represented in the final plan stops. If any requested stop was omitted
+ * by the LLM, it retrieves the best matching offer from the catalog.
+ */
+function fillMissingPromptStops(
+  coherentStops: OliPlanStop[],
+  userPrompt: string,
+  catalogPosts: Post[],
+  businessMap: Map<string, Business>,
+  targetCity: string
+): void {
+  const desiredCount = extractDesiredStopCount(userPrompt);
+  if (desiredCount <= coherentStops.length) return;
+
+  const normPrompt = normalizeText(userPrompt);
+  const seenBiz = new Set(coherentStops.map((s) => s.businessId));
+
+  const knownConcepts = [
+    {
+      key: 'lavado',
+      match: ['lavar', 'lavado', 'lavadero', 'autospa'],
+      filter: (p: Post, b?: Business) => {
+        const text = normalizeText(`${p.title} ${p.description || ''} ${b?.name || ''}`);
+        return text.includes('lavad') || text.includes('autospa') || text.includes('vapor');
+      },
+      defaultTime: '9:00 AM',
+    },
+    {
+      key: 'barberia',
+      match: ['barberia', 'barbero', 'peluqueria', 'corte'],
+      filter: (p: Post, b?: Business) => {
+        const text = normalizeText(`${p.title} ${p.description || ''} ${b?.name || ''}`);
+        return text.includes('barber') || text.includes('corte') || text.includes('afeitado');
+      },
+      defaultTime: '10:30 AM',
+    },
+    {
+      key: 'almuerzo',
+      match: ['almorzar', 'almuerzo', 'comer', 'restaurante'],
+      filter: (p: Post) => classifyPostRole(p) === 'main_course',
+      defaultTime: '1:00 PM',
+    },
+    {
+      key: 'cerveza',
+      match: ['cerveza', 'cervezas', 'pola', 'polas', 'tragos', 'bar', 'gastrobar'],
+      filter: (p: Post, b?: Business) => {
+        const text = normalizeText(`${p.title} ${p.description || ''} ${b?.name || ''}`);
+        return text.includes('cerveza') || text.includes('pola') || text.includes('artesanal') || text.includes('gastrobar') || text.includes('bar');
+      },
+      defaultTime: '4:30 PM',
+    },
+    {
+      key: 'cafe',
+      match: ['cafe', 'capuchino', 'cappuccino', 'tardeo', 'postre'],
+      filter: (p: Post) => classifyPostRole(p) === 'cafe_dessert',
+      defaultTime: '3:30 PM',
+    },
+  ];
+
+  for (const concept of knownConcepts) {
+    if (coherentStops.length >= desiredCount) break;
+
+    const mentionedInPrompt = concept.match.some((w) => normPrompt.includes(w));
+    if (!mentionedInPrompt) continue;
+
+    const alreadyCovered = coherentStops.some((s) => {
+      const stopText = normalizeText(`${s.activity} ${s.postTitle} ${s.businessName}`);
+      return concept.match.some((w) => stopText.includes(w));
+    });
+    if (alreadyCovered) continue;
+
+    let candidatePost = catalogPosts.find((p) => {
+      if (seenBiz.has(p.businessId)) return false;
+      const b = businessMap.get(p.businessId);
+      if (b?.city && targetCity && normalizeText(b.city) !== normalizeText(targetCity)) return false;
+      return concept.filter(p, b);
+    });
+
+    if (!candidatePost) {
+      candidatePost = catalogPosts.find((p) => {
+        const b = businessMap.get(p.businessId);
+        if (b?.city && targetCity && normalizeText(b.city) !== normalizeText(targetCity)) return false;
+        return concept.filter(p, b);
+      });
+    }
+
+    if (candidatePost) {
+      const b = businessMap.get(candidatePost.businessId);
+      coherentStops.push({
+        postId: candidatePost.id,
+        businessId: candidatePost.businessId,
+        businessName: b?.name || 'Comercio Local',
+        businessCity: b?.city || targetCity,
+        businessAddress: b?.address || 'Zona Centro',
+        businessPhone: b?.phone || '',
+        businessWhatsapp: b?.whatsapp || '',
+        time: concept.defaultTime,
+        activity: candidatePost.title,
+        postTitle: candidatePost.title,
+        imageUrl: candidatePost.imageUrl || b?.coverImage || b?.logo || '/Logo_OleVeci.png',
+        cost: candidatePost.promotionalPrice || candidatePost.originalPrice || candidatePost.approximatePrice || 25000,
+        whySelected: `Actividad solicitada: ${candidatePost.title}`,
+      });
+      seenBiz.add(candidatePost.businessId);
+    }
+  }
+}
+
+/**
  * Main entry point for Oli Assistant
  */
 export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliPlanResponse> {
@@ -2792,26 +3033,28 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
       const targetCity = extractMunicipality(userPrompt, currentCity);
       const dateInfo = resolveTargetDateFromPrompt(userPrompt, referenceDate);
 
-      const catalogSummary = catalogBusinesses.map((b) => ({
+      const targetNorm = normalizeText(targetCity);
+      const cityBusinesses = catalogBusinesses.filter((b) => normalizeText(b.city) === targetNorm);
+      const nearbyBusinesses = catalogBusinesses.filter((b) => {
+        const bCity = normalizeText(b.city);
+        return bCity !== targetNorm && ['cajica', 'chia', 'cota', 'zipaquira'].includes(bCity);
+      });
+      const catalogToUse = cityBusinesses.length >= 5
+        ? cityBusinesses
+        : [...cityBusinesses, ...nearbyBusinesses.slice(0, 5)];
+
+      const catalogSummary = catalogToUse.map((b) => ({
         id: b.id,
         nombre: b.name,
         municipio: b.city,
-        categoria: b.categoryId,
-        subcategoria: b.subCategory,
-        descripcion: b.description,
-        direccion: b.address,
-        telefono: b.phone,
-        whatsapp: b.whatsapp,
-        horarios: b.hours,
+        categoria: b.subCategory || b.categoryId,
         publicaciones: catalogPosts
           .filter((p) => p.businessId === b.id && (!p.status || p.status === 'active') && !p.suspended)
           .map((p) => ({
             id: p.id,
             titulo: p.title,
-            precio: p.promotionalPrice || p.originalPrice || p.approximatePrice,
-            descripcion: p.description,
-            rolPlan: (p.planRoles && p.planRoles.length > 0 ? p.planRoles.join(', ') : p.planRole) || 'auto',
-            horarioValidez: p.expiryLabel || 'Horario habitual',
+            precio: p.promotionalPrice || p.originalPrice || p.approximatePrice || 0,
+            rol: (p.planRoles && p.planRoles.length > 0 ? p.planRoles.join(', ') : p.planRole) || 'auto',
           })),
       }));
 
@@ -2822,8 +3065,9 @@ Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin li
 
 1. CLASIFICACIÓN DE INTENCIÓN (intent):
    - 'search': El usuario busca un comercio, oficio, servicio, producto, comida o recomendación puntual de un lugar (ej: "un taller", "un talle", "donde lavo el carro", "un capuchino", "pizza", "veterinaria", "papelería", "peluquería", "¿a qué hora abren?").
-   - 'plan': El usuario pide explícitamente armar un plan, ruta, itinerario, parche o salida de fin de semana con 2 o más paradas (ej: "arma un plan para el sábado con 100k", "parche con amigos").
-   - 'refinement': El usuario pide cambiar o ajustar una parada de un plan previo (ej: "cambia la segunda parada por pizza", "no me gusta la primera parada", "quita la última parada").
+   - 'plan': El usuario pide explícitamente armar un plan, ruta, itinerario, parche o salida de fin de semana con paradas secuenciales.
+     NÚMERO DE PARADAS EN PLANES: Si el usuario pide explícitamente varias paradas o actividades secuenciales (ej: "primero lavar el auto, luego a la barbería, luego a almorzar y finalmente a tomar unas cervezas" -> 4 actividades), DEBES generar EXACTAMENTE ese número de paradas en el arreglo 'stops' (en este ejemplo 4 paradas completas). NUNCA limites a 3 paradas si el usuario solicitó 4 o más actividades.
+   - 'refinement': El usuario pide cambiar, ajustar, quitar o AGREGAR una parada a un plan previo (ej: "incluye las cervezas en el plan para que queden 4 paradas", "cambia la segunda parada por pizza", "agrega café al final"). Si pide agregar una parada ("incluye", "agrega", "para que queden 4 paradas"), DEBES conservar las paradas anteriores y agregar la nueva parada para cumplir el total de paradas pedido.
    - 'general_qa': El usuario hace una pregunta general sobre OleVeci, horarios o aclaraciones.
 
 2. DISCRIMINACIÓN SEMÁNTICA RIGUROSA:
@@ -2844,7 +3088,32 @@ Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin li
    - Comienza obligatoriamente con "¡Listo veci!".
    - Breve y directo (máximo 2 a 3 oraciones cortas, estilo WhatsApp).
    - Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directamente o ver su ficha.
-   - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.`;
+   - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.
+
+6. ESTRUCTURA OBLIGATORIA DEL JSON:
+Tu respuesta DEBE ser un único objeto JSON válido con los siguientes campos:
+{
+  "intent": "plan" | "search" | "refinement" | "general_qa",
+  "understanding": "resumen breve de lo interpretado",
+  "targetMunicipality": "${targetCity}",
+  "exactMatchInRequestedCity": true,
+  "spokenText": "¡Listo veci! [tu narración cálida en español colombiano sabanero, máximo 2-3 oraciones, cero signos $]",
+  "planTitle": "título creativo del plan",
+  "stops": [
+    {
+      "time": "horario (ej: 9:00 AM)",
+      "activity": "descripción de la actividad",
+      "businessId": "id exacto del comercio del catálogo",
+      "businessName": "nombre del comercio",
+      "businessCity": "municipio",
+      "postId": "id exacto de la publicación del catálogo",
+      "postTitle": "título de la publicación",
+      "cost": 30000
+    }
+  ],
+  "selectedBusinessIds": ["id1"],
+  "selectedPostIds": ["post1"]
+}`;
 
       const userPromptContent = `Consulta del usuario: "${userPrompt}"
 Municipio actual del usuario: "${targetCity}"
@@ -2866,8 +3135,8 @@ Plan previo (si existe): ${previousPlan ? JSON.stringify({
       }) : 'Ninguno'}
 Historial de conversación: ${JSON.stringify(messageHistory)}
 
-Catálogo completo de comercios y ofertas disponibles en OleVeci:
-${JSON.stringify(catalogSummary, null, 2)}`;
+Catálogo de comercios y ofertas disponibles en OleVeci:
+${JSON.stringify(catalogSummary)}`;
 
       const unifiedResponseSchema = {
         type: Type.OBJECT,
@@ -3037,12 +3306,44 @@ ${JSON.stringify(catalogSummary, null, 2)}`;
             });
 
         for (const rawStop of candidateStops) {
-          const post = catalogPosts.find((p) => p.id === rawStop.postId);
+          const post = catalogPosts.find((p) => p.id === rawStop.postId) ||
+            catalogPosts.find((p) => p.businessId === rawStop.businessId);
           if (!post) continue; // Verify postId exists
-          if (seenBiz.has(post.businessId)) continue; // Reject duplicate businesses
-
           const role = classifyPostRole(post);
-          if (role === 'main_course') {
+
+          if (seenBiz.has(post.businessId)) {
+            // Instead of discarding the stop, find an alternative merchant in the same municipality
+            const altPost = catalogPosts.find((p) => {
+              if (seenBiz.has(p.businessId)) return false;
+              const pBiz = businessMap.get(p.businessId);
+              if (pBiz?.city && targetCity && normalizeText(pBiz.city) !== normalizeText(targetCity)) return false;
+              const pRole = classifyPostRole(p);
+              return pRole === role || (role === 'drinks_social' && (pRole === 'drinks_social' || pRole === 'activity_other'));
+            });
+
+            if (altPost) {
+              const altBiz = businessMap.get(altPost.businessId);
+              coherentStops.push({
+                postId: altPost.id,
+                businessId: altPost.businessId,
+                businessName: altBiz?.name || 'Comercio Local',
+                businessCity: altBiz?.city || targetCity,
+                businessAddress: altBiz?.address || 'Zona Centro',
+                businessPhone: altBiz?.phone || '',
+                businessWhatsapp: altBiz?.whatsapp || '',
+                time: rawStop.time || '5:00 PM',
+                activity: rawStop.activity || altPost.title,
+                postTitle: altPost.title,
+                imageUrl: altPost.imageUrl || altBiz?.coverImage || altBiz?.logo || '/Logo_OleVeci.png',
+                cost: altPost.promotionalPrice || altPost.originalPrice || altPost.approximatePrice || 25000,
+                whySelected: `Opción para ${rawStop.activity || 'el plan'}: ${altPost.title}`,
+              });
+              seenBiz.add(altPost.businessId);
+            }
+            continue;
+          }
+
+          if (role === 'main_course' && candidateStops.length <= 3) {
             if (mainCourseCount >= 1) continue;
             mainCourseCount++;
           }
@@ -3066,6 +3367,9 @@ ${JSON.stringify(catalogSummary, null, 2)}`;
 
           seenBiz.add(post.businessId);
         }
+
+        // Ensure every requested activity in the user's prompt is represented
+        fillMissingPromptStops(coherentStops, userPrompt, catalogPosts, businessMap, targetCity);
 
         if (coherentStops.length >= 1) {
           const personCount = extractPersonCount(userPrompt);
