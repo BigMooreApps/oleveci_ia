@@ -748,70 +748,7 @@ export const AdminOliTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Display Current Configured Key if Present */}
-            {selectedLlm === 'groq' && groqApiKey && (
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-bold text-slate-600 shrink-0">API Key actual:</span>
-                  <span className="font-mono text-slate-800 truncate select-all">
-                    {showKey
-                      ? groqApiKey
-                      : `${groqApiKey.slice(0, 8)}••••••••••••••••••••${groqApiKey.slice(-4)}`}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setShowKey(!showKey)}
-                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors"
-                    title={showKey ? 'Ocultar llave' : 'Mostrar llave'}
-                  >
-                    {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyCurrentKey(groqApiKey)}
-                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[11px] flex items-center gap-1 shadow-2xs"
-                  >
-                    {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-                    <span>{copiedKey ? 'Copiado' : 'Copiar'}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {selectedLlm === 'gemini' && geminiApiKey && (
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-bold text-slate-600 shrink-0">API Key actual:</span>
-                  <span className="font-mono text-slate-800 truncate select-all">
-                    {showKey
-                      ? geminiApiKey
-                      : `${geminiApiKey.slice(0, 8)}••••••••••••••••••••${geminiApiKey.slice(-4)}`}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setShowKey(!showKey)}
-                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors"
-                    title={showKey ? 'Ocultar llave' : 'Mostrar llave'}
-                  >
-                    {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyCurrentKey(geminiApiKey)}
-                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[11px] flex items-center gap-1 shadow-2xs"
-                  >
-                    {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-                    <span>{copiedKey ? 'Copiado' : 'Copiar'}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Input Form for Groq and Gemini */}
+            {/* Unified Single Input Form for Groq and Gemini */}
             {selectedLlm !== 'local' ? (
               <form onSubmit={handleSaveApiKey} className="flex flex-col sm:flex-row gap-3 pt-1">
                 <div className="relative flex-1">
@@ -821,20 +758,36 @@ export const AdminOliTab: React.FC = () => {
                     onChange={(e) => setInputApiKey(e.target.value)}
                     placeholder={
                       selectedLlm === 'groq'
-                        ? 'Pegar clave de Groq (ej: gsk_...)'
-                        : 'Pegar clave de Google AI Studio (ej: AIzaSy...)'
+                        ? 'Clave de Groq (inicia con gsk_...)'
+                        : 'Clave de Google AI Studio (inicia con AIzaSy...)'
                     }
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#007af7] focus:ring-2 focus:ring-blue-500/10 outline-none text-xs sm:text-sm font-mono text-slate-800 placeholder:text-slate-400"
+                    className="w-full pl-4 pr-20 py-2.5 rounded-xl border border-slate-200 focus:border-[#007af7] focus:ring-2 focus:ring-blue-500/10 outline-none text-xs sm:text-sm font-mono text-slate-800 placeholder:text-slate-400 bg-slate-50/50 hover:bg-white focus:bg-white transition-all shadow-2xs"
                   />
                   {inputApiKey && (
-                    <button
-                      type="button"
-                      onClick={() => setShowKey(!showKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                      title={showKey ? 'Ocultar' : 'Mostrar'}
-                    >
-                      {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                      <button
+                        type="button"
+                        onClick={() => setShowKey(!showKey)}
+                        className="p-1.5 rounded-lg hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
+                        title={showKey ? 'Ocultar clave' : 'Ver clave'}
+                        aria-label={showKey ? 'Ocultar clave' : 'Ver clave'}
+                      >
+                        {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyCurrentKey(inputApiKey)}
+                        className="p-1.5 rounded-lg hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
+                        title={copiedKey ? '¡Clave copiada!' : 'Copiar clave'}
+                        aria-label="Copiar clave"
+                      >
+                        {copiedKey ? (
+                          <Check className="w-4 h-4 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
                 <button
