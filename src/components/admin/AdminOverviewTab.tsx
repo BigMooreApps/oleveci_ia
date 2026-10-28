@@ -965,35 +965,107 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
       {/* Formula Explanation Collapsible Banner */}
       {showFormulaExplanation && (
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-amber-50/60 border border-sky-200 shadow-sm text-xs space-y-2.5 animate-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/90 via-white to-indigo-50/40 border border-sky-200/90 shadow-sm text-xs space-y-3.5 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between pb-2 border-b border-sky-100">
             <div className="flex items-center gap-2 font-bold text-[#041f5e]">
               <Info className="w-4 h-4 text-[#007af7]" />
-              <span>Glosario de Indicadores y Fórmulas Matemáticas de OleVeci</span>
+              <span className="text-sm">Glosario de Indicadores y Fórmulas Matemáticas en Vivo</span>
             </div>
             <button
               onClick={() => setShowFormulaExplanation(false)}
-              className="text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
+              className="text-xs font-semibold text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
             >
               Cerrar
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-slate-600">
-            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
-              <span className="font-semibold text-[#041f5e] block mb-1">MRR & Prorrateo de Corte</span>
-              Facturación recurrente mensual activa ($29.900 COP / mes por comercio). En cortes personalizados de {cutDays} días, se calcula a una tasa diaria de $996,67 COP/día.
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* Box 1: Facturación & MRR (explica Card 1) */}
+            <div className="bg-white p-3.5 rounded-2xl border border-sky-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-sky-300 transition">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-[#041f5e] text-xs">Facturación & MRR</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-sky-50 text-[#007af7]">Recurrencia</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Ingreso mensual de comercios activos ($29.900 COP/mes). En cortes de {cutDays} días se prorratea a tasa diaria.
+                </p>
+              </div>
+              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
+                  Activos × $29.900/mes
+                </div>
+                <div className="text-[11px] text-sky-700 font-semibold flex items-center justify-between">
+                  <span>Corte ({cutDays}d):</span>
+                  <span>{formatCOP(cutProratedRevenueCOP)}</span>
+                </div>
+              </div>
             </div>
-            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
-              <span className="font-semibold text-[#041f5e] block mb-1">Costo Por Lead (CPL)</span>
-              Facturación prorrateada del periodo ÷ Total de contactos vecinales (WhatsApp + Rutas GPS + Llamadas). Muestra el costo real por cliente interesado.
+
+            {/* Box 2: Costo Por Lead (CPL) (explica Card 2) */}
+            <div className="bg-white p-3.5 rounded-2xl border border-sky-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-sky-300 transition">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-[#041f5e] text-xs">Costo Por Lead (CPL)</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700">Eficiencia</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Costo de generar cada contacto vecinal interesado (WhatsApp, Rutas Maps o Llamadas directas).
+                </p>
+              </div>
+              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
+                  Facturación ÷ {cutTotalLeads.toLocaleString('es-CO')} contactos
+                </div>
+                <div className="text-[11px] text-indigo-700 font-semibold flex items-center justify-between">
+                  <span>CPL resultante:</span>
+                  <span>{formatCOP(cutCostPerLead)} / lead</span>
+                </div>
+              </div>
             </div>
-            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
-              <span className="font-semibold text-[#041f5e] block mb-1">CAC Real (Canjes QR)</span>
-              Costo de adquisición por cliente validado físicamente en caja o negocio mediante canje de código QR en el periodo.
+
+            {/* Box 3: Ahorro para Comercios (explica Card 3) */}
+            <div className="bg-white p-3.5 rounded-2xl border border-emerald-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-emerald-300 transition">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-emerald-800 text-xs">Ahorro para Comercios</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Retorno / ROI</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Comparativa de ahorro contra pauta tradicional de Google o Meta Ads en Colombia (~$1.800 COP/lead).
+                </p>
+              </div>
+              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
+                  ({cutTotalLeads.toLocaleString('es-CO')} × $1.800) - Facturación
+                </div>
+                <div className="text-[11px] text-emerald-700 font-semibold flex items-center justify-between">
+                  <span>Ahorro entregado:</span>
+                  <span>{formatCOP(estimatedMerchantSavings)}</span>
+                </div>
+              </div>
             </div>
-            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
-              <span className="font-semibold text-[#041f5e] block mb-1">Ahorro vs Pauta Tradicional</span>
-              Comparativa transparente contra Google Ads o Meta Ads en Colombia (~$1.800 COP por lead). Ahorro neto entregado a la red comercial local.
+
+            {/* Box 4: Salud de Cartera (explica Card 4) */}
+            <div className="bg-white p-3.5 rounded-2xl border border-sky-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-sky-300 transition">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-[#041f5e] text-xs">Salud de Cartera</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700">Recaudo</span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Comercios con suscripción activa al día respecto al total registrado en el municipio seleccionado.
+                </p>
+              </div>
+              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
+                  Activos ÷ {totalBusinesses} com. totales
+                </div>
+                <div className="text-[11px] text-slate-800 font-semibold flex items-center justify-between">
+                  <span>Tasa al día:</span>
+                  <span className="text-emerald-600 font-bold">{collectionRate}% ({pastDueBusinesses.length} mora)</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
