@@ -478,52 +478,48 @@ export const AdminOliTab: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveSubTab('models')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'models'
               ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <Zap className="w-4 h-4" />
           <span>Modelos & Diagnóstico</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSubTab('rules')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'rules'
               ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <Sliders className="w-4 h-4" />
-          <span>Reglas del Asistente ({activeRulesCount})</span>
+          <span>Reglas del Asistente</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSubTab('logs')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'logs'
               ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <ScrollText className="w-4 h-4" />
-          <span>Auditoría & Logs ({logs.length})</span>
+          <span>Auditoría & Logs</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSubTab('whatsapp')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'whatsapp'
               ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <WhatsAppIcon className="w-4 h-4 fill-current" />
           <span>WhatsApp Bot</span>
           {baileysStatus === 'connected' && (
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
