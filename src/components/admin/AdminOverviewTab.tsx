@@ -142,6 +142,37 @@ const AdminBarTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+// Branded Custom Tooltip for Cartera Donut Chart
+const AdminDonutTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const item = payload[0]?.payload;
+    if (!item) return null;
+    return (
+      <div className="bg-[#041f5e] text-white p-2.5 rounded-xl border border-white/20 shadow-xl text-xs min-w-[170px] select-none pointer-events-none z-50">
+        <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-white/10">
+          <div className="flex items-center gap-1.5 font-semibold text-white">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
+              style={{ backgroundColor: item.color }}
+            />
+            <span>{item.name}</span>
+          </div>
+          <span className="text-[10px] font-bold text-sky-200">
+            {item.value} {item.value === 1 ? 'comercio' : 'comercios'}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-slate-200 text-[11px]">
+          <span className="text-slate-300">Facturación:</span>
+          <span className="font-bold text-emerald-400">
+            {item.amount > 0 ? `$${item.amount.toLocaleString('es-CO')} COP` : '$0 COP'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTab }) => {
   const {
     businesses,
