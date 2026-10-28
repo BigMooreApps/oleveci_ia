@@ -1441,9 +1441,6 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               </p>
             </div>
             <div className="flex items-center gap-1.5 self-start sm:self-auto">
-              <span className="text-xs font-bold text-[#041f5e] bg-sky-50 border border-sky-100 px-2.5 py-1 rounded-full shadow-2xs">
-                {cutTotalLeads.toLocaleString('es-CO')} contactos
-              </span>
               <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium text-slate-600">
                 <button
                   type="button"
@@ -1567,9 +1564,6 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 Intensidad de consultas e interacciones según el día en el periodo
               </p>
             </div>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-              Pico comercial
-            </span>
           </div>
 
           <div className="h-44 w-full">
