@@ -1155,17 +1155,19 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                   <div className="text-[8.5px] sm:text-[9px] font-bold uppercase tracking-tight sm:tracking-normal text-[#6d28d9] whitespace-nowrap overflow-hidden text-ellipsis">
                     EMBUDO DE CONVERSIÓN
                   </div>
-                  <div className="space-y-1 text-[10px] sm:text-[10.5px]">
-                    <div className="flex items-center justify-between gap-1 text-slate-600">
-                      <span className="whitespace-nowrap">Contactos generados:</span>
-                      <span className="font-semibold text-slate-900 shrink-0 whitespace-nowrap text-right tabular-nums">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                  <div className="space-y-1 text-[9.5px] sm:text-[10px]">
+                    <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-1 text-slate-600">
+                      <span className="whitespace-nowrap truncate" title="Contactos generados">Contactos generados:</span>
+                      <span className="font-semibold text-slate-900 text-right tabular-nums">{cutTotalLeads.toLocaleString('es-CO')}</span>
+                      <span className="font-semibold text-slate-900 text-left w-[34px]">leads</span>
                     </div>
-                    <div className="flex items-center justify-between gap-1 text-slate-600">
-                      <span className="whitespace-nowrap">Vistas en el feed:</span>
-                      <span className="font-semibold text-slate-900 shrink-0 whitespace-nowrap text-right tabular-nums">{cutViews.toLocaleString('es-CO')} vistas</span>
+                    <div className="grid grid-cols-[1fr_auto_auto] items-center gap-x-1 text-slate-600">
+                      <span className="whitespace-nowrap truncate" title="Vistas en el feed">Vistas en el feed:</span>
+                      <span className="font-semibold text-slate-900 text-right tabular-nums">{cutViews.toLocaleString('es-CO')}</span>
+                      <span className="font-semibold text-slate-900 text-left w-[34px]">vistas</span>
                     </div>
                     <div className="flex items-center justify-between gap-1 font-bold text-[#6d28d9] pt-1.5 border-t border-purple-200/60">
-                      <span className="whitespace-nowrap">Tasa efectividad:</span>
+                      <span className="whitespace-nowrap truncate">Tasa efectividad:</span>
                       <span className="shrink-0 whitespace-nowrap text-right tabular-nums">{cutConversionRate}%</span>
                     </div>
                   </div>
