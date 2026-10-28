@@ -992,8 +992,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               Comparativa contra pauta en Google/Meta Ads (~$1.800 COP/lead). Ahorro neto entregado: {formatCOP(estimatedMerchantSavings)}.
             </div>
             <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
-              <span className="font-semibold text-[#041f5e] block mb-1">Salud de Cartera</span>
-              Porcentaje de recaudo al día ({collectionRate}%). {activeSubscribers} comercios al día ÷ {totalBusinesses} registrados ({pastDueBusinesses.length} en mora).
+              <span className="font-semibold text-[#041f5e] block mb-1">Conversión Vecinal</span>
+              Efectividad del feed ({cutConversionRate}%). Contactos generados ({cutTotalLeads.toLocaleString('es-CO')}) ÷ Vistas totales ({cutViews.toLocaleString('es-CO')}). ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers) : 0} leads por comercio.
             </div>
           </div>
         </div>
@@ -1004,7 +1004,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Card 1: MRR & Facturación del Corte */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Facturación & MRR
               </span>
@@ -1019,22 +1019,24 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               MRR recurrente activo mensual
             </div>
 
-            {/* Formula Breakdown Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-[11px] space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                <span>Fórmula de cálculo:</span>
-                <span className="text-[#041f5e] font-bold">Activos × Ticket</span>
+            {/* Structured Calculation Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Desglose de Facturación
               </div>
-              <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
-                <span className="font-semibold text-slate-800">{activeSubscribers} comercios</span>
-                <span className="text-slate-400">×</span>
-                <span className="font-semibold text-slate-800">{formatCOP(arpuCOP)}</span>
-                <span className="text-slate-400">=</span>
-                <span className="font-bold text-[#041f5e]">{formatCOP(monthlyRevenueCOP)}</span>
-              </div>
-              <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Tasa diaria ({cutDays}d):</span>
-                <span className="font-semibold text-slate-700">{formatCOP(cutDays > 0 ? cutProratedRevenueCOP / cutDays : 0)}/día</span>
+              <div className="space-y-1 text-[11px]">
+                <div className="flex justify-between text-slate-600">
+                  <span>Comercios activos:</span>
+                  <span className="font-semibold text-slate-900">{activeSubscribers} com.</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Ticket promedio (ARPU):</span>
+                  <span className="font-semibold text-slate-900">{formatCOP(arpuCOP)}/mes</span>
+                </div>
+                <div className="pt-1 border-t border-slate-200/60 flex justify-between font-bold text-[#041f5e]">
+                  <span>Prorrateo corte ({cutDays}d):</span>
+                  <span>{formatCOP(cutProratedRevenueCOP)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1048,7 +1050,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Card 2: Costo Por Lead (CPL) & CAC Real */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Costo Por Lead (CPL)
               </span>
@@ -1063,22 +1065,24 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               Costo real por cliente interesado
             </div>
 
-            {/* Formula Breakdown Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-sky-50/70 border border-sky-100/90 text-[11px] space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-sky-800">
-                <span>Fórmula aplicada:</span>
-                <span className="text-sky-700 font-bold">Facturación ÷ Leads</span>
+            {/* Structured Calculation Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-sky-50/60 border border-sky-100 text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-sky-800">
+                Fórmula de Costo Unitario
               </div>
-              <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
-                <span className="font-semibold text-slate-800">{formatCOP(cutProratedRevenueCOP)}</span>
-                <span className="text-slate-400">÷</span>
-                <span className="font-semibold text-slate-800">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
-                <span className="text-slate-400">=</span>
-                <span className="font-bold text-[#041f5e]">{formatCOP(cutCostPerLead)}</span>
-              </div>
-              <div className="pt-1 border-t border-sky-100 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Contactos:</span>
-                <span className="font-medium text-slate-700 truncate">WhatsApp + Rutas + Llamadas</span>
+              <div className="space-y-1 text-[11px]">
+                <div className="flex justify-between text-slate-600">
+                  <span>Facturación corte:</span>
+                  <span className="font-semibold text-slate-900">{formatCOP(cutProratedRevenueCOP)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Contactos vecinales:</span>
+                  <span className="font-semibold text-slate-900">÷ {cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                </div>
+                <div className="pt-1 border-t border-sky-200/60 flex justify-between font-bold text-[#041f5e]">
+                  <span>Costo por lead entregado:</span>
+                  <span className="text-emerald-700">{formatCOP(cutCostPerLead)} COP</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1096,7 +1100,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Card 3: Ahorro Comunitario vs Pauta Meta/Google */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/20 border border-emerald-200/90 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
                 Ahorro para Comercios
               </span>
@@ -1108,83 +1112,84 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               {formatCOP(estimatedMerchantSavings)}
             </div>
             <div className="text-xs text-emerald-700 font-medium mt-0.5">
-              Ahorro neto entregado a comercios
+              Ahorro neto frente a pauta digital
             </div>
 
-            {/* Formula Breakdown Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-[11px] space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-emerald-800">
-                <span>Fórmula aplicada:</span>
-                <span className="text-emerald-700 font-bold">Pauta Ads - OleVeci</span>
+            {/* Structured Calculation Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                Comparativa vs Google / Meta Ads
               </div>
-              <div className="space-y-0.5 text-[11px] text-slate-600">
-                <div className="flex items-center justify-between">
-                  <span className="truncate">Google/Meta ({cutTotalLeads.toLocaleString('es-CO')} × $1.800):</span>
-                  <span className="font-semibold text-slate-800 shrink-0">{formatCOP(traditionalAdsBenchmark)}</span>
+              <div className="space-y-1 text-[11px]">
+                <div className="flex justify-between text-slate-600">
+                  <span>Pauta tradicional (~$1.800):</span>
+                  <span className="font-semibold text-slate-900">{formatCOP(traditionalAdsBenchmark)}</span>
                 </div>
-                <div className="flex items-center justify-between text-rose-600">
-                  <span>Inversión OleVeci ({cutDays}d):</span>
-                  <span className="font-semibold shrink-0">-{formatCOP(cutProratedRevenueCOP)}</span>
+                <div className="flex justify-between text-rose-600">
+                  <span>Inversión en OleVeci:</span>
+                  <span className="font-semibold">-{formatCOP(cutProratedRevenueCOP)}</span>
                 </div>
-                <div className="flex items-center justify-between pt-1 border-t border-emerald-200/60 font-bold text-emerald-800">
-                  <span>Ahorro neto generado:</span>
-                  <span className="shrink-0">{formatCOP(estimatedMerchantSavings)}</span>
+                <div className="pt-1 border-t border-emerald-200/60 flex justify-between font-bold text-emerald-800">
+                  <span>Ahorro neto entregado:</span>
+                  <span>{formatCOP(estimatedMerchantSavings)}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="pt-2.5 border-t border-emerald-100/80 flex items-center justify-between text-xs text-slate-500">
-            <span>Ticket Promedio (ARPU):</span>
-            <span className="font-semibold text-slate-800">{formatCOP(arpuCOP)}/mes</span>
+            <span>Retorno de inversión (ROI):</span>
+            <span className="font-bold text-emerald-700">
+              {cutProratedRevenueCOP > 0 ? `${(traditionalAdsBenchmark / cutProratedRevenueCOP).toFixed(1)}x de retorno` : 'N/A'}
+            </span>
           </div>
         </div>
 
-        {/* Card 4: Cartera & Retención Activa */}
-        <div
-          onClick={() => onNavigateTab('businesses')}
-          className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
-        >
+        {/* Card 4: Conversión Vecinal (Reemplazo de Salud de Cartera) */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Salud de Cartera
+                Conversión Vecinal
               </span>
               <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                {collectionRate}% al día
+                Feed → Contacto
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              {activeSubscribers}{' '}
-              <span className="text-xs text-slate-400 font-normal">/ {totalBusinesses} com.</span>
+            <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
+              {cutConversionRate}%
             </div>
             <div className="text-xs text-slate-500 font-medium mt-0.5">
-              Estado de recaudo de los comercios
+              De vistas convertidas en contactos
             </div>
 
-            {/* Formula Breakdown Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-[11px] space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                <span>Fórmula aplicada:</span>
-                <span className="text-slate-700 font-bold">Activos ÷ Registrados</span>
+            {/* Structured Calculation Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Embudo de Conversión
               </div>
-              <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
-                <span className="font-semibold text-emerald-700">{activeSubscribers} al día</span>
-                <span className="text-slate-400">÷</span>
-                <span className="font-semibold text-slate-800">{totalBusinesses} comercios</span>
-                <span className="text-slate-400">=</span>
-                <span className="font-bold text-emerald-600">{collectionRate}%</span>
-              </div>
-              <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px]">
-                <span className="text-emerald-700 font-semibold">✓ {activeSubscribers} activos</span>
-                <span className="text-rose-600 font-semibold">⚠️ {pastDueBusinesses.length} en mora</span>
+              <div className="space-y-1 text-[11px]">
+                <div className="flex justify-between text-slate-600">
+                  <span>Contactos generados:</span>
+                  <span className="font-semibold text-slate-900">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Vistas en el feed:</span>
+                  <span className="font-semibold text-slate-900">÷ {cutViews.toLocaleString('es-CO')} vistas</span>
+                </div>
+                <div className="pt-1 border-t border-slate-200/60 flex justify-between font-bold text-emerald-700">
+                  <span>Tasa de efectividad:</span>
+                  <span>{cutConversionRate}%</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-[#007af7] font-semibold group-hover:text-[#041f5e] transition">
-            <span>Auditar cartera de negocios</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Promedio por negocio activo:</span>
+            <span className="font-semibold text-slate-800">
+              ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
+            </span>
           </div>
         </div>
       </div>
