@@ -11,7 +11,7 @@ import {
   Home,
   ChevronDown,
   Check,
-  Sparkles,
+  Bot,
   Route,
   Menu,
   X,
@@ -105,9 +105,9 @@ export const Header: React.FC<HeaderProps> = ({
       iconColor: 'text-indigo-600',
     },
     oli: {
-      label: 'Oli Asistente',
-      icon: Sparkles,
-      iconColor: 'text-cyan-500',
+      label: 'Asistente OLI',
+      icon: Bot,
+      iconColor: 'text-[#007af7]',
     },
   };
 
@@ -437,6 +437,46 @@ export const Header: React.FC<HeaderProps> = ({
                         </div>
                       </div>
                       {currentRole === 'maps' && (
+                        <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
+                      )}
+                    </button>
+
+                    {/* Opción: Asistente OLI */}
+                    <button
+                      id="tab-role-oli"
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        setCurrentRole('oli');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                        currentRole === 'oli'
+                          ? 'bg-blue-50/80 text-[#0056d6] font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                            currentRole === 'oli'
+                              ? 'bg-[#007af7] text-white shadow-2xs'
+                              : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
+                          }`}
+                        >
+                          <Bot className="w-4 h-4" />
+                        </div>
+                        <div className="truncate">
+                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                            Asistente OLI
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-normal">
+                            Planes y recomendaciones con IA
+                          </div>
+                        </div>
+                      </div>
+                      {currentRole === 'oli' && (
                         <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
                       )}
                     </button>

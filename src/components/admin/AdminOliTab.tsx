@@ -554,22 +554,14 @@ export const AdminOliTab: React.FC = () => {
       {/* 2. Header Banner matching Admin tabs (Itinerarios, Publicaciones, etc.) */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 p-1 flex items-center justify-center shrink-0">
-              <img
-                src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
-                alt="Oli"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span>Centro de Control Asistente OLI</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Supervisión de modelos LLM, directrices y reglas para el agente, registro de auditoría conversacional e integración con WhatsApp
-              </p>
-            </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Bot className="w-5 h-5 text-[#007af7]" />
+              <span>Centro de Control Asistente OLI</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Supervisión de modelos LLM, directrices y reglas para el agente, registro de auditoría conversacional e integración con WhatsApp
+            </p>
           </div>
         </div>
       </div>

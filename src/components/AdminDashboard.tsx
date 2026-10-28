@@ -17,7 +17,7 @@ import {
   FileText,
   MapPin,
   Layers,
-  Sparkles,
+  Bot,
   Route,
   Compass,
   CheckSquare,
@@ -290,7 +290,7 @@ export const AdminDashboard: React.FC = () => {
     {
       id: 'oli',
       label: 'Asistente OLI',
-      icon: Sparkles,
+      icon: Bot,
     },
     {
       id: 'master_tables',
