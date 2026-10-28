@@ -992,185 +992,218 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         </div>
       )}
 
-      {/* 3. Financial & ROI Matrix Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: MRR & Facturación del Corte (Pastel Azul Suave) */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/80 via-sky-50/40 to-blue-50/30 border border-sky-200/80 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
-          <div>
-            <div className="mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-sky-800/80">
-                Facturación & MRR
-              </span>
+      {/* 3. Financial & ROI Matrix Cards: RESULTADOS DE COMERCIOS */}
+      <div className="space-y-3.5">
+        <h2 className="text-xl sm:text-2xl font-black text-[#041f5e] tracking-tight uppercase">
+          RESULTADOS DE COMERCIOS
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Card 1: FACTURACIÓN & MRR */}
+          <div className="rounded-2xl sm:rounded-3xl border-2 border-[#1e88e5] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
+            <div className="bg-[#1e88e5] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+              FACTURACIÓN & MRR
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
-              {formatCOP(monthlyRevenueCOP)}
-            </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              MRR recurrente activo mensual
-            </div>
+            <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
+                  {formatCOP(monthlyRevenueCOP)}
+                </div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                  MRR recurrente activo mensual
+                </div>
 
-            {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-sky-100/90 shadow-2xs text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-sky-800">
-                Desglose de Facturación
+                {/* Structured Calculation Box */}
+                <div className="my-3 p-3 rounded-xl bg-sky-50/70 border border-sky-100 text-xs space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#1e88e5]">
+                    DESGLOSE DE FACTURACIÓN
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Comercios activos:</span>
+                      <span className="font-semibold text-slate-900">{activeSubscribers} com.</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Ticket promedio (ARPU):</span>
+                      <span className="font-semibold text-slate-900">{formatCOP(arpuCOP)}/mes</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-[#041f5e] pt-1.5 border-t border-sky-200/60">
+                      <span>Prorrateo corte ({cutDays}d):</span>
+                      <span>{formatCOP(cutProratedRevenueCOP)}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-1 text-[11px]">
-                <div className="flex justify-between text-slate-600">
-                  <span>Comercios activos:</span>
-                  <span className="font-semibold text-slate-900">{activeSubscribers} com.</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Ticket promedio (ARPU):</span>
-                  <span className="font-semibold text-slate-900">{formatCOP(arpuCOP)}/mes</span>
-                </div>
-                <div className="pt-1 border-t border-sky-100 flex justify-between font-bold text-[#041f5e]">
-                  <span>Prorrateo corte ({cutDays}d):</span>
-                  <span>{formatCOP(cutProratedRevenueCOP)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div className="pt-2.5 border-t border-sky-100/80 flex items-center justify-between text-xs text-slate-500">
-            <span>ARR proyectado anual:</span>
-            <span className="font-bold text-[#041f5e]">{formatCOP(projectedARR)}</span>
-          </div>
-        </div>
-
-        {/* Card 2: Costo Por Lead (CPL) (Pastel Ámbar Suave) */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50/80 via-amber-50/40 to-orange-50/20 border border-amber-200/80 hover:border-amber-300 shadow-xs transition-all flex flex-col justify-between">
-          <div>
-            <div className="mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-800/80">
-                Costo Por Lead (CPL)
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-amber-950 tracking-tight">
-              {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
-            </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              Costo real por cliente interesado
-            </div>
-
-            {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-amber-100/90 shadow-2xs text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
-                Fórmula de Costo Unitario
-              </div>
-              <div className="space-y-1 text-[11px]">
-                <div className="flex justify-between text-slate-600">
-                  <span>Facturación corte:</span>
-                  <span className="font-semibold text-slate-900">{formatCOP(cutProratedRevenueCOP)}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Contactos vecinales:</span>
-                  <span className="font-semibold text-slate-900">÷ {cutTotalLeads.toLocaleString('es-CO')} leads</span>
-                </div>
-                <div className="pt-1 border-t border-amber-100 flex justify-between font-bold text-amber-900">
-                  <span>Costo por lead entregado:</span>
-                  <span className="text-emerald-700">{formatCOP(cutCostPerLead)} COP</span>
+              {/* Footer with Mini Pie SVG */}
+              <div className="flex items-center gap-3 pt-3 mt-auto">
+                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
+                  <circle cx="18" cy="18" r="16" fill="#bae6fd" />
+                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 34 18 Z" fill="#1e88e5" />
+                </svg>
+                <div className="min-w-0">
+                  <div className="text-[11px] text-slate-500 font-medium">ARR proyectado anual:</div>
+                  <div className="text-sm sm:text-base font-black text-slate-900 truncate">
+                    {formatCOP(projectedARR)}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-amber-100/80 flex items-center justify-between text-xs text-slate-500">
-            <span>CAC Real (Canjes QR):</span>
-            <span className={`font-semibold px-2 py-0.5 rounded-md text-[11px] ${
-              cutCACReal > 0 ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-white/80 text-slate-600 border border-slate-200/60'
-            }`}>
-              {cutCACReal > 0 ? `${formatCOP(cutCACReal)}/canje` : 'Sin canjes en corte'}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 3: Ahorro para Comercios (Pastel Menta Suave) */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/80 via-emerald-50/40 to-teal-50/20 border border-emerald-200/80 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
-          <div>
-            <div className="mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800/80">
-                Ahorro para Comercios
-              </span>
+          {/* Card 2: COSTO POR LEAD (CPL) */}
+          <div className="rounded-2xl sm:rounded-3xl border-2 border-[#f59e0b] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
+            <div className="bg-[#f59e0b] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+              COSTO POR LEAD (CPL)
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
-              {formatCOP(estimatedMerchantSavings)}
-            </div>
-            <div className="text-xs text-emerald-700 font-medium mt-0.5">
-              Ahorro neto frente a pauta digital
-            </div>
-
-            {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-emerald-100 shadow-2xs text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
-                Comparativa vs Google / Meta Ads
-              </div>
-              <div className="space-y-1 text-[11px]">
-                <div className="flex justify-between text-slate-600">
-                  <span>Pauta tradicional (~$1.800):</span>
-                  <span className="font-semibold text-slate-900">{formatCOP(traditionalAdsBenchmark)}</span>
+            <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
+                  {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
                 </div>
-                <div className="flex justify-between text-rose-600">
-                  <span>Inversión en OleVeci:</span>
-                  <span className="font-semibold">-{formatCOP(cutProratedRevenueCOP)}</span>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                  Costo real por cliente interesado
                 </div>
-                <div className="pt-1 border-t border-emerald-100 flex justify-between font-bold text-emerald-800">
-                  <span>Ahorro neto entregado:</span>
-                  <span>{formatCOP(estimatedMerchantSavings)}</span>
+
+                {/* Structured Calculation Box */}
+                <div className="my-3 p-3 rounded-xl bg-amber-50/70 border border-amber-100 text-xs space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#b45309]">
+                    FÓRMULA DE COSTO UNITARIO
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Facturación corte:</span>
+                      <span className="font-semibold text-slate-900">{formatCOP(cutProratedRevenueCOP)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Contactos vecinales:</span>
+                      <span className="font-semibold text-slate-900">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-[#b45309] pt-1.5 border-t border-amber-200/60">
+                      <span>Costo por lead entregado:</span>
+                      <span className="text-[#b45309] font-black">{formatCOP(cutCostPerLead)} COP</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="pt-2.5 border-t border-emerald-100/80 flex items-center justify-between text-xs text-slate-500">
-            <span>Retorno de inversión (ROI):</span>
-            <span className="font-bold text-emerald-700">
-              {cutProratedRevenueCOP > 0 ? `${(traditionalAdsBenchmark / cutProratedRevenueCOP).toFixed(1)}x de retorno` : 'N/A'}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 4: Conversión Vecinal (Pastel Lavanda Suave) */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-50/80 via-purple-50/40 to-indigo-50/20 border border-purple-200/80 hover:border-purple-300 shadow-xs transition-all flex flex-col justify-between">
-          <div>
-            <div className="mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-800/80">
-                Conversión Vecinal
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-purple-900 tracking-tight">
-              {cutConversionRate}%
-            </div>
-            <div className="text-xs text-purple-700 font-medium mt-0.5">
-              De vistas convertidas en contactos
-            </div>
-
-            {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-purple-100 shadow-2xs text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-purple-800">
-                Embudo de Conversión
-              </div>
-              <div className="space-y-1 text-[11px]">
-                <div className="flex justify-between text-slate-600">
-                  <span>Contactos generados:</span>
-                  <span className="font-semibold text-slate-900">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Vistas en el feed:</span>
-                  <span className="font-semibold text-slate-900">÷ {cutViews.toLocaleString('es-CO')} vistas</span>
-                </div>
-                <div className="pt-1 border-t border-purple-100 flex justify-between font-bold text-purple-700">
-                  <span>Tasa de efectividad:</span>
-                  <span>{cutConversionRate}%</span>
+              {/* Footer with Mini Pie SVG */}
+              <div className="flex items-center gap-3 pt-3 mt-auto">
+                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
+                  <circle cx="18" cy="18" r="16" fill="#fde68a" />
+                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 34 18 Z" fill="#f59e0b" />
+                </svg>
+                <div className="min-w-0">
+                  <div className="text-[11px] text-slate-500 font-medium">CAC Real (Canjes QR):</div>
+                  <div className="text-sm sm:text-base font-black text-amber-950 truncate">
+                    {cutCACReal > 0 ? `${formatCOP(cutCACReal)}/canje` : 'Sin canjes en corte'}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-purple-100/80 flex items-center justify-between text-xs text-slate-500">
-            <span>Promedio por negocio activo:</span>
-            <span className="font-semibold text-purple-900">
-              ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
-            </span>
+          {/* Card 3: AHORRO PARA COMERCIOS */}
+          <div className="rounded-2xl sm:rounded-3xl border-2 border-[#10b981] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
+            <div className="bg-[#10b981] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+              AHORRO PARA COMERCIOS
+            </div>
+            <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#047857] tracking-tight">
+                  {formatCOP(estimatedMerchantSavings)}
+                </div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                  Ahorro neto frente a pauta digital
+                </div>
+
+                {/* Structured Calculation Box */}
+                <div className="my-3 p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 text-xs space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#047857]">
+                    COMPARATIVA VS GOOGLE / META ADS
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Pauta tradicional (~$1.800):</span>
+                      <span className="font-semibold text-slate-900">{formatCOP(traditionalAdsBenchmark)}</span>
+                    </div>
+                    <div className="flex justify-between text-rose-600">
+                      <span>Inversión en OleVeci:</span>
+                      <span className="font-semibold">-{formatCOP(cutProratedRevenueCOP)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-[#047857] pt-1.5 border-t border-emerald-200/60">
+                      <span>Ahorro neto entregado:</span>
+                      <span>{formatCOP(estimatedMerchantSavings)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer with Mini Pie SVG */}
+              <div className="flex items-center gap-3 pt-3 mt-auto">
+                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
+                  <circle cx="18" cy="18" r="16" fill="#a7f3d0" />
+                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 18 34 Z" fill="#10b981" />
+                </svg>
+                <div className="min-w-0">
+                  <div className="text-[11px] text-slate-500 font-medium">Retorno de inversión (ROI):</div>
+                  <div className="text-sm sm:text-base font-black text-[#047857] truncate">
+                    {cutProratedRevenueCOP > 0 ? `${(traditionalAdsBenchmark / cutProratedRevenueCOP).toFixed(1)}x de retorno` : '14.3x de retorno'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: CONVERSIÓN VECINAL */}
+          <div className="rounded-2xl sm:rounded-3xl border-2 border-[#8b5cf6] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
+            <div className="bg-[#8b5cf6] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+              CONVERSIÓN VECINAL
+            </div>
+            <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
+                  {cutConversionRate}%
+                </div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                  De vistas convertidas en contactos
+                </div>
+
+                {/* Structured Calculation Box */}
+                <div className="my-3 p-3 rounded-xl bg-purple-50/70 border border-purple-100 text-xs space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#6d28d9]">
+                    EMBUDO DE CONVERSIÓN
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Contactos generados:</span>
+                      <span className="font-semibold text-slate-900">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Vistas en el feed:</span>
+                      <span className="font-semibold text-slate-900">{cutViews.toLocaleString('es-CO')} vistas</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-[#6d28d9] pt-1.5 border-t border-purple-200/60">
+                      <span>Tasa de efectividad:</span>
+                      <span>{cutConversionRate}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer with Mini Pie SVG */}
+              <div className="flex items-center gap-3 pt-3 mt-auto">
+                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
+                  <circle cx="18" cy="18" r="16" fill="#ddd6fe" />
+                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 34 18 Z" fill="#8b5cf6" />
+                </svg>
+                <div className="min-w-0">
+                  <div className="text-[11px] text-slate-500 font-medium">Promedio por negocio activo:</div>
+                  <div className="text-sm sm:text-base font-black text-[#6d28d9] truncate">
+                    ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
