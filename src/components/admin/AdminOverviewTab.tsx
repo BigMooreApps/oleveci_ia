@@ -1238,14 +1238,9 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Secondary Card: Financial Composition & Cartera Breakdown */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
-                Composición de Cartera
-              </h3>
-              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                {collectionRate}% Cobrado
-              </span>
-            </div>
+            <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+              Composición de Cartera
+            </h3>
             <p className="text-xs text-slate-500 mt-0.5 font-normal">
               Estado de facturación de los {totalBusinesses} comercios en {selectedCity === 'all' ? 'todos los municipios' : selectedCity}.
             </p>
@@ -1275,8 +1270,9 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-bold text-[#041f5e]">{totalBusinesses}</span>
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Comercios</span>
+              <span className="text-2xl font-bold text-[#041f5e]">{collectionRate}%</span>
+              <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Cobrado</span>
+              <span className="text-[10px] text-slate-400 font-normal">({activeSubscribers}/{totalBusinesses} com.)</span>
             </div>
           </div>
 
