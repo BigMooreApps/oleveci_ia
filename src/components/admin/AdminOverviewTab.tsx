@@ -1018,17 +1018,17 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                     DESGLOSE DE FACTURACIÓN
                   </div>
                   <div className="space-y-1.5 text-[11px]">
-                    <div className="flex justify-between text-slate-600">
-                      <span>Comercios activos:</span>
-                      <span className="font-semibold text-slate-900">{activeSubscribers} com.</span>
+                    <div className="flex items-center justify-between gap-1.5 text-slate-600">
+                      <span className="truncate">Comercios activos:</span>
+                      <span className="font-semibold text-slate-900 shrink-0 whitespace-nowrap tabular-nums">{activeSubscribers} com.</span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>Ticket promedio (ARPU):</span>
-                      <span className="font-semibold text-slate-900">{formatCOP(arpuCOP)}/mes</span>
+                    <div className="flex items-center justify-between gap-1.5 text-slate-600">
+                      <span className="truncate">Ticket promedio (ARPU):</span>
+                      <span className="font-semibold text-slate-900 shrink-0 whitespace-nowrap tabular-nums">{formatCOP(arpuCOP)}/mes</span>
                     </div>
-                    <div className="flex justify-between font-bold text-[#041f5e] pt-1.5 border-t border-sky-200/60">
-                      <span>Prorrateo corte ({cutDays}d):</span>
-                      <span>{formatCOP(cutProratedRevenueCOP)}</span>
+                    <div className="flex items-center justify-between gap-1.5 font-bold text-[#041f5e] pt-1.5 border-t border-sky-200/60">
+                      <span className="truncate">Prorrateo corte ({cutDays}d):</span>
+                      <span className="shrink-0 whitespace-nowrap tabular-nums">{formatCOP(cutProratedRevenueCOP)}</span>
                     </div>
                   </div>
                 </div>
@@ -1064,17 +1064,20 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                     FÓRMULA DE COSTO UNITARIO
                   </div>
                   <div className="space-y-1.5 text-[11px]">
-                    <div className="flex justify-between text-slate-600">
-                      <span>Facturación corte:</span>
-                      <span className="font-semibold text-slate-900">{formatCOP(cutProratedRevenueCOP)}</span>
+                    <div className="flex items-center justify-between gap-1.5 text-slate-600">
+                      <span className="truncate">Facturación corte:</span>
+                      <span className="font-semibold text-slate-900 shrink-0 whitespace-nowrap tabular-nums">{formatCOP(cutProratedRevenueCOP)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>Contactos vecinales:</span>
-                      <span className="font-semibold text-slate-900">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                    <div className="flex items-center justify-between gap-1.5 text-slate-600">
+                      <span className="truncate">Contactos vecinales:</span>
+                      <div className="shrink-0 whitespace-nowrap font-semibold text-slate-900 tabular-nums flex items-baseline justify-end gap-1">
+                        <span>{cutTotalLeads.toLocaleString('es-CO')}</span>
+                        <span className="w-10 text-left font-medium text-slate-600 text-[10.5px]">leads</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between font-bold text-[#b45309] pt-1.5 border-t border-amber-200/60">
-                      <span>Costo por lead entregado:</span>
-                      <span className="text-[#b45309] font-black">{formatCOP(cutCostPerLead)} COP</span>
+                    <div className="flex items-center justify-between gap-1.5 font-bold text-[#b45309] pt-1.5 border-t border-amber-200/60">
+                      <span className="truncate">Costo por lead:</span>
+                      <span className="text-[#b45309] font-black shrink-0 whitespace-nowrap tabular-nums">{formatCOP(cutCostPerLead)} COP</span>
                     </div>
                   </div>
                 </div>
@@ -1110,17 +1113,17 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                     COMPARATIVA VS GOOGLE / META ADS
                   </div>
                   <div className="space-y-1.5 text-[11px]">
-                    <div className="flex justify-between text-slate-600">
-                      <span>Pauta tradicional (~$1.800):</span>
-                      <span className="font-semibold text-slate-900">{formatCOP(traditionalAdsBenchmark)}</span>
+                    <div className="flex items-center justify-between gap-1.5 text-slate-600">
+                      <span className="truncate">Pauta tradicional (~$1.800):</span>
+                      <span className="font-semibold text-slate-900 shrink-0 whitespace-nowrap tabular-nums">{formatCOP(traditionalAdsBenchmark)}</span>
                     </div>
-                    <div className="flex justify-between text-rose-600">
-                      <span>Inversión en OleVeci:</span>
-                      <span className="font-semibold">-{formatCOP(cutProratedRevenueCOP)}</span>
+                    <div className="flex items-center justify-between gap-1.5 text-rose-600">
+                      <span className="truncate">Inversión en OleVeci:</span>
+                      <span className="font-semibold shrink-0 whitespace-nowrap tabular-nums">-{formatCOP(cutProratedRevenueCOP)}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-[#047857] pt-1.5 border-t border-emerald-200/60">
-                      <span>Ahorro neto entregado:</span>
-                      <span>{formatCOP(estimatedMerchantSavings)}</span>
+                    <div className="flex items-center justify-between gap-1.5 font-bold text-[#047857] pt-1.5 border-t border-emerald-200/60">
+                      <span className="truncate">Ahorro neto entregado:</span>
+                      <span className="shrink-0 whitespace-nowrap tabular-nums">{formatCOP(estimatedMerchantSavings)}</span>
                     </div>
                   </div>
                 </div>
@@ -1156,17 +1159,23 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                     EMBUDO DE CONVERSIÓN
                   </div>
                   <div className="space-y-1.5 text-[11px]">
-                    <div className="flex justify-between text-slate-600">
-                      <span>Contactos generados:</span>
-                      <span className="font-semibold text-slate-900">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                    <div className="flex items-center justify-between gap-1.5 text-slate-600">
+                      <span className="truncate">Contactos generados:</span>
+                      <div className="shrink-0 whitespace-nowrap font-semibold text-slate-900 tabular-nums flex items-baseline justify-end gap-1">
+                        <span>{cutTotalLeads.toLocaleString('es-CO')}</span>
+                        <span className="w-10 text-left font-medium text-slate-600 text-[10.5px]">leads</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>Vistas en el feed:</span>
-                      <span className="font-semibold text-slate-900">{cutViews.toLocaleString('es-CO')} vistas</span>
+                    <div className="flex items-center justify-between gap-1.5 text-slate-600">
+                      <span className="truncate">Vistas en el feed:</span>
+                      <div className="shrink-0 whitespace-nowrap font-semibold text-slate-900 tabular-nums flex items-baseline justify-end gap-1">
+                        <span>{cutViews.toLocaleString('es-CO')}</span>
+                        <span className="w-10 text-left font-medium text-slate-600 text-[10.5px]">vistas</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between font-bold text-[#6d28d9] pt-1.5 border-t border-purple-200/60">
-                      <span>Tasa de efectividad:</span>
-                      <span>{cutConversionRate}%</span>
+                    <div className="flex items-center justify-between gap-1.5 font-bold text-[#6d28d9] pt-1.5 border-t border-purple-200/60">
+                      <span className="truncate">Tasa de efectividad:</span>
+                      <span className="shrink-0 whitespace-nowrap tabular-nums">{cutConversionRate}%</span>
                     </div>
                   </div>
                 </div>
