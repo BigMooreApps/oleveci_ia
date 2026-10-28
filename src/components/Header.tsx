@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
               }}
-              className={`relative h-9 px-2 sm:px-2.5 rounded-xl flex items-center gap-1.5 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 group ${
+              className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95 shrink-0 group ${
                 currentRole === 'oli'
                   ? 'bg-gradient-to-r from-blue-50 via-cyan-50 to-amber-50 border-2 border-[#0066FF] text-[#0056d6] shadow-xs ring-2 ring-blue-400/20'
                   : 'bg-white hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-[#0056d6] shadow-2xs'
@@ -170,9 +170,6 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full h-full object-contain drop-shadow-2xs"
                 />
               </div>
-              <span className="hidden sm:inline text-xs font-black text-[#0056d6] tracking-tight">
-                Oli
-              </span>
               <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#0066FF] ring-2 ring-white"></span>

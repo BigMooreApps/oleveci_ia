@@ -832,23 +832,13 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         {msg.text}
                       </p>
 
-                      <div className="flex items-center justify-between pt-1">
-                        <button
-                          type="button"
-                          onClick={() => setIsLogModalOpen(true)}
-                          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95"
-                          title="Ver contexto completo y exportar registro para análisis con IA"
-                        >
-                          <ScrollText className="w-3 h-3 text-[#0066FF]" />
-                          <span>Log y contexto del chat</span>
-                        </button>
-
-                        {msg.timestamp && (
+                      {msg.timestamp && (
+                        <div className="flex justify-end pt-0.5">
                           <span className="text-[10px] text-slate-400 font-medium">
                             {msg.timestamp}
                           </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* CONDITIONAL DISPLAY: IF PLAN EXISTS -> SHOW ONLY ITINERARY. IF NO PLAN -> SHOW UNIFIED POST-FIRST RESULTS */}
@@ -1354,10 +1344,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
             }}
             className="w-full bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200/90 hover:border-slate-300 focus-within:border-[#0066FF] focus-within:bg-white focus-within:ring-3 focus-within:ring-blue-500/15 rounded-2xl p-1.5 sm:p-2 flex items-center gap-2 sm:gap-3 shadow-sm hover:shadow transition-all"
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[#0066FF] bg-blue-50/80 ml-1">
-              <Sparkles className="w-4 h-4" />
-            </div>
-
             {/* Text input */}
             <input
               ref={inputRef}
@@ -1370,7 +1356,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                   : 'Pregúntale a Oli: "buscar una papelería", "un taller de autos", o un plan...'
               }
               disabled={isLoading}
-              className="flex-1 bg-transparent border-0 outline-none text-slate-800 placeholder:text-slate-400 text-xs sm:text-sm px-2 font-medium"
+              className="flex-1 bg-transparent border-0 outline-none text-slate-800 placeholder:text-slate-400 text-xs sm:text-sm px-3 sm:px-4 font-medium"
             />
 
             {/* Send Button */}
