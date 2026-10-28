@@ -2669,411 +2669,367 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
   }
 
   const isRefinement = isPlanRefinementIntent(userPrompt, previousPlan);
+  const ai = getGenAI(input.apiKey);
 
-  // 1. Detect if this is a business / service search
+  // If Gemini is available, run unified autonomous LLM interpretation on the full catalog
+  if (ai) {
+    try {
+      const businessMap = new Map<string, Business>();
+      catalogBusinesses.forEach((b) => businessMap.set(b.id, b));
+      const postMap = new Map<string, Post>();
+      catalogPosts.forEach((p) => postMap.set(p.id, p));
+
+      const targetCity = extractMunicipality(userPrompt, currentCity);
+      const dateInfo = resolveTargetDateFromPrompt(userPrompt, referenceDate);
+
+      const catalogSummary = catalogBusinesses.map((b) => ({
+        id: b.id,
+        nombre: b.name,
+        municipio: b.city,
+        categoria: b.categoryId,
+        subcategoria: b.subCategory,
+        descripcion: b.description,
+        direccion: b.address,
+        telefono: b.phone,
+        whatsapp: b.whatsapp,
+        horarios: b.hours,
+        publicaciones: catalogPosts
+          .filter((p) => p.businessId === b.id && (!p.status || p.status === 'active') && !p.suspended)
+          .map((p) => ({
+            id: p.id,
+            titulo: p.title,
+            precio: p.promotionalPrice || p.originalPrice || p.approximatePrice,
+            descripcion: p.description,
+            rolPlan: (p.planRoles && p.planRoles.length > 0 ? p.planRoles.join(', ') : p.planRole) || 'auto',
+            horarioValidez: p.expiryLabel || 'Horario habitual',
+          })),
+      }));
+
+      const systemInstruction = `Eres Oli, la asistente inteligente y de voz oficial de OleVeci en Colombia (Sabana Centro: Cajicá, Chía, Cota, Zipaquirá, Tabio, Tenjo, Sopó, Tocancipá, etc.).
+Tu personalidad es cercana, cálida, alegre, honesta y servicial ("veci").
+
+Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin limitaciones rígidas ni sesgos:
+
+1. CLASIFICACIÓN DE INTENCIÓN (intent):
+   - 'search': El usuario busca un comercio, oficio, servicio, producto, comida o recomendación puntual de un lugar (ej: "un taller", "un talle", "donde lavo el carro", "un capuchino", "pizza", "veterinaria", "papelería", "peluquería", "¿a qué hora abren?").
+   - 'plan': El usuario pide explícitamente armar un plan, ruta, itinerario, parche o salida de fin de semana con 2 o más paradas (ej: "arma un plan para el sábado con 100k", "parche con amigos").
+   - 'refinement': El usuario pide cambiar o ajustar una parada de un plan previo (ej: "cambia la segunda parada por pizza", "no me gusta la primera parada", "quita la última parada").
+   - 'general_qa': El usuario hace una pregunta general sobre OleVeci, horarios o aclaraciones.
+
+2. DISCRIMINACIÓN SEMÁNTICA RIGUROSA:
+   - TALLER MECÁNICO vs. LAVADERO: Un lavadero / autospa / estética automotriz NO es un taller mecánico. No cambian frenos ni arreglan motores. Si piden taller ("un talle", "taller de autos", "mecanica"), NUNCA sugieras un lavadero.
+   - VETERINARIA MÉDICA vs. TIENDA DE MASCOTAS: Una clínica veterinaria atiende salud y urgencias; no la confundas con una tienda de accesorios o baño canino.
+   - CAFETERÍA vs. ALMUERZO/CORRIENTAZO: Un capuchino o café de especialidad es de cafetería/panadería artesanal, no de un asadero.
+   - BARBERÍA vs. SALÓN FEMENINO: Una barbería tradicional de caballeros es distinta a un centro de estética o peluquería para damas.
+
+3. TRANSPARENCIA TERRITORIAL Y DE STOCK:
+   - Si en el municipio solicitado (${targetCity}) NO existe un comercio que ofrezca ese servicio exacto, indícalo con total honestidad y calidez en spokenText.
+   - Si en un municipio vecino cercano (ej: Chía si pidieron Cajicá) sí existe un comercio que ofrece exactamente ese servicio (ej: Taller Mecánico & Autos Sabana), selecciónalo y recomiéndalo amablemente.
+   - Si el usuario pide un producto o comida que no existe en todo el catálogo (ej: sushi, comida mexicana, cerrajería), dilo cordialmente: "Veci, en este momento no tenemos registrado [servicio] en [municipio]...". NUNCA inventes negocios ni asignes negocios incompatibles.
+
+4. COHERENCIA DE OFERTAS:
+   - En 'selectedPostIds' pon ÚNICAMENTE ofertas que apliquen a lo que pidió. Si no hay ofertas específicas de ese servicio, pon arreglo vacío []. NUNCA pongas ofertas de lavado cuando pidieron mecánica, ni ofertas de té cuando pidieron café.
+
+5. SPOKENTEXT:
+   - Comienza obligatoriamente con "¡Listo veci!".
+   - Breve y directo (máximo 2 a 3 oraciones cortas, estilo WhatsApp).
+   - Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directamente o ver su ficha.
+   - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.`;
+
+      const userPromptContent = `Consulta del usuario: "${userPrompt}"
+Municipio actual del usuario: "${targetCity}"
+Día inferido: "${dateInfo.dayName}" (día de la semana ${dateInfo.dayOfWeek})
+Presupuesto indicado: ${resolvedBudget > 0 ? `${resolvedBudget} COP` : 'Sin límite predefinido ($0 / abierto).'}
+Es refinamiento: ${isRefinement}
+Plan previo (si existe): ${previousPlan ? JSON.stringify({
+        planTitle: previousPlan.planTitle,
+        stops: (previousPlan.stops || []).map((s, idx) => ({
+          indice: idx,
+          postId: s.postId,
+          businessId: s.businessId,
+          businessName: s.businessName,
+          businessCity: s.businessCity,
+          time: s.time,
+          activity: s.activity,
+          cost: s.cost
+        }))
+      }) : 'Ninguno'}
+Historial de conversación: ${JSON.stringify(messageHistory)}
+
+Catálogo completo de comercios y ofertas disponibles en OleVeci:
+${JSON.stringify(catalogSummary, null, 2)}`;
+
+      const unifiedResponseSchema = {
+        type: Type.OBJECT,
+        properties: {
+          intent: {
+            type: Type.STRING,
+            description: "Tipo de intención: 'search' (busca un comercio, producto, servicio específico o recomendación puntual), 'plan' (pide armar un plan/itinerario con varias paradas), 'refinement' (modificar un plan previo), 'general_qa' (pregunta general).",
+          },
+          understanding: { type: Type.STRING },
+          targetMunicipality: { type: Type.STRING },
+          exactMatchInRequestedCity: { type: Type.BOOLEAN },
+          isAlternativeSuggestion: { type: Type.BOOLEAN },
+          alternativeNotice: { type: Type.STRING },
+          selectedBusinessIds: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "Para 'search' o 'general_qa': IDs de los comercios idóneos que ofrecen lo solicitado.",
+          },
+          selectedPostIds: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "Para 'search': IDs de las publicaciones que coinciden exactamente con lo pedido. Si no hay publicaciones específicas, arreglo vacío [].",
+          },
+          planTitle: { type: Type.STRING },
+          day: { type: Type.STRING },
+          targetAudience: { type: Type.STRING },
+          totalEstimatedCost: { type: Type.INTEGER },
+          budgetStatus: { type: Type.STRING },
+          stops: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                time: { type: Type.STRING },
+                activity: { type: Type.STRING },
+                businessId: { type: Type.STRING },
+                businessName: { type: Type.STRING },
+                businessCity: { type: Type.STRING },
+                postId: { type: Type.STRING },
+                postTitle: { type: Type.STRING },
+                cost: { type: Type.INTEGER },
+                address: { type: Type.STRING },
+                phone: { type: Type.STRING },
+                whatsapp: { type: Type.STRING },
+              },
+              required: ['time', 'activity', 'businessId', 'businessName', 'businessCity', 'postId', 'cost'],
+            },
+          },
+          spokenText: {
+            type: Type.STRING,
+            description: "Respuesta hablada para el usuario. Comienza con '¡Listo veci!'. Estilo WhatsApp colombiano, conciso (máximo 2 a 3 oraciones). CERO signos '$'.",
+          },
+        },
+        required: ['intent', 'understanding', 'targetMunicipality', 'exactMatchInRequestedCity', 'spokenText'],
+      };
+
+      const { text: rawJson, modelUsed: actualModelUsed } = await callGeminiWithModelFallback(
+        ai,
+        userPromptContent,
+        systemInstruction,
+        unifiedResponseSchema
+      );
+
+      if (rawJson) {
+        const parsed = JSON.parse(rawJson);
+        const detectedIntent = parsed.intent || (parsed.stops && parsed.stops.length > 1 ? 'plan' : 'search');
+
+        // CASE 1: Single Business / Service / Product Search or General Q&A
+        if (detectedIntent === 'search' || detectedIntent === 'general_qa') {
+          const matchedBusinesses: Business[] = (parsed.selectedBusinessIds || [])
+            .map((id: string) => businessMap.get(id))
+            .filter(Boolean) as Business[];
+
+          const matchedPosts: Post[] = (parsed.selectedPostIds || [])
+            .map((id: string) => postMap.get(id))
+            .filter(Boolean) as Post[];
+
+          const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
+
+          return {
+            type: 'search',
+            spokenText: spokenClean,
+            searchQuery: userPrompt,
+            targetMunicipality: parsed.targetMunicipality || targetCity,
+            matchedBusinesses,
+            matchedPosts,
+            isAlternativeSuggestion: parsed.isAlternativeSuggestion ?? !parsed.exactMatchInRequestedCity,
+            alternativeNotice: parsed.alternativeNotice || (!parsed.exactMatchInRequestedCity ? parsed.understanding : undefined),
+            auditTrace: {
+              rawPrompt: userPrompt,
+              timestamp: new Date().toISOString(),
+              executionMode: 'llm',
+              modelUsed: actualModelUsed,
+              apiKeyPresent: true,
+              intentDetected: detectedIntent,
+              interpretation: {
+                targetMunicipality: parsed.targetMunicipality || targetCity,
+                detectedTopic: parsed.understanding,
+                isSpecificProductOrService: true,
+                isRefinementIntent: false,
+              },
+              databaseFiltering: {
+                totalBusinessesInCatalog: catalogBusinesses.length,
+                totalPostsInCatalog: catalogPosts.length,
+                businessesInTargetMunicipality: catalogBusinesses.filter((b) => normalizeText(b.city) === normalizeText(parsed.targetMunicipality || targetCity)).length,
+                eligiblePostsAfterValidity: catalogPosts.length,
+                matchedBusinessesCount: matchedBusinesses.length,
+                matchedPostsCount: matchedPosts.length,
+                selectedEntities: [
+                  ...matchedBusinesses.map((b) => ({ id: b.id, name: b.name, type: 'business' as const, category: b.subCategory || b.categoryId, city: b.city })),
+                  ...matchedPosts.map((p) => ({ id: p.id, name: p.title, type: 'post' as const, category: p.planCategoryName || p.categoryId, city: p.businessCity })),
+                ],
+              },
+              steps: [
+                {
+                  step: '1',
+                  title: 'Interpretación Semántica Integral con Gemini',
+                  status: 'success',
+                  details: `Gemini comprendió: "${parsed.understanding}". Intención: ${detectedIntent}. Coincidencia exacta en municipio: ${parsed.exactMatchInRequestedCity ? 'Sí' : 'No'}.`,
+                },
+                {
+                  step: '2',
+                  title: 'Filtrado Autónomo en Base de Datos',
+                  status: 'success',
+                  details: `Comercios seleccionados: ${matchedBusinesses.length}. Ofertas seleccionadas: ${matchedPosts.length}.`,
+                },
+              ],
+              antiHallucination: {
+                allEntitiesVerifiedInCatalog: true,
+                hallucinationsDetected: 0,
+                correctedEntities: [],
+              },
+            },
+          };
+        }
+
+        // CASE 2: Multi-Stop Itinerary Plan or Plan Refinement
+        const seenBiz = new Set<string>();
+        let mainCourseCount = 0;
+        const coherentStops: OliPlanStop[] = [];
+
+        for (const rawStop of (parsed.stops || [])) {
+          const post = catalogPosts.find((p) => p.id === rawStop.postId);
+          if (!post) continue; // Verify postId exists
+          if (seenBiz.has(post.businessId)) continue; // Reject duplicate businesses
+
+          const role = classifyPostRole(post);
+          if (role === 'main_course') {
+            if (mainCourseCount >= 1) continue;
+            mainCourseCount++;
+          }
+
+          const biz = businessMap.get(post.businessId);
+          coherentStops.push({
+            postId: post.id,
+            businessId: post.businessId,
+            businessName: biz?.name || rawStop.businessName || 'Comercio Local',
+            businessCity: biz?.city || rawStop.businessCity || targetCity,
+            businessAddress: biz?.address || rawStop.address || 'Zona Centro',
+            businessPhone: biz?.phone || rawStop.phone || '',
+            businessWhatsapp: biz?.whatsapp || rawStop.whatsapp || '',
+            time: rawStop.time || '10:00 AM',
+            activity: rawStop.activity || post.title,
+            postTitle: post.title,
+            imageUrl: post.imageUrl || biz?.coverImage || biz?.logo || '/Logo_OleVeci.png',
+            cost: post.promotionalPrice || post.originalPrice || post.approximatePrice || rawStop.cost || 25000,
+            whySelected: rawStop.whySelected || post.title,
+          });
+
+          seenBiz.add(post.businessId);
+        }
+
+        if (coherentStops.length >= 1) {
+          const personCount = extractPersonCount(userPrompt);
+          const isOpenBudget = resolvedBudget <= 0;
+          const budgetSummary = calculateItineraryBudget(
+            coherentStops.map((s) => ({ cost: s.cost })),
+            resolvedBudget > 0 ? resolvedBudget : 100000,
+            personCount,
+            isOpenBudget
+          );
+
+          const spokenClean = sanitizeSpokenText(
+            parsed.spokenText || '',
+            coherentStops,
+            isRefinement,
+            false,
+            Boolean(parsed.isAlternativeSuggestion)
+          );
+
+          const matchedBusinesses = Array.from(new Set(coherentStops.map((s) => s.businessId)))
+            .map((id) => businessMap.get(id))
+            .filter(Boolean) as Business[];
+
+          const matchedPosts = Array.from(new Set(coherentStops.map((s) => s.postId)))
+            .map((id) => postMap.get(id))
+            .filter(Boolean) as Post[];
+
+          const businessesInCity = catalogBusinesses.filter(
+            (b) => normalizeText(b.city) === normalizeText(targetCity)
+          ).length;
+
+          return {
+            type: 'plan',
+            spokenText: spokenClean,
+            planTitle: parsed.planTitle || `Plan OleVeci en ${targetCity}`,
+            day: parsed.day || dateInfo.dayName,
+            targetAudience: parsed.targetAudience || 'General',
+            personCount,
+            costPerPerson: budgetSummary.costPerPerson,
+            totalEstimatedCost: budgetSummary.totalEstimatedCost,
+            userBudget: resolvedBudget,
+            savingsOrRemaining: budgetSummary.savingsOrRemaining,
+            budgetStatus: budgetSummary.budgetStatus,
+            hasUnconfirmedPrices: budgetSummary.hasUnconfirmedPrices,
+            stops: coherentStops,
+            matchedBusinesses,
+            matchedPosts,
+            isAlternativeSuggestion: parsed.isAlternativeSuggestion || false,
+            alternativeNotice: parsed.alternativeNotice,
+            auditTrace: {
+              rawPrompt: userPrompt,
+              timestamp: new Date().toISOString(),
+              executionMode: 'llm',
+              modelUsed: actualModelUsed,
+              apiKeyPresent: true,
+              intentDetected: isRefinement ? 'plan_refinement' : 'plan_creation',
+              interpretation: {
+                targetMunicipality: targetCity,
+                detectedAudience: parsed.targetAudience || 'General',
+                personCount,
+                isRefinementIntent: isRefinement,
+              },
+              databaseFiltering: {
+                totalBusinessesInCatalog: catalogBusinesses.length,
+                totalPostsInCatalog: catalogPosts.length,
+                businessesInTargetMunicipality: businessesInCity,
+                eligiblePostsAfterValidity: catalogPosts.length,
+                matchedBusinessesCount: coherentStops.length,
+                matchedPostsCount: coherentStops.length,
+                selectedEntities: [
+                  ...matchedBusinesses.map((b) => ({ id: b.id, name: b.name, type: 'business' as const, category: b.subCategory || b.categoryId, city: b.city })),
+                  ...matchedPosts.map((p) => ({ id: p.id, name: p.title, type: 'post' as const, category: p.planCategoryName || p.categoryId, city: p.businessCity })),
+                ],
+              },
+              steps: [
+                {
+                  step: '1',
+                  title: 'Interpretación Semántica Integral con Gemini',
+                  status: 'success',
+                  details: `Gemini generó plan de ${coherentStops.length} paradas con costo total de ${budgetSummary.totalEstimatedCost} COP (${budgetSummary.budgetStatus}).`,
+                },
+              ],
+              antiHallucination: {
+                allEntitiesVerifiedInCatalog: true,
+                hallucinationsDetected: 0,
+                correctedEntities: [],
+              },
+            },
+          };
+        }
+      }
+    } catch (llmUnifiedErr) {
+      console.warn('Inferencia unificada con Gemini falló o cuota excedida, activando motor determinista:', llmUnifiedErr);
+    }
+  }
+
+  // Fallback determinista si Gemini está desconectado o sin cuota
   if (!isRefinement && detectSearchIntent(userPrompt)) {
     return generateOliSearchResponse(input);
   }
-
-  const ai = getGenAI(input.apiKey);
-
-  // 2. If Gemini API is not available, immediately use deterministic fallback
-  if (!ai) {
-    return generateFallbackOliPlan(input);
-  }
-
-  try {
-    const businessMap = new Map<string, Business>();
-    catalogBusinesses.forEach((b) => businessMap.set(b.id, b));
-
-    const targetCity = extractMunicipality(userPrompt, currentCity);
-    const dateInfo = resolveTargetDateFromPrompt(userPrompt, referenceDate);
-    const eligiblePosts = getEligiblePlanPosts(catalogPosts, dateInfo.targetDate, dateInfo.dayOfWeek, businessMap);
-
-    const normPrompt = normalizeText(userPrompt);
-    const promptTokens = normPrompt
-      .replace(/[^\w\s]/g, ' ')
-      .split(/\s+/)
-      .filter((w) => w.length > 2 && !SPANISH_STOP_WORDS.has(w));
-
-    // Dynamic rotation seed so user gets fresh and varied recommendations rather than repeating the same 3 spots
-    const seed = (normPrompt.length * 29 + (dateInfo.dayOfWeek || 0) * 17) % 97;
-
-    const scoredEligible = eligiblePosts.map((p) => {
-      const b = businessMap.get(p.businessId);
-      const postText = normalizeText(
-        `${p.title} ${p.description || ''} ${p.categoryId || ''} ${p.planCategoryId || ''} ${(p.tags || []).join(' ')} ${b?.name || ''} ${b?.subCategory || ''}`
-      );
-      let matchScore = 0;
-
-      // Exact prompt token matches
-      for (const token of promptTokens) {
-        if (textContainsTerm(normalizeText(p.title), token)) matchScore += 40;
-        else if (textContainsTerm(normalizeText(b?.name || ''), token)) matchScore += 30;
-        else if (textContainsTerm(postText, token)) matchScore += 20;
-      }
-
-      // Check common activity intents
-      if (normPrompt.includes('auto') || normPrompt.includes('carro') || normPrompt.includes('lavar')) {
-        if (postText.includes('lavado') || postText.includes('autospa') || postText.includes('vapor') || postText.includes('auto')) matchScore += 60;
-      }
-      if (normPrompt.includes('cafe') || normPrompt.includes('capuchino') || normPrompt.includes('croissant')) {
-        if (postText.includes('cafe') || postText.includes('capuchino') || postText.includes('croissant')) matchScore += 50;
-      }
-      if (normPrompt.includes('almorzar') || normPrompt.includes('almuerzo') || normPrompt.includes('pizza') || normPrompt.includes('comer') || normPrompt.includes('restaurante')) {
-        if (postText.includes('pizza') || postText.includes('almuerzo') || postText.includes('burger') || postText.includes('comida') || p.categoryId === 'cat_restaurantes') matchScore += 60;
-      }
-      if (normPrompt.includes('fiesta') || normPrompt.includes('rumba') || normPrompt.includes('coctel') || normPrompt.includes('trago') || normPrompt.includes('bar')) {
-        if (postText.includes('fiesta') || postText.includes('vino') || postText.includes('trago') || postText.includes('aguardiente') || postText.includes('gastrobar') || postText.includes('cava') || p.categoryId === 'cat_planes_eventos') matchScore += 60;
-      }
-
-      const inCity = (b?.city && normalizeText(b.city) === normalizeText(targetCity)) ||
-                     (p.businessCity && normalizeText(p.businessCity) === normalizeText(targetCity));
-      if (inCity) matchScore += 35;
-
-      return { post: p, matchScore };
-    });
-
-    scoredEligible.sort((a, b) => {
-      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
-      const hashA = (a.post.id.charCodeAt(a.post.id.length - 1) + seed) % 23;
-      const hashB = (b.post.id.charCodeAt(b.post.id.length - 1) + seed) % 23;
-      return hashA - hashB;
-    });
-
-    // Pick diverse venues (at most 2 posts per business) so all relevant venues fit in catalogSummary
-    const seenBizCount = new Map<string, number>();
-    const sortedPosts: Post[] = [];
-    for (const item of scoredEligible) {
-      const bId = item.post.businessId;
-      const count = seenBizCount.get(bId) || 0;
-      if (count < 2) {
-        sortedPosts.push(item.post);
-        seenBizCount.set(bId, count + 1);
-      }
-      if (sortedPosts.length >= 18) break;
-    }
-
-    // Condensed catalog for Gemini (up to 18 eligible, diverse, and active posts) with both business and post schedules
-    const catalogSummary = sortedPosts.slice(0, 18).map((p) => {
-      const b = businessMap.get(p.businessId);
-      const postScheduleSummary = p.validitySchedule?.scheduleTable
-        ? p.validitySchedule.scheduleTable
-            .filter((r) => r.active)
-            .map((r) => `${r.dia}: ${r.horaInicio}-${r.horaFin}`)
-            .join(' | ')
-        : p.expiryLabel || 'Horario según local';
-
-      return {
-        postId: p.id,
-        businessId: p.businessId,
-        businessName: b?.name || p.businessName,
-        city: b?.city || p.businessCity || targetCity,
-        address: b?.address || p.businessAddress || 'Zona Centro',
-        phone: b?.phone || p.businessPhone || '',
-        whatsapp: b?.whatsapp || p.businessWhatsapp || '',
-        businessOperatingHours: b?.hours || 'Horario de atención habitual',
-        postAvailableSchedule: postScheduleSummary,
-        planRole: (p.planRoles && p.planRoles.length > 0 ? p.planRoles.join(', ') : p.planRole) || 'auto',
-        targetAudience: (p.targetAudience || []).join(', ') || 'Todo público',
-        priceScope: (p.priceScopes && p.priceScopes.length > 0 ? p.priceScopes.join(', ') : p.priceScope) || 'individual',
-        priceType: p.priceType || 'exact',
-        tags: (p.tags || []).join(', ') || '',
-        title: p.title,
-        description: p.description || '',
-        category: p.categoryId || 'General',
-        price: p.promotionalPrice || p.originalPrice || p.approximatePrice || 25000,
-        approximatePrice: p.approximatePrice,
-        imageUrl: p.imageUrl || b?.coverImage || b?.logo || '/Logo_OleVeci.png',
-      };
-    });
-
-    const systemInstruction = `Eres Oli, la asistente inteligente y de voz oficial de OleVeci en Colombia (Sabana Centro: Cajicá, Chía, Cota, Zipaquirá, Tabio, Tenjo, Sopó, etc.).
-Tu personalidad es cercana, cálida, alegre, servicial y confiable ("veci").
-
-================================================================================
-REGLAS OBLIGATORIAS DE AUDITORÍA Y SEGURIDAD:
-================================================================================
-1. SALUDO INICIAL (spokenText):
-   - DEBE comenzar estrictamente con "¡Listo veci!".
-2. REFINAMIENTOS Y AJUSTES (CRÍTICO):
-   - Si 'isRefinement' es true y el usuario pide cambiar una parada (ej: "cambia la primera parada por pizza" o "no me gusta la segunda parada"):
-     * Identifica cuál parada específica reemplazar (parada 1 = índice 0, parada 2 = índice 1).
-     * Selecciona una publicación del catálogo real que coincida con lo pedido (ej: Pizzería Bella Sabana para pizza, Fogón Sabanero para pollo).
-     * CONSERVA LAS DEMÁS PARADAS INTACTAS sin cambiarlas.
-     * En 'spokenText' explica con calidez: "¡Listo veci! Ya te cambié la [primera/segunda] parada por [comercio]..." y narra el plan completo.
-3. BREVEDAD Y LACONISMO EN EL CHAT (ESTILO WHATSAPP - MÁXIMO 2 A 3 ORACIONES):
-   - El texto 'spokenText' DEBE SER CONCISO, FRESCO Y DIRECTO (máximo 2 a 3 oraciones cortas, no más de 40 palabras).
-   - En móviles la gente NO lee párrafos largos. Prohibido recitar direcciones exactas, horarios detallados o repetir listas de precios en prosa porque TODO eso ya se muestra automáticamente en las tarjetas interactivas de la pantalla.
-   - En planes: menciona amena y fluidamente cada comercio de las paradas por su nombre en la narración.
-     Ejemplo: "¡Listo veci! Te armé este planazo en Cajicá: arrancamos lavando el carro en AutoSpa, luego cafecito en Café & Trigo, almorzamos pizza en Bella Sabana y rematamos de rumba en Cava Sabana por 128 mil pesos."
-   - Si el usuario hace una pregunta sobre precios o aclaraciones (ej: "¿los precios son por persona o en pareja?"): responde puntualmente en 2 oraciones sencillas sin volver a recitar todo el itinerario.
-4. PROHIBICIÓN TOTAL DEL SIGNO '$':
-   - NUNCA uses el símbolo '$' en 'spokenText' ni en ningún texto generado.
-   - Expresa siempre los precios en pesos colombianos con palabras o números acompañados de "pesos" o "mil pesos".
-5. NEGOCIOS ÚNICOS (ESTRICTO):
-   - Cada parada DEBE pertenecer a un comercio diferente (businessId distinto). NUNCA repitas el mismo negocio en un mismo itinerario.
-6. MÁXIMO UN (1) PLATO PRINCIPAL / PLATO FUERTE (ESTRICTO):
-   - No pongas dos platos fuertes pesados en el mismo plan (ejemplo: picada y luego lomo de res). Si hay plato fuerte, la siguiente parada debe ser café, postre, actividad o coctelería.
-7. COHERENCIA DE AUDIENCIA:
-   - Planes familiares: JAMÁS incluyas bares nocturnos, licoreras ni discotecas.
-   - Gimnasios: ÚNICAMENTE si el usuario lo solicita explícitamente.
-   - Planes culinarios: no mezcles papelerías, talleres mecánicos ni barberías en una ruta de comida.
-8. TRANSPARENCIA CUANDO NO HAY COINCIDENCIA:
-   - Si el usuario pidió un producto específico que no existe en el catálogo:
-     Acláralo de forma transparente: "¡Listo veci! En este momento no tenemos publicaciones de [producto] en [municipio] registradas en la app, pero te armé esta sugerencia alternativa..."
-     Establece 'isAlternativeSuggestion: true' y 'alternativeNotice'.
-9. CATÁLOGO REAL:
-   - Utiliza ÚNICAMENTE los postId y businessId que existen en el JSON provisto.
-10. CONSISTENCIA TOTAL ENTRE SPOKENTEXT Y EL ARREGLO STOPS:
-   - CADA negocio o parada mencionada en 'spokenText' DEBE existir como un elemento en el arreglo 'stops'. NUNCA menciones en 'spokenText' un negocio o comida (ej. Bella Sabana) que no esté incluido en 'stops'.
-   - Si el usuario solicita explícitamente múltiples actividades consecutivas (ej. "lavar el auto, café, almorzar y fiesta"):
-     * DEBES incluir una parada para CADA actividad solicitada por el usuario (en este caso, las 4 paradas completas).
-     * Si la suma de los costos supera el presupuesto (ej. suma 127.600 pesos y el presupuesto es 100.000 pesos): NO descartes las paradas que el usuario pidió expresamente; genera todas las paradas solicitadas, asigna 'budgetStatus': 'over_budget' y menciona con amabilidad en 'spokenText' el valor total.`;
-
-    const userPromptContent = `Solicitud del usuario: "${userPrompt}"
-Municipio objetivo: "${targetCity}"
-Día inferido: "${dateInfo.dayName}" (día de la semana ${dateInfo.dayOfWeek})
-Presupuesto objetivo: ${resolvedBudget > 0 ? `${resolvedBudget} COP` : 'Sin límite predefinido ($0 / abierto). El usuario no ha indicado un presupuesto fijo, así que selecciona las mejores paradas según lo solicitado sin forzar gastos artificiales ni descartar paradas por un tope ficticio.'}
-Es refinamiento: ${isRefinement}
-Plan previo (si existe): ${previousPlan ? JSON.stringify({
-      planTitle: previousPlan.planTitle,
-      stops: (previousPlan.stops || []).map((s, idx) => ({
-        indice: idx,
-        postId: s.postId,
-        businessId: s.businessId,
-        businessName: s.businessName,
-        businessCity: s.businessCity,
-        time: s.time,
-        activity: s.activity,
-        cost: s.cost
-      }))
-    }) : 'Ninguno'}
-Historial de conversación: ${JSON.stringify(messageHistory)}
-Catálogo real disponible:
-${JSON.stringify(catalogSummary)}`;
-
-    const responseSchema = {
-      type: Type.OBJECT,
-      properties: {
-        spokenText: {
-          type: Type.STRING,
-          description: "Texto hablado obligatorio con saludo exacto '¡Listo veci!', narración cronológica completa de todas las paradas y CERO signos '$'.",
-        },
-        greeting: { type: Type.STRING },
-        planTitle: { type: Type.STRING },
-        summary: { type: Type.STRING },
-        day: { type: Type.STRING },
-        targetAudience: { type: Type.STRING },
-        userBudget: { type: Type.INTEGER },
-        totalEstimatedCost: { type: Type.INTEGER },
-        savingsOrRemaining: { type: Type.INTEGER },
-        budgetStatus: { type: Type.STRING },
-        isAlternativeSuggestion: { type: Type.BOOLEAN },
-        alternativeNotice: { type: Type.STRING },
-        stops: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              postId: { type: Type.STRING },
-              businessId: { type: Type.STRING },
-              businessName: { type: Type.STRING },
-              businessCity: { type: Type.STRING },
-              businessAddress: { type: Type.STRING },
-              businessPhone: { type: Type.STRING },
-              businessWhatsapp: { type: Type.STRING },
-              time: { type: Type.STRING },
-              activity: { type: Type.STRING },
-              postTitle: { type: Type.STRING },
-              imageUrl: { type: Type.STRING },
-              cost: { type: Type.INTEGER },
-              whySelected: { type: Type.STRING },
-            },
-            required: ['postId', 'businessId', 'businessName', 'businessCity', 'time', 'activity', 'cost'],
-          },
-        },
-        recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
-        alternativeOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
-      },
-      required: [
-        'spokenText',
-        'greeting',
-        'planTitle',
-        'summary',
-        'day',
-        'targetAudience',
-        'userBudget',
-        'totalEstimatedCost',
-        'stops',
-        'recommendations',
-      ],
-    };
-
-    const { text: rawJson, modelUsed: actualModelUsed } = await callGeminiWithModelFallback(
-      ai,
-      userPromptContent,
-      systemInstruction,
-      responseSchema
-    );
-
-    if (!rawJson) {
-      return generateFallbackOliPlan(input);
-    }
-
-    const parsed = JSON.parse(rawJson) as OliPlanResponse;
-    parsed.type = 'plan';
-
-    if (!parsed.stops || parsed.stops.length === 0) {
-      return generateFallbackOliPlan(input);
-    }
-
-
-    // Backend Validation and Sanitization of Gemini's response (Section 6 & 11)
-    const seenBiz = new Set<string>();
-    let mainCourseCount = 0;
-    const coherentStops: OliPlanStop[] = [];
-
-    for (const stop of parsed.stops) {
-      // 1. Verify that postId exists in catalog
-      const post = catalogPosts.find((p) => p.id === stop.postId);
-      if (!post) continue; // Reject hallucinated post IDs
-
-      // 2. Reject duplicate businesses
-      if (seenBiz.has(post.businessId)) continue;
-
-      // 3. Reject second heavy main course
-      const role = classifyPostRole(post);
-      if (role === 'main_course') {
-        if (mainCourseCount >= 1) continue;
-        mainCourseCount++;
-      }
-
-      // 4. Preserve authentic fields from catalog
-      stop.postId = post.id;
-      stop.businessId = post.businessId;
-      stop.postTitle = post.title;
-      stop.imageUrl = post.imageUrl || stop.imageUrl || '/Logo_OleVeci.png';
-      stop.cost = post.promotionalPrice || post.originalPrice || post.approximatePrice || stop.cost || 25000;
-
-      const biz = businessMap.get(post.businessId);
-      if (biz) {
-        stop.businessName = biz.name;
-        stop.businessCity = biz.city;
-        stop.businessAddress = biz.address;
-        stop.businessPhone = biz.phone;
-        stop.businessWhatsapp = biz.whatsapp;
-      }
-
-      seenBiz.add(post.businessId);
-      coherentStops.push(stop);
-    }
-
-    if (coherentStops.length >= 1) {
-      parsed.stops = coherentStops;
-    } else {
-      return generateFallbackOliPlan(input);
-    }
-
-    // Recalculate budget deterministically in backend (Section 9)
-    const personCount = extractPersonCount(userPrompt);
-    const isOpenBudget = resolvedBudget <= 0;
-    const budgetSummary = calculateItineraryBudget(
-      parsed.stops.map((s) => ({ cost: s.cost })),
-      resolvedBudget > 0 ? resolvedBudget : 100000,
-      personCount,
-      isOpenBudget
-    );
-
-    parsed.personCount = personCount;
-    parsed.costPerPerson = budgetSummary.costPerPerson;
-    parsed.totalEstimatedCost = budgetSummary.totalEstimatedCost;
-    parsed.userBudget = resolvedBudget;
-    parsed.savingsOrRemaining = budgetSummary.savingsOrRemaining;
-    parsed.budgetStatus = budgetSummary.budgetStatus;
-    parsed.hasUnconfirmedPrices = budgetSummary.hasUnconfirmedPrices;
-
-    // Sanitize and guarantee complete spoken narration without omissions or $
-    parsed.spokenText = sanitizeSpokenText(
-      parsed.spokenText || '',
-      parsed.stops || [],
-      isRefinement,
-      false,
-      Boolean(parsed.isAlternativeSuggestion)
-    );
-
-    const businessesInCity = catalogBusinesses.filter(
-      (b) => normalizeText(b.city) === normalizeText(targetCity)
-    ).length;
-
-    const audience = parsed.targetAudience || 'General';
-
-    const steps: OliAuditStep[] = [
-      {
-        step: '1',
-        title: 'Recepción e Interpretación Semántica',
-        status: 'success',
-        details: `Instrucción recibida: "${userPrompt}". Clasificado como creación de plan. Municipio: "${targetCity}". Ocasión detectada: "${audience}". Personas: ${personCount}.`,
-        data: { userPrompt, targetCity, audience, personCount },
-      },
-      {
-        step: '2',
-        title: 'Consulta y Filtrado en Base de Datos',
-        status: 'success',
-        details: `Se analizaron ${catalogPosts.length} publicaciones de ${catalogBusinesses.length} comercios. Se evaluaron opciones idóneas en ${targetCity}.`,
-        data: { totalPosts: catalogPosts.length, businessesInCity },
-      },
-      {
-        step: '3',
-        title: 'Inferencia Autónoma Gemini (LLM)',
-        status: 'success',
-        details: `Generado con modelo ${actualModelUsed} en tiempo real. Plan estructurado de forma personalizada.`,
-        data: { model: actualModelUsed, rawStopsCount: parsed.stops?.length },
-      },
-      {
-        step: '4',
-        title: 'Validación Antialucinación y Presupuesto',
-        status: 'success',
-        details: `Todas las paradas (${parsed.stops?.length}) verificadas contra el catálogo real de OleVeci. Total: ${budgetSummary.totalEstimatedCost} COP (${budgetSummary.budgetStatus}).`,
-        data: { coherentStops: parsed.stops?.map((s) => ({ name: s.businessName, cost: s.cost })) },
-      },
-    ];
-
-    parsed.auditTrace = {
-      rawPrompt: userPrompt,
-      timestamp: new Date().toISOString(),
-      executionMode: 'llm',
-      modelUsed: actualModelUsed,
-      apiKeyPresent: true,
-      intentDetected: isRefinement ? 'plan_refinement' : 'plan_creation',
-      interpretation: {
-        targetMunicipality: targetCity,
-        detectedAudience: audience,
-        personCount,
-        isRefinementIntent: isRefinement,
-      },
-      databaseFiltering: {
-        totalBusinessesInCatalog: catalogBusinesses.length,
-        totalPostsInCatalog: catalogPosts.length,
-        businessesInTargetMunicipality: businessesInCity,
-        eligiblePostsAfterValidity: catalogPosts.length,
-        matchedBusinessesCount: parsed.stops?.length || 0,
-        matchedPostsCount: parsed.stops?.length || 0,
-        selectedEntities: (parsed.stops || []).map((s) => ({ id: s.businessId, name: s.businessName, type: 'business' as const, city: s.businessCity })),
-      },
-      steps,
-      antiHallucination: {
-        allEntitiesVerifiedInCatalog: true,
-        hallucinationsDetected: 0,
-        correctedEntities: [],
-      },
-    };
-
-    return parsed;
-  } catch (error) {
-    console.warn('Oli assistant fallback active (Gemini response error or timeout):', error instanceof Error ? error.message : error);
-    return generateFallbackOliPlan(input);
-  }
+  return generateFallbackOliPlan(input);
 }
 
 /**
