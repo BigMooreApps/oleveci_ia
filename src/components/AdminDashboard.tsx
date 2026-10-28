@@ -305,7 +305,7 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5 animate-in fade-in duration-200">
+    <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-5 animate-in fade-in duration-200">
       {/* Top Banner & Command Center Header */}
       <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#041f5e] via-[#082a7a] to-[#0a3a9c] text-white shadow-lg flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
