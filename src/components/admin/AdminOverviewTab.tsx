@@ -5,16 +5,9 @@ import { Business, Post, DailyMetricRecord } from '../../types';
 import { OleVeciIcon } from '../OleVeciLogo';
 import {
   TrendingUp,
-  DollarSign,
-  Building2,
   FileText,
-  MapPin,
-  Layers,
-  Sparkles,
   Users,
-  Eye,
   MessageCircle,
-  Share2,
   CheckCircle2,
   ArrowRight,
   AlertTriangle,
@@ -32,13 +25,8 @@ import {
   Search,
   Check,
   ShieldCheck,
-  Award,
-  QrCode,
-  Navigation,
   Info,
   HelpCircle,
-  Target,
-  PiggyBank,
   ArrowDownRight,
 } from 'lucide-react';
 import {
@@ -889,13 +877,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
         {/* Vistas Feed */}
         <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-white border border-sky-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between text-slate-500 mb-1.5">
+          <div className="mb-1.5">
             <span className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
               Vistas Feed
             </span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-sky-500 to-[#007af7] text-white flex items-center justify-center shadow-2xs shrink-0">
-              <Eye className="w-3.5 h-3.5" />
-            </div>
           </div>
           <div>
             <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
@@ -909,13 +894,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
         {/* WhatsApp Directo */}
         <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border border-emerald-200 shadow-2xs hover:border-emerald-400 transition-all flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between text-emerald-900 mb-1.5">
+          <div className="mb-1.5">
             <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
               WhatsApp
             </span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-emerald-500 to-[#00d8a5] text-white flex items-center justify-center shadow-2xs shrink-0">
-              <MessageCircle className="w-3.5 h-3.5" />
-            </div>
           </div>
           <div>
             <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
@@ -929,13 +911,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
         {/* Rutas (Maps) */}
         <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-50/90 via-amber-50/40 to-white border border-orange-200 shadow-2xs hover:border-[#ff7700] transition-all flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between text-orange-900 mb-1.5">
+          <div className="mb-1.5">
             <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-orange-800">
               Rutas Maps
             </span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white flex items-center justify-center shadow-2xs shrink-0">
-              <Navigation className="w-3.5 h-3.5" />
-            </div>
           </div>
           <div>
             <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
@@ -949,13 +928,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
         {/* Boca a boca (Shares) */}
         <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/90 via-violet-50/40 to-white border border-indigo-200 shadow-2xs hover:border-indigo-400 transition-all flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between text-indigo-900 mb-1.5">
+          <div className="mb-1.5">
             <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-indigo-800">
               Compartidos
             </span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-2xs shrink-0">
-              <Share2 className="w-3.5 h-3.5" />
-            </div>
           </div>
           <div>
             <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
@@ -969,13 +945,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
         {/* Clientes QR Validados */}
         <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-50/90 via-fuchsia-50/40 to-white border border-purple-200 shadow-2xs hover:border-purple-400 transition-all flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between text-purple-900 mb-1.5">
+          <div className="mb-1.5">
             <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-purple-800">
               Canjes QR
             </span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-purple-600 to-fuchsia-500 text-white flex items-center justify-center shadow-2xs shrink-0">
-              <QrCode className="w-3.5 h-3.5" />
-            </div>
           </div>
           <div>
             <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
@@ -993,13 +966,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Card 1: MRR & Facturación del Corte */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-slate-500 mb-2">
+            <div className="mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Facturación & MRR
               </span>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-[#00d8a5] text-white flex items-center justify-center shadow-2xs">
-                <DollarSign className="w-4 h-4" />
-              </div>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-[#041f5e]">
               {formatCOP(monthlyRevenueCOP)}
@@ -1019,13 +989,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Card 2: Costo Por Lead (CPL) & CAC Real */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-slate-500 mb-2">
+            <div className="mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Costo Por Lead (CPL)
               </span>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-[#007af7] text-white flex items-center justify-center shadow-2xs">
-                <Target className="w-4 h-4" />
-              </div>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-[#041f5e]">
               {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
@@ -1045,13 +1012,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Card 3: Ahorro Comunitario vs Pauta Meta/Google */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-amber-50/30 border border-emerald-200/80 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-slate-500 mb-2">
+            <div className="mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
                 Ahorro para Comercios
               </span>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-[#ff7700] text-white flex items-center justify-center shadow-2xs">
-                <PiggyBank className="w-4 h-4" />
-              </div>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-emerald-600">
               {formatCOP(estimatedMerchantSavings)}
@@ -1072,13 +1036,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
           className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div>
-            <div className="flex items-center justify-between text-slate-500 mb-2">
+            <div className="mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Salud de Cartera
               </span>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 to-[#041f5e] text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition">
-                <Building2 className="w-4 h-4" />
-              </div>
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-slate-900">
               {activeSubscribers}{' '}
@@ -1341,9 +1302,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#ff7700]" />
-                <span>Canales de Captación en el Corte</span>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Canales de Captación en el Corte
               </h3>
               <p className="text-xs text-slate-500 font-normal">
                 Distribución de puntos de contacto preferidos por los vecinos
@@ -1358,8 +1318,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             {channelData.map((channel) => (
               <div key={channel.name} className="p-2.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-sky-100 transition">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <div className="flex items-center gap-1.5 font-medium text-slate-700">
-                    <span className="text-sm">{channel.icon}</span>
+                  <div className="font-medium text-slate-700">
                     <span>{channel.name}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1385,9 +1344,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-[#ff7700]" />
-                <span>Días Pico de Demanda Vecinal</span>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Días Pico de Demanda Vecinal
               </h3>
               <p className="text-xs text-slate-500 font-normal">
                 Intensidad de consultas e interacciones según el día en el periodo
@@ -1424,12 +1382,9 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
       <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-[#ff7700]" />
-                <span>Top Publicaciones con Mayor Retorno en el Corte</span>
+            <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Top Publicaciones con Mayor Retorno en el Corte
               </h3>
-            </div>
             <p className="text-xs text-slate-500 font-normal">
               Anuncios de la red que más contactos y clientes generaron durante los {cutDays} días seleccionados
             </p>
@@ -1501,9 +1456,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-[#007af7]" />
-                <span>Rendimiento por Territorio en el Corte</span>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Rendimiento por Territorio en el Corte
               </h3>
               <p className="text-xs text-slate-500 font-normal">
                 Demanda vecinal y comercios activos por cada municipio
@@ -1551,9 +1505,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e] flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-purple-600" />
-                <span>Demanda por Categorías en el Corte</span>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Demanda por Categorías en el Corte
               </h3>
               <p className="text-xs text-slate-500 font-normal">
                 Sectores con mayor captación de clientes vecinales
