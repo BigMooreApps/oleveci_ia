@@ -1291,14 +1291,14 @@ export const AdminOliTab: React.FC = () => {
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Simulador en tiempo real:</span>
+                  <span className="text-slate-500 font-medium">Acceso para usuarios:</span>
                   <button
                     type="button"
                     onClick={() => setIsWhatsAppModalOpen(true)}
                     className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <WhatsAppIcon className="w-3.5 h-3.5 fill-emerald-600" />
-                    <span>Abrir Simulador WhatsApp</span>
+                    <span>Ver QR y Número WhatsApp</span>
                   </button>
                 </div>
               </div>

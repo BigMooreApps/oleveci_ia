@@ -25,7 +25,6 @@ import {
   Phone,
   Tag,
   X,
-  ScrollText,
   Pencil,
   Trash2,
   Check,
@@ -39,7 +38,6 @@ import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
 import { OliPlanResponse, OliPlanStop } from '../types';
 import { removeStopAndRecalculatePlan } from '../utils/oliPlanClientUtils';
-import { OliChatLogModal } from './OliChatLogModal';
 import { OliWhatsAppModal } from './OliWhatsAppModal';
 
 const formatPriceCOP = (amount?: number | null): string => {
@@ -119,8 +117,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [editingMessageText, setEditingMessageText] = useState('');
   const [expandedResults, setExpandedResults] = useState<Record<number, boolean>>({});
 
-  // Full Chat Conversation Log & WhatsApp Modal State
-  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  // WhatsApp Modal State
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
 
@@ -535,26 +532,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
                 type="button"
                 onClick={() => setIsWhatsAppOpen(true)}
                 className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
-                title="Conversar con Oli en WhatsApp (Simulador y Conexión)"
+                title="Conversar con Oli en WhatsApp"
               >
                 <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="hidden sm:inline">WhatsApp</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsLogModalOpen(true)}
-                className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
-                title="Registro y Diagnóstico del Chat: Ver contexto completo y exportar para IA"
-              >
-                <ScrollText className="w-3.5 h-3.5 text-[#0066FF]" />
-                <span className="hidden sm:inline">Log del Chat</span>
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    hasApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-amber-500'
-                  }`}
-                  title={hasApiKey ? 'IA Gemini Activa' : 'Motor Local de Respaldo'}
-                />
               </button>
 
               <button
@@ -590,7 +571,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
               </div>
             </div>
 
-            {/* Action Pills: WhatsApp & Inspector */}
+            {/* Action Pills: WhatsApp */}
             <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
               <button
                 type="button"
@@ -599,21 +580,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
               >
                 <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Chatear en WhatsApp</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsLogModalOpen(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
-              >
-                <ScrollText className="w-3.5 h-3.5 text-[#0066FF]" />
-                <span>Log y Contexto del Chat</span>
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    hasApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-amber-500'
-                  }`}
-                  title={hasApiKey ? 'IA Gemini Activa' : 'Motor Local de Respaldo'}
-                />
               </button>
             </div>
 
@@ -1378,18 +1344,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
         </div>
       </div>
 
-      {/* Floating Full Context Chat Log & AI Sharing Modal */}
-      <OliChatLogModal
-        isOpen={isLogModalOpen}
-        onClose={() => setIsLogModalOpen(false)}
-        chatHistory={chatHistory}
-        currentCity={currentCity || 'Cajicá'}
-        currentPlan={currentPlan}
-        hasApiKey={hasApiKey}
-        onApiKeySaved={() => setHasApiKey(true)}
-      />
-
-      {/* WhatsApp Modal: Simulator, Direct wa.me link, and Meta Cloud API Webhook */}
+      {/* WhatsApp Modal: Direct wa.me link and QR */}
       <OliWhatsAppModal
         isOpen={isWhatsAppOpen}
         onClose={() => setIsWhatsAppOpen(false)}
