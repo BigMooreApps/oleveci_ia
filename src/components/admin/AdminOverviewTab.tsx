@@ -1014,7 +1014,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
                 {/* Structured Calculation Box */}
                 <div className="my-2.5 p-2 sm:p-2.5 rounded-xl bg-sky-50/70 border border-sky-100 text-xs space-y-1.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#1e88e5]">
+                  <div className="text-[8.5px] sm:text-[9px] font-bold uppercase tracking-tight sm:tracking-normal text-[#1e88e5] whitespace-nowrap overflow-hidden text-ellipsis">
                     DESGLOSE DE FACTURACIÓN
                   </div>
                   <div className="space-y-1 text-[10px] sm:text-[10.5px]">
@@ -1060,7 +1060,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
                 {/* Structured Calculation Box */}
                 <div className="my-2.5 p-2 sm:p-2.5 rounded-xl bg-amber-50/70 border border-amber-100 text-xs space-y-1.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#b45309]">
+                  <div className="text-[8.5px] sm:text-[9px] font-bold uppercase tracking-tight sm:tracking-normal text-[#b45309] whitespace-nowrap overflow-hidden text-ellipsis">
                     FÓRMULA DE COSTO UNITARIO
                   </div>
                   <div className="space-y-1 text-[10px] sm:text-[10.5px]">
@@ -1106,7 +1106,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
                 {/* Structured Calculation Box */}
                 <div className="my-2.5 p-2 sm:p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-xs space-y-1.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#047857]">
+                  <div className="text-[8.5px] sm:text-[9px] font-bold uppercase tracking-tight sm:tracking-normal text-[#047857] whitespace-nowrap overflow-hidden text-ellipsis">
                     COMPARATIVA VS GOOGLE / META ADS
                   </div>
                   <div className="space-y-1 text-[10px] sm:text-[10.5px]">
@@ -1152,7 +1152,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
                 {/* Structured Calculation Box */}
                 <div className="my-2.5 p-2 sm:p-2.5 rounded-xl bg-purple-50/70 border border-purple-100 text-xs space-y-1.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#6d28d9]">
+                  <div className="text-[8.5px] sm:text-[9px] font-bold uppercase tracking-tight sm:tracking-normal text-[#6d28d9] whitespace-nowrap overflow-hidden text-ellipsis">
                     EMBUDO DE CONVERSIÓN
                   </div>
                   <div className="space-y-1 text-[10px] sm:text-[10.5px]">
