@@ -6,7 +6,6 @@ import {
   ExternalLink,
   QrCode,
   Smartphone,
-  Sparkles,
 } from 'lucide-react';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
@@ -180,26 +179,6 @@ export const OliWhatsAppModal: React.FC<OliWhatsAppModalProps> = ({ isOpen, onCl
             <span>Escribirle directo a Oli en WhatsApp</span>
             <ExternalLink className="w-4 h-4 text-white/90" />
           </a>
-
-          {/* Quick Helper Note */}
-          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-normal">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span>
-              Oli te responderá al instante con los mejores planes, promociones y comercios de la Sabana.
-            </span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span className="truncate">OleVeci · Sabana Centro</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs cursor-pointer transition-colors"
-          >
-            Cerrar
-          </button>
         </div>
       </div>
     </div>
