@@ -1000,7 +1000,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {/* Card 1: FACTURACIÓN & MRR */}
           <div className="rounded-2xl sm:rounded-3xl border-2 border-[#1e88e5] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
-            <div className="bg-[#1e88e5] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+            <div className="bg-[#1e88e5] text-white py-2.5 px-2 font-bold text-center text-[11px] sm:text-xs uppercase tracking-normal sm:tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">
               FACTURACIÓN & MRR
             </div>
             <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
@@ -1034,17 +1034,11 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 </div>
               </div>
 
-              {/* Footer with Mini Pie SVG */}
-              <div className="flex items-center gap-3 pt-3 mt-auto">
-                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
-                  <circle cx="18" cy="18" r="16" fill="#bae6fd" />
-                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 34 18 Z" fill="#1e88e5" />
-                </svg>
-                <div className="min-w-0">
-                  <div className="text-[11px] text-slate-500 font-medium">ARR proyectado anual:</div>
-                  <div className="text-sm sm:text-base font-black text-slate-900 truncate">
-                    {formatCOP(projectedARR)}
-                  </div>
+              {/* Clean Footer without icon */}
+              <div className="pt-3 border-t border-slate-100 flex flex-col justify-center mt-auto">
+                <div className="text-[11px] text-slate-500 font-medium">ARR proyectado anual:</div>
+                <div className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                  {formatCOP(projectedARR)}
                 </div>
               </div>
             </div>
@@ -1052,7 +1046,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
           {/* Card 2: COSTO POR LEAD (CPL) */}
           <div className="rounded-2xl sm:rounded-3xl border-2 border-[#f59e0b] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
-            <div className="bg-[#f59e0b] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+            <div className="bg-[#f59e0b] text-white py-2.5 px-2 font-bold text-center text-[11px] sm:text-xs uppercase tracking-normal sm:tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">
               COSTO POR LEAD (CPL)
             </div>
             <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
@@ -1086,17 +1080,11 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 </div>
               </div>
 
-              {/* Footer with Mini Pie SVG */}
-              <div className="flex items-center gap-3 pt-3 mt-auto">
-                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
-                  <circle cx="18" cy="18" r="16" fill="#fde68a" />
-                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 34 18 Z" fill="#f59e0b" />
-                </svg>
-                <div className="min-w-0">
-                  <div className="text-[11px] text-slate-500 font-medium">CAC Real (Canjes QR):</div>
-                  <div className="text-sm sm:text-base font-black text-amber-950 truncate">
-                    {cutCACReal > 0 ? `${formatCOP(cutCACReal)}/canje` : 'Sin canjes en corte'}
-                  </div>
+              {/* Clean Footer without icon */}
+              <div className="pt-3 border-t border-slate-100 flex flex-col justify-center mt-auto">
+                <div className="text-[11px] text-slate-500 font-medium">CAC Real (Canjes QR):</div>
+                <div className="text-base sm:text-lg font-black text-amber-950 leading-snug">
+                  {cutCACReal > 0 ? `${formatCOP(cutCACReal)} / canje` : 'Sin canjes en corte'}
                 </div>
               </div>
             </div>
@@ -1104,7 +1092,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
           {/* Card 3: AHORRO PARA COMERCIOS */}
           <div className="rounded-2xl sm:rounded-3xl border-2 border-[#10b981] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
-            <div className="bg-[#10b981] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+            <div className="bg-[#10b981] text-white py-2.5 px-2 font-bold text-center text-[11px] sm:text-xs uppercase tracking-normal sm:tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">
               AHORRO PARA COMERCIOS
             </div>
             <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
@@ -1138,17 +1126,11 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 </div>
               </div>
 
-              {/* Footer with Mini Pie SVG */}
-              <div className="flex items-center gap-3 pt-3 mt-auto">
-                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
-                  <circle cx="18" cy="18" r="16" fill="#a7f3d0" />
-                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 18 34 Z" fill="#10b981" />
-                </svg>
-                <div className="min-w-0">
-                  <div className="text-[11px] text-slate-500 font-medium">Retorno de inversión (ROI):</div>
-                  <div className="text-sm sm:text-base font-black text-[#047857] truncate">
-                    {cutProratedRevenueCOP > 0 ? `${(traditionalAdsBenchmark / cutProratedRevenueCOP).toFixed(1)}x de retorno` : '14.3x de retorno'}
-                  </div>
+              {/* Clean Footer without icon */}
+              <div className="pt-3 border-t border-slate-100 flex flex-col justify-center mt-auto">
+                <div className="text-[11px] text-slate-500 font-medium">Retorno de inversión (ROI):</div>
+                <div className="text-base sm:text-lg font-black text-[#047857] leading-snug">
+                  {cutProratedRevenueCOP > 0 ? `${(traditionalAdsBenchmark / cutProratedRevenueCOP).toFixed(1)}x de retorno` : '14.3x de retorno'}
                 </div>
               </div>
             </div>
@@ -1156,7 +1138,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
           {/* Card 4: CONVERSIÓN VECINAL */}
           <div className="rounded-2xl sm:rounded-3xl border-2 border-[#8b5cf6] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
-            <div className="bg-[#8b5cf6] text-white py-2.5 px-4 font-bold text-center text-xs sm:text-sm tracking-wider uppercase">
+            <div className="bg-[#8b5cf6] text-white py-2.5 px-2 font-bold text-center text-[11px] sm:text-xs uppercase tracking-normal sm:tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">
               CONVERSIÓN VECINAL
             </div>
             <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
@@ -1190,17 +1172,11 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 </div>
               </div>
 
-              {/* Footer with Mini Pie SVG */}
-              <div className="flex items-center gap-3 pt-3 mt-auto">
-                <svg viewBox="0 0 36 36" className="w-10 h-10 shrink-0">
-                  <circle cx="18" cy="18" r="16" fill="#ddd6fe" />
-                  <path d="M 18 18 L 18 2 A 16 16 0 0 1 34 18 Z" fill="#8b5cf6" />
-                </svg>
-                <div className="min-w-0">
-                  <div className="text-[11px] text-slate-500 font-medium">Promedio por negocio activo:</div>
-                  <div className="text-sm sm:text-base font-black text-[#6d28d9] truncate">
-                    ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
-                  </div>
+              {/* Clean Footer without icon */}
+              <div className="pt-3 border-t border-slate-100 flex flex-col justify-center mt-auto">
+                <div className="text-[11px] text-slate-500 font-medium">Promedio por negocio activo:</div>
+                <div className="text-base sm:text-lg font-black text-[#6d28d9] leading-snug">
+                  ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
                 </div>
               </div>
             </div>
