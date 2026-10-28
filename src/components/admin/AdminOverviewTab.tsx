@@ -1262,17 +1262,14 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: any, name: any, item: any) => [
-                    `${value} comercios (${formatCOP(item.payload.amount)})`,
-                    name,
-                  ]}
+                  content={<AdminDonutTooltip />}
+                  wrapperStyle={{ zIndex: 50, pointerEvents: 'none' }}
                 />
               </PieChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-bold text-[#041f5e]">{collectionRate}%</span>
-              <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Cobrado</span>
-              <span className="text-[10px] text-slate-400 font-normal">({activeSubscribers}/{totalBusinesses} com.)</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
+              <span className="text-2xl font-bold text-[#041f5e] leading-tight">{collectionRate}%</span>
+              <span className="text-[11px] text-emerald-600 font-bold tracking-wide">Al día</span>
             </div>
           </div>
 
