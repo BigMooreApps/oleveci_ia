@@ -1,15 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import { OliCustomRule } from '../src/types';
 
-export interface OliCustomRule {
-  id: string;
-  title: string;
-  instruction: string;
-  active: boolean;
-  category: 'tone' | 'business' | 'itinerary' | 'budget' | 'custom';
-  createdAt?: string;
-  updatedAt?: string;
-}
+export type { OliCustomRule };
 
 export const DEFAULT_OLI_RULES: OliCustomRule[] = [
   {
@@ -62,7 +55,14 @@ export const DEFAULT_OLI_RULES: OliCustomRule[] = [
   },
 ];
 
-const DB_RULES_FILE = path.join(process.cwd(), 'server', 'db_oli_rules.json');
+function getDbRulesFile(): string {
+  try {
+    if (typeof process !== 'undefined' && process.cwd && path && typeof path.join === 'function') {
+      return path.join(process.cwd(), 'server', 'db_oli_rules.json');
+    }
+  } catch {}
+  return '';
+}
 
 let rulesCache: OliCustomRule[] = [];
 
@@ -70,21 +70,26 @@ let rulesCache: OliCustomRule[] = [];
  * Load rules from disk or return default rules
  */
 export function loadOliRules(): OliCustomRule[] {
-  try {
-    if (fs.existsSync(DB_RULES_FILE)) {
-      const raw = fs.readFileSync(DB_RULES_FILE, 'utf-8');
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        rulesCache = parsed;
-        return rulesCache;
+  const filePath = getDbRulesFile();
+  if (filePath && typeof fs?.existsSync === 'function') {
+    try {
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          rulesCache = parsed;
+          return rulesCache;
+        }
       }
+    } catch (err) {
+      console.error('[oliRulesManager] Error leyendo db_oli_rules.json:', err);
     }
-  } catch (err) {
-    console.error('[oliRulesManager] Error leyendo db_oli_rules.json:', err);
   }
 
   rulesCache = [...DEFAULT_OLI_RULES];
-  saveOliRulesToDisk(rulesCache);
+  if (filePath && typeof fs?.writeFileSync === 'function') {
+    saveOliRulesToDisk(rulesCache);
+  }
   return rulesCache;
 }
 
@@ -92,14 +97,18 @@ export function loadOliRules(): OliCustomRule[] {
  * Save rules array to disk and memory cache
  */
 export function saveOliRulesToDisk(rules: OliCustomRule[]): boolean {
-  try {
-    rulesCache = rules;
-    fs.writeFileSync(DB_RULES_FILE, JSON.stringify(rules, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    console.error('[oliRulesManager] Error guardando db_oli_rules.json:', err);
-    return false;
+  rulesCache = rules;
+  const filePath = getDbRulesFile();
+  if (filePath && typeof fs?.writeFileSync === 'function') {
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(rules, null, 2), 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[oliRulesManager] Error guardando db_oli_rules.json:', err);
+      return false;
+    }
   }
+  return true;
 }
 
 /**
@@ -120,7 +129,6 @@ export function saveOrUpdateRule(rule: Partial<OliCustomRule> & { title: string;
   const now = new Date().toISOString();
 
   if (rule.id) {
-    // Update existing
     const idx = current.findIndex((r) => r.id === rule.id);
     if (idx !== -1) {
       current[idx] = {
@@ -133,7 +141,6 @@ export function saveOrUpdateRule(rule: Partial<OliCustomRule> & { title: string;
     }
   }
 
-  // Create new
   const newRule: OliCustomRule = {
     id: rule.id || `rule_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     title: rule.title.trim(),
@@ -197,6 +204,3 @@ export function formatRulesForPrompt(): string {
   return `\nREGLAS DE NEGOCIO Y POLÍTICAS DEL ADMINISTRADOR (CUMPLIMIENTO ESTRICTO Y OBLIGATORIO):
 ${formatted}\n`;
 }
-
-// Initial load on startup
-loadOliRules();

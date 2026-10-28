@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { OliCustomRule } from '../../types';
+import { OliCustomRule, OliPlanResponse } from '../../types';
 import {
   Sparkles,
   Bot,
@@ -36,7 +36,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
-import type { OliPlanResponse } from '../../../server/oliAssistant';
+
 import { OliWhatsAppModal } from '../OliWhatsAppModal';
 
 interface OliLogEntry {

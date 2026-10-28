@@ -37,7 +37,8 @@ import { Post, Business } from '../types';
 import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
-import { OliPlanResponse, OliPlanStop, removeStopAndRecalculatePlan } from '../../server/oliAssistant';
+import { OliPlanResponse, OliPlanStop } from '../types';
+import { removeStopAndRecalculatePlan } from '../utils/oliPlanClientUtils';
 import { OliChatLogModal } from './OliChatLogModal';
 import { OliWhatsAppModal } from './OliWhatsAppModal';
 

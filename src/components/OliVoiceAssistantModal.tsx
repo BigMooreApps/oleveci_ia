@@ -37,7 +37,7 @@ import { Post, Business } from '../types';
 import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
-import type { OliPlanResponse, OliPlanStop } from '../../server/oliAssistant';
+import type { OliPlanResponse, OliPlanStop } from '../types';
 
 interface OliVoiceAssistantModalProps {
   isOpen: boolean;

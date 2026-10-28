@@ -27,7 +27,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { Post, Business } from '../types';
-import { OliPlanResponse } from '../../server/oliAssistant';
+import { OliPlanResponse } from '../types';
 
 export interface ChatLogMessage {
   sender: 'user' | 'oli';
