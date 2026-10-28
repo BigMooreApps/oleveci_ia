@@ -37,7 +37,6 @@ import {
   Navigation,
   Info,
   HelpCircle,
-  Zap,
   Target,
   PiggyBank,
   ArrowDownRight,
@@ -887,7 +886,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
       )}
 
       {/* 2. Top Executive KPI Cards (Vibrant OleVeci Color Identity + Refined Typography) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
         {/* Vistas Feed */}
         <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-white border border-sky-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
           <div className="flex items-center justify-between text-slate-500 mb-1.5">
@@ -944,26 +943,6 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
             <div className="mt-1 text-xs text-[#ff7700] font-medium truncate">
               Cómo llegar
-            </div>
-          </div>
-        </div>
-
-        {/* Total Contactos (Leads) */}
-        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-white border border-blue-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between text-blue-900 mb-1.5">
-            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-blue-800">
-              Total Leads
-            </span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-sky-500 text-white flex items-center justify-center shadow-2xs shrink-0">
-              <Zap className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
-              {cutTotalLeads.toLocaleString('es-CO')}
-            </div>
-            <div className="mt-1 text-xs text-blue-700 font-medium truncate">
-              {cutConversionRate}% conv.
             </div>
           </div>
         </div>
