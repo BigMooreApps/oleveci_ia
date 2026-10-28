@@ -10,6 +10,7 @@ import { AdminPlanCategoriesTab } from './admin/AdminPlanCategoriesTab';
 import { AdminReadyPlansTab } from './admin/AdminReadyPlansTab';
 import { AdminProfileTab } from './admin/AdminProfileTab';
 import { AdminMasterTablesTab } from './admin/AdminMasterTablesTab';
+import { AdminOliTab } from './admin/AdminOliTab';
 import { NotificationsModal, NotificationItemData } from './common/NotificationsModal';
 import {
   Building2,
@@ -42,6 +43,7 @@ type AdminTab =
   | 'businesses'
   | 'posts'
   | 'ready_plans'
+  | 'oli'
   | 'master_tables'
   | 'municipalities'
   | 'categories'
@@ -286,6 +288,11 @@ export const AdminDashboard: React.FC = () => {
       icon: Route,
     },
     {
+      id: 'oli',
+      label: 'Asistente OLI',
+      icon: Sparkles,
+    },
+    {
       id: 'master_tables',
       label: 'Tablas Maestras',
       icon: Database,
@@ -475,6 +482,8 @@ export const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'ready_plans' && <AdminReadyPlansTab />}
+
+        {activeTab === 'oli' && <AdminOliTab />}
 
         {(activeTab === 'master_tables' ||
           activeTab === 'municipalities' ||

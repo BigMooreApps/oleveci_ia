@@ -1,0 +1,1267 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useApp } from '../../context/AppContext';
+import {
+  Sparkles,
+  Bot,
+  Zap,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  Play,
+  Key,
+  ScrollText,
+  Download,
+  Trash2,
+  Phone,
+  Store,
+  MapPin,
+  Sliders,
+  ShieldCheck,
+  Clock,
+  Activity,
+  Layers,
+  Search,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  QrCode,
+  Wifi,
+  WifiOff,
+  FileText,
+  UtensilsCrossed,
+  Tag,
+  Users,
+  Compass,
+} from 'lucide-react';
+import { WhatsAppIcon } from '../WhatsAppIcon';
+import { OliPlanResponse } from '../../../server/oliAssistant';
+import { OliWhatsAppModal } from '../OliWhatsAppModal';
+
+interface OliLogEntry {
+  id: string;
+  timestamp: string;
+  userPrompt: string;
+  currentCity: string;
+  userBudget?: number;
+  messageHistoryCount?: number;
+  responseType?: string;
+  spokenText?: string;
+  totalCost?: number;
+  stopsCount?: number;
+  matchedBusinessesCount?: number;
+  stops?: any[];
+  matchedBusinesses?: Array<{ id: string; name: string; city: string; phone?: string }>;
+}
+
+export const AdminOliTab: React.FC = () => {
+  const { businesses, posts, municipalities } = useApp();
+
+  // Active sub-tab inside Admin Oli section
+  const [activeSubTab, setActiveSubTab] = useState<
+    'models' | 'logs' | 'whatsapp' | 'catalog' | 'settings'
+  >('models');
+
+  // LLM Config & Key management
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [provider, setProvider] = useState<'groq' | 'gemini' | 'none'>('none');
+  const [inputApiKey, setInputApiKey] = useState('');
+  const [isSavingKey, setIsSavingKey] = useState(false);
+  const [keySaveMessage, setKeySaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Live Playground Test Bench
+  const [testPrompt, setTestPrompt] = useState('quiero almorzar en cajica con 40 mil pesos');
+  const [testCity, setTestCity] = useState('Cajicá');
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    response: OliPlanResponse;
+    durationMs: number;
+    providerUsed: string;
+  } | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
+
+  // Conversation Logs
+  const [logs, setLogs] = useState<OliLogEntry[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [logFilterCity, setLogFilterCity] = useState('all');
+  const [logSearchQuery, setLogSearchQuery] = useState('');
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [isClearingLogs, setIsClearingLogs] = useState(false);
+
+  // WhatsApp Baileys Status
+  const [baileysStatus, setBaileysStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const [baileysQr, setBaileysQr] = useState<string | null>(null);
+  const [baileysPhone, setBaileysPhone] = useState<string | null>(null);
+  const [baileysLoading, setBaileysLoading] = useState(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+
+  // Copy helper
+  const [copiedKey, setCopiedKey] = useState(false);
+
+  // 1. Fetch initial configuration & status
+  const fetchConfig = () => {
+    fetch('/api/oli/config')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setHasApiKey(Boolean(data.hasApiKey));
+          setProvider(data.provider || 'none');
+        }
+      })
+      .catch(() => {});
+  };
+
+  const fetchLogs = () => {
+    setIsLoadingLogs(true);
+    fetch('/api/oli/conversation-logs')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.logs)) {
+          setLogs(data.logs.reverse());
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingLogs(false));
+  };
+
+  const fetchBaileysStatus = () => {
+    fetch('/api/whatsapp/baileys/status')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setBaileysStatus(data.status);
+          setBaileysQr(data.qrCodeDataUrl || null);
+          setBaileysPhone(data.connectedPhone || null);
+        }
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchConfig();
+    fetchLogs();
+    fetchBaileysStatus();
+  }, []);
+
+  // Poll Baileys status when in whatsapp subtab
+  useEffect(() => {
+    if (activeSubTab === 'whatsapp') {
+      fetchBaileysStatus();
+      const interval = setInterval(fetchBaileysStatus, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [activeSubTab]);
+
+  // Handle save API key
+  const handleSaveApiKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputApiKey.trim()) return;
+
+    setIsSavingKey(true);
+    setKeySaveMessage(null);
+    try {
+      const res = await fetch('/api/oli/set-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: inputApiKey.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.hasApiKey) {
+        setHasApiKey(true);
+        setKeySaveMessage({ type: 'success', text: '¡Clave API configurada con éxito en el servidor!' });
+        setInputApiKey('');
+        fetchConfig();
+      } else {
+        setKeySaveMessage({ type: 'error', text: data.error || 'Error al validar la clave API' });
+      }
+    } catch {
+      setKeySaveMessage({ type: 'error', text: 'Error de conexión con el servidor local' });
+    } finally {
+      setIsSavingKey(false);
+    }
+  };
+
+  // Handle Run Test Prompt
+  const handleRunTest = async () => {
+    if (!testPrompt.trim() || isTesting) return;
+
+    setIsTesting(true);
+    setTestError(null);
+    setTestResult(null);
+
+    const startTime = performance.now();
+    try {
+      const res = await fetch('/api/oli/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userPrompt: testPrompt.trim(),
+          currentCity: testCity,
+          messageHistory: [],
+        }),
+      });
+
+      const endTime = performance.now();
+      const durationMs = Math.round(endTime - startTime);
+
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: Falló el procesamiento del asistente`);
+      }
+
+      const planData: OliPlanResponse = await res.json();
+      setTestResult({
+        response: planData,
+        durationMs,
+        providerUsed: planData.auditTrace?.provider || (hasApiKey ? 'groq / gemini' : 'motor_local_sabana'),
+      });
+      fetchLogs(); // refresh logs after run
+    } catch (err: any) {
+      setTestError(err.message || 'Error ejecutando prueba');
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  // Clear Logs
+  const handleClearLogs = async () => {
+    if (!window.confirm('¿Estás seguro de que deseas vaciar todos los registros de auditoría de Oli?')) {
+      return;
+    }
+    setIsClearingLogs(true);
+    try {
+      await fetch('/api/oli/conversation-logs', { method: 'DELETE' });
+      setLogs([]);
+    } catch {
+      alert('Error eliminando registros');
+    } finally {
+      setIsClearingLogs(false);
+    }
+  };
+
+  // Export logs to Markdown
+  const handleExportLogs = () => {
+    if (logs.length === 0) return;
+
+    let md = `# REGISTRO DE AUDITORÍA Y CONVERSACIONES OLI (OLEVECI)\n\n`;
+    md += `*Fecha de Exportación:* ${new Date().toLocaleString('es-CO')}\n`;
+    md += `*Total de Interacciones:* ${logs.length}\n`;
+    md += `*Proveedor Activo:* ${provider.toUpperCase()}\n\n---\n\n`;
+
+    logs.forEach((log, idx) => {
+      md += `## Turno #${idx + 1} (${new Date(log.timestamp).toLocaleString('es-CO')})\n`;
+      md += `- **Municipio:** ${log.currentCity}\n`;
+      md += `- **Presupuesto:** ${log.userBudget ? `$ ${log.userBudget.toLocaleString('es-CO')}` : 'Sin límite'}\n`;
+      md += `- **Consulta Usuario:** "${log.userPrompt}"\n`;
+      md += `- **Respuesta Oli:** "${log.spokenText || ''}"\n`;
+      if (log.stops && log.stops.length > 0) {
+        md += `\n### Paradas Generadas (${log.stops.length}):\n`;
+        log.stops.forEach((s: any, sIdx: number) => {
+          md += `  ${sIdx + 1}. **${s.businessName}** (${s.businessCity}) - ${s.activity} [$ ${s.cost ? s.cost.toLocaleString('es-CO') : 0}]\n`;
+        });
+      }
+      if (log.matchedBusinesses && log.matchedBusinesses.length > 0) {
+        md += `\n### Comercios Vinculados:\n`;
+        log.matchedBusinesses.forEach((b: any) => {
+          md += `  - ${b.name} (${b.city}) - Tel/WA: ${b.phone || 'N/A'}\n`;
+        });
+      }
+      md += `\n---\n\n`;
+    });
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `auditoria_oli_${new Date().toISOString().slice(0, 10)}.md`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // WhatsApp Baileys Handlers
+  const handleConnectBaileys = async () => {
+    setBaileysLoading(true);
+    try {
+      await fetch('/api/whatsapp/baileys/connect', { method: 'POST' });
+      fetchBaileysStatus();
+    } catch {
+      alert('Error iniciando servicio de WhatsApp');
+    } finally {
+      setBaileysLoading(false);
+    }
+  };
+
+  const handleDisconnectBaileys = async () => {
+    if (!window.confirm('¿Deseas desconectar la sesión activa de WhatsApp Web?')) return;
+    setBaileysLoading(true);
+    try {
+      await fetch('/api/whatsapp/baileys/disconnect', { method: 'POST' });
+      fetchBaileysStatus();
+    } catch {
+      alert('Error desconectando sesión');
+    } finally {
+      setBaileysLoading(false);
+    }
+  };
+
+  // Filtered Logs
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      if (logFilterCity !== 'all' && log.currentCity.toLowerCase() !== logFilterCity.toLowerCase()) {
+        return false;
+      }
+      if (logSearchQuery.trim()) {
+        const q = logSearchQuery.toLowerCase();
+        const inPrompt = log.userPrompt?.toLowerCase().includes(q);
+        const inResponse = log.spokenText?.toLowerCase().includes(q);
+        const inStops = log.stops?.some((s: any) => s.businessName?.toLowerCase().includes(q));
+        if (!inPrompt && !inResponse && !inStops) return false;
+      }
+      return true;
+    });
+  }, [logs, logFilterCity, logSearchQuery]);
+
+  // Catalog Health Analytics for Oli
+  const catalogAnalytics = useMemo(() => {
+    const activeBusinesses = businesses.filter((b) => (!b.status || b.status === 'active') && !b.suspended);
+    const activePosts = posts.filter((p) => (!p.status || p.status === 'active') && !p.suspended);
+    const bizWithWa = activeBusinesses.filter((b) => (b.whatsapp || b.phone)?.replace(/\D/g, '').length >= 10);
+    const bizWithAddress = activeBusinesses.filter((b) => b.address && b.address.trim().length > 3);
+
+    // City breakdown
+    const cityMap: Record<string, { businesses: number; posts: number; withWa: number }> = {};
+    activeBusinesses.forEach((b) => {
+      const city = b.city || 'Otros';
+      if (!cityMap[city]) cityMap[city] = { businesses: 0, posts: 0, withWa: 0 };
+      cityMap[city].businesses += 1;
+      if ((b.whatsapp || b.phone)?.replace(/\D/g, '').length >= 10) {
+        cityMap[city].withWa += 1;
+      }
+    });
+
+    activePosts.forEach((p) => {
+      const city = p.businessCity || 'Otros';
+      if (!cityMap[city]) cityMap[city] = { businesses: 0, posts: 0, withWa: 0 };
+      cityMap[city].posts += 1;
+    });
+
+    // Plan roles breakdown
+    const rolesCount = {
+      main_course: 0,
+      dessert_coffee: 0,
+      breakfast_brunch: 0,
+      activity_other: 0,
+    };
+
+    activePosts.forEach((p) => {
+      const role = p.planRole;
+      if (role === 'main_course') rolesCount.main_course += 1;
+      else if (role === 'dessert_coffee' || role === 'dessert') rolesCount.dessert_coffee += 1;
+      else if (role === 'breakfast_brunch' || role === 'breakfast') rolesCount.breakfast_brunch += 1;
+      else rolesCount.activity_other += 1;
+    });
+
+    return {
+      activeBusinessesCount: activeBusinesses.length,
+      activePostsCount: activePosts.length,
+      bizWithWaCount: bizWithWa.length,
+      bizWithAddressCount: bizWithAddress.length,
+      cityMap,
+      rolesCount,
+    };
+  }, [businesses, posts]);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
+      {/* 1. Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0066FF] via-[#0056d6] to-[#0047b3] p-5 sm:p-7 text-white shadow-md">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-2 flex items-center justify-center shrink-0 shadow-inner">
+              <img
+                src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
+                alt="Oli"
+                className="w-full h-full object-contain drop-shadow"
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                  Centro de Control Asistente OLI
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md uppercase tracking-wider">
+                  OleVeci IA v3
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-blue-100 mt-1 max-w-xl font-normal leading-relaxed">
+                Supervisión de modelos LLM (Groq & Gemini), registro de auditoría conversacional, integración con WhatsApp y salud del catálogo local.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Status Badges */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold">
+              <span className={`w-2 h-2 rounded-full ${hasApiKey ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400'}`} />
+              <span>{hasApiKey ? `IA Activa (${provider.toUpperCase()})` : 'Motor Local de Respaldo'}</span>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold">
+              <WhatsAppIcon className="w-3.5 h-3.5 fill-emerald-300" />
+              <span>{baileysStatus === 'connected' ? `WA: +${baileysPhone}` : 'WA: Desconectado'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Sub-Tabs Navigation */}
+      <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('models')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeSubTab === 'models'
+              ? 'bg-[#0066FF] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Zap className="w-4 h-4" />
+          <span>Modelos & Diagnóstico</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('logs')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeSubTab === 'logs'
+              ? 'bg-[#0066FF] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <ScrollText className="w-4 h-4" />
+          <span>Auditoría & Logs ({logs.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('whatsapp')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeSubTab === 'whatsapp'
+              ? 'bg-[#0066FF] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <WhatsAppIcon className="w-4 h-4 fill-current" />
+          <span>WhatsApp Bot</span>
+          {baileysStatus === 'connected' && (
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('catalog')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeSubTab === 'catalog'
+              ? 'bg-[#0066FF] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Activity className="w-4 h-4" />
+          <span>Salud del Catálogo</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('settings')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeSubTab === 'settings'
+              ? 'bg-[#0066FF] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>Reglas & Prompts</span>
+        </button>
+      </div>
+
+      {/* 3. Sub-Tab: Modelos & Diagnóstico */}
+      {activeSubTab === 'models' && (
+        <div className="space-y-6">
+          {/* Models Architecture Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Groq Cloud */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              provider === 'groq'
+                ? 'bg-blue-50/50 border-blue-300 ring-2 ring-blue-500/20'
+                : 'bg-white border-slate-200'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-black text-[#0066FF] uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  Nivel 1 · Ultra Rápido
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                  Plan Free $0
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900">Groq Cloud (Llama 3.3 70B)</h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Inferencia ultra-rápida (~300 tokens/segundo) con soporte de formato JSON estructurado para armar itinerarios sin latencia.
+              </p>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Modelos:</span>
+                <span className="font-bold text-slate-700 font-mono text-[11px]">llama-3.3-70b / gpt-oss-120b</span>
+              </div>
+            </div>
+
+            {/* Google Gemini */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              provider === 'gemini'
+                ? 'bg-blue-50/50 border-blue-300 ring-2 ring-blue-500/20'
+                : 'bg-white border-slate-200'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <Bot className="w-4 h-4 text-indigo-500" />
+                  Nivel 2 · Razonamiento
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
+                  Tier Gratuito
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900">Google Gemini (Flash)</h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Comprensión contextual profunda de modismos colombianos y cálculo presupuestario riguroso en caso de consultas complejas.
+              </p>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Modelos:</span>
+                <span className="font-bold text-slate-700 font-mono text-[11px]">gemini-2.5-flash / 1.5-flash</span>
+              </div>
+            </div>
+
+            {/* Motor Local */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              !hasApiKey
+                ? 'bg-amber-50/50 border-amber-300 ring-2 ring-amber-500/20'
+                : 'bg-white border-slate-200'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-black text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  Nivel 3 · Respaldo Offline
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                  Sin API Externa
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900">Motor Semántico OleVeci</h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Garantiza que la app NUNCA falle aunque no haya internet exterior o se agote la cuota de la API. Ensamble determinístico local.
+              </p>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Disponibilidad:</span>
+                <span className="font-bold text-emerald-600">100% Permanente</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Management Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0066FF] flex items-center justify-center shrink-0">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Configuración de Llave API (Groq / Gemini)</h3>
+                  <p className="text-xs text-slate-500">
+                    Ingresa tu llave de Groq (<code className="font-mono text-blue-600">gsk_...</code>) o tu llave de Google AI Studio.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchConfig}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Verificar Estado</span>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveApiKey} className="flex flex-col sm:flex-row gap-3 pt-2">
+              <input
+                type="password"
+                value={inputApiKey}
+                onChange={(e) => setInputApiKey(e.target.value)}
+                placeholder="Pegar nueva API Key (ej: gsk_... o AIzaSy...)"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/10 outline-none text-xs sm:text-sm font-mono text-slate-800 placeholder:text-slate-400"
+              />
+              <button
+                type="submit"
+                disabled={isSavingKey || !inputApiKey.trim()}
+                className="px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052cc] disabled:bg-slate-200 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                {isSavingKey ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Guardar y Aplicar</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {keySaveMessage && (
+              <div className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                keySaveMessage.type === 'success'
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                  : 'bg-rose-50 border border-rose-200 text-rose-800'
+              }`}>
+                {keySaveMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertTriangle className="w-4 h-4 text-rose-600" />}
+                <span>{keySaveMessage.text}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Playground / Test Bench */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                  <Play className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Banco de Pruebas en Vivo (Playground)</h3>
+                  <p className="text-xs text-slate-500">
+                    Envía cualquier consulta para medir latencia, verificar la respuesta hablada y comprobar la coherencia de paradas.
+                  </p>
+                </div>
+              </div>
+
+              {testResult && (
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    ⏱️ {testResult.durationMs} ms
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                    🚀 {testResult.providerUsed}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Test Chips */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pruebas rápidas:</span>
+              {[
+                'quiero un capuchino en cajica',
+                'lavar el carro y luego motilarme en cajica',
+                'muestrame las promociones de oleveci',
+                'comer sushi en chia con 60 mil pesos',
+                'plan familiar domingo con ninos',
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setTestPrompt(chip)}
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs transition-colors cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div className="sm:col-span-3">
+                <input
+                  type="text"
+                  value={testPrompt}
+                  onChange={(e) => setTestPrompt(e.target.value)}
+                  placeholder="Escribe la consulta del usuario..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#0066FF] outline-none text-xs sm:text-sm text-slate-800"
+                />
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={testCity}
+                  onChange={(e) => setTestCity(e.target.value)}
+                  className="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white"
+                >
+                  <option value="Cajicá">Cajicá</option>
+                  <option value="Chía">Chía</option>
+                  <option value="Cota">Cota</option>
+                  <option value="Zipaquirá">Zipaquirá</option>
+                  <option value="Tabio">Tabio</option>
+                  <option value="Sopó">Sopó</option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={handleRunTest}
+                  disabled={isTesting || !testPrompt.trim()}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052cc] disabled:bg-slate-200 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  {isTesting ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 fill-white" />
+                      <span>Probar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {testError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{testError}</span>
+              </div>
+            )}
+
+            {testResult && (
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 animate-in fade-in">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">
+                    Respuesta Hablada de Oli:
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-800 bg-white p-3 rounded-xl border border-slate-200/90 font-medium leading-relaxed">
+                    "{testResult.response.spokenText}"
+                  </p>
+                </div>
+
+                {testResult.response.stops && testResult.response.stops.length > 0 && (
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1.5">
+                      Itinerario generado ({testResult.response.stops.length} paradas | Total: $ {testResult.response.totalEstimatedCost?.toLocaleString('es-CO')}):
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                      {testResult.response.stops.map((stop, sIdx) => (
+                        <div key={sIdx} className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-[#0066FF]">Parada #{sIdx + 1}</span>
+                            <span className="font-bold text-emerald-600">$ {stop.cost?.toLocaleString('es-CO')}</span>
+                          </div>
+                          <p className="font-bold text-slate-800 truncate">{stop.businessName}</p>
+                          <p className="text-slate-500 text-[11px] truncate">{stop.activity}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {testResult.response.matchedPosts && testResult.response.matchedPosts.length > 0 && (
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1.5">
+                      Publicaciones / Promociones devueltas ({testResult.response.matchedPosts.length}):
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {testResult.response.matchedPosts.slice(0, 4).map((post) => (
+                        <div key={post.id} className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-800 truncate">{post.title}</p>
+                            <p className="text-[11px] text-slate-500 truncate">{post.businessName} · {post.businessCity}</p>
+                          </div>
+                          <span className="font-bold text-emerald-600 shrink-0 text-xs">
+                            $ {(post.promotionalPrice || post.originalPrice || 0).toLocaleString('es-CO')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Sub-Tab: Auditoría & Logs */}
+      {activeSubTab === 'logs' && (
+        <div className="space-y-4">
+          {/* Controls Bar */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={logSearchQuery}
+                  onChange={(e) => setLogSearchQuery(e.target.value)}
+                  placeholder="Buscar en preguntas o comercios..."
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#0066FF]"
+                />
+              </div>
+
+              <select
+                value={logFilterCity}
+                onChange={(e) => setLogFilterCity(e.target.value)}
+                className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white"
+              >
+                <option value="all">Todos los municipios</option>
+                <option value="Cajicá">Cajicá</option>
+                <option value="Chía">Chía</option>
+                <option value="Cota">Cota</option>
+                <option value="Zipaquirá">Zipaquirá</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button
+                type="button"
+                onClick={fetchLogs}
+                disabled={isLoadingLogs}
+                className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                title="Actualizar registros"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${isLoadingLogs ? 'animate-spin' : ''}`} />
+                <span>Actualizar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportLogs}
+                disabled={logs.length === 0}
+                className="px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0066FF] border border-blue-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                title="Exportar archivo de análisis a Markdown"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Exportar .MD</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearLogs}
+                disabled={isClearingLogs || logs.length === 0}
+                className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                title="Limpiar historial"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Limpiar</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Logs List */}
+          {filteredLogs.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <ScrollText className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-slate-800">No hay registros de conversación que coincidan</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Las conversaciones realizadas por usuarios o en el Playground se registrarán automáticamente aquí.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredLogs.map((log, idx) => {
+                const isExpanded = expandedLogId === log.id;
+                return (
+                  <div
+                    key={log.id}
+                    className="bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 transition-all shadow-2xs overflow-hidden"
+                  >
+                    <div
+                      onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                      className="p-4 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-50/50"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className="w-7 h-7 rounded-full bg-blue-100 text-[#0066FF] font-black text-xs flex items-center justify-center shrink-0">
+                          #{filteredLogs.length - idx}
+                        </span>
+
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-bold text-slate-900 truncate">
+                              "{log.userPrompt}"
+                            </span>
+                            <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-slate-100 text-slate-600">
+                              {log.currentCity}
+                            </span>
+                            {log.stopsCount !== undefined && log.stopsCount > 0 && (
+                              <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                                {log.stopsCount} paradas
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">
+                            {log.spokenText}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-4 h-4 text-slate-400" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/50 space-y-3 text-xs">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">
+                            Respuesta completa de Oli:
+                          </span>
+                          <p className="p-3 bg-white rounded-xl border border-slate-200 text-slate-800 leading-relaxed">
+                            {log.spokenText}
+                          </p>
+                        </div>
+
+                        {log.stops && log.stops.length > 0 && (
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">
+                              Paradas del Itinerario:
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                              {log.stops.map((s: any, sIdx: number) => (
+                                <div key={sIdx} className="bg-white p-2.5 rounded-xl border border-slate-200 space-y-0.5">
+                                  <div className="flex items-center justify-between font-bold">
+                                    <span className="text-[#0066FF]">#{sIdx + 1} {s.businessName}</span>
+                                    <span className="text-emerald-600">$ {s.cost?.toLocaleString('es-CO')}</span>
+                                  </div>
+                                  <p className="text-[11px] text-slate-600">{s.activity}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {log.matchedBusinesses && log.matchedBusinesses.length > 0 && (
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">
+                              Comercios recomendados:
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                              {log.matchedBusinesses.map((b: any) => (
+                                <span key={b.id} className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium">
+                                  📍 {b.name} ({b.city}) {b.phone ? `· 📞 ${b.phone}` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400">
+                          <span>ID: {log.id}</span>
+                          <span>{new Date(log.timestamp).toLocaleString('es-CO')}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 5. Sub-Tab: WhatsApp Bot */}
+      {activeSubTab === 'whatsapp' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Panel 1: Baileys WhatsApp Web Pairing */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <WhatsAppIcon className="w-5 h-5 fill-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">WhatsApp Web (Baileys)</h3>
+                    <p className="text-xs text-slate-500">Conexión directa escaneando código QR con cualquier celular</p>
+                  </div>
+                </div>
+
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                  baileysStatus === 'connected'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    : baileysStatus === 'connecting'
+                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                    : 'bg-slate-100 border-slate-200 text-slate-600'
+                }`}>
+                  {baileysStatus === 'connected' ? '● Conectado' : baileysStatus === 'connecting' ? '⌛ Esperando QR' : '○ Desconectado'}
+                </span>
+              </div>
+
+              {baileysStatus === 'connected' ? (
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-3">
+                  <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Sesión de WhatsApp activa y respondiendo como Oli</span>
+                  </div>
+                  <p className="text-xs text-emerald-700">
+                    Número vinculado: <strong className="font-mono">+{baileysPhone}</strong>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleDisconnectBaileys}
+                    disabled={baileysLoading}
+                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors cursor-pointer"
+                  >
+                    Desconectar WhatsApp Web
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {baileysQr ? (
+                    <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                      <p className="text-xs font-bold text-slate-700">
+                        Escanea este código con tu WhatsApp:
+                      </p>
+                      <div className="inline-block p-2 bg-white rounded-xl shadow-xs border border-slate-200">
+                        <img src={baileysQr} alt="WhatsApp QR Code" className="w-48 h-48 mx-auto" />
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        WhatsApp &gt; Dispositivos vinculados &gt; Vincular dispositivo
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-3">
+                      <p className="text-xs text-slate-600">
+                        El bot de WhatsApp Web no está activo en este momento. Puedes iniciar la conexión para generar un código QR.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleConnectBaileys}
+                        disabled={baileysLoading}
+                        className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 mx-auto transition-all cursor-pointer shadow-xs"
+                      >
+                        {baileysLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
+                        <span>Generar Código QR</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Panel 2: Meta Cloud API Webhook */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0066FF] flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-[#0066FF]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Meta Cloud API (Webhook Oficial)</h3>
+                  <p className="text-xs text-slate-500">Para empresas con número oficial verificado en Meta for Developers</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    URL de Retrollamada (Webhook URL):
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-slate-700 flex items-center justify-between">
+                    <span className="truncate">https://oleveci.com/api/whatsapp/webhook</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText('https://oleveci.com/api/whatsapp/webhook');
+                        alert('URL copiada al portapapeles');
+                      }}
+                      className="text-blue-600 font-bold ml-2 cursor-pointer"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Token de Verificación (Verify Token):
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-slate-700 flex items-center justify-between">
+                    <span>oleveci_token_2026</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText('oleveci_token_2026');
+                        alert('Token copiado al portapapeles');
+                      }}
+                      className="text-blue-600 font-bold ml-2 cursor-pointer"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-slate-500 font-medium">Simulador en tiempo real:</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsWhatsAppModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5 fill-emerald-600" />
+                    <span>Abrir Simulador WhatsApp</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Sub-Tab: Salud del Catálogo */}
+      {activeSubTab === 'catalog' && (
+        <div className="space-y-6">
+          {/* Quick Metrics KPI cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Comercios Activos</span>
+              <p className="text-2xl font-black text-slate-900">{catalogAnalytics.activeBusinessesCount}</p>
+              <span className="text-[11px] text-emerald-600 font-semibold">Listos para sugerir en Oli</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Ofertas / Anuncios</span>
+              <p className="text-2xl font-black text-blue-600">{catalogAnalytics.activePostsCount}</p>
+              <span className="text-[11px] text-slate-500 font-medium">Precios y horarios cargados</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Con WhatsApp</span>
+              <p className="text-2xl font-black text-emerald-600">
+                {catalogAnalytics.activeBusinessesCount > 0
+                  ? `${Math.round((catalogAnalytics.bizWithWaCount / catalogAnalytics.activeBusinessesCount) * 100)}%`
+                  : '0%'}
+              </p>
+              <span className="text-[11px] text-slate-500 font-medium">{catalogAnalytics.bizWithWaCount} comercios</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Dirección Física</span>
+              <p className="text-2xl font-black text-indigo-600">{catalogAnalytics.bizWithAddressCount}</p>
+              <span className="text-[11px] text-slate-500 font-medium">Ubicación verificable</span>
+            </div>
+          </div>
+
+          {/* Municipality Breakdown Table */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#0066FF]" />
+                <h3 className="text-sm font-bold text-slate-900">Cobertura de Oli por Municipio</h3>
+              </div>
+              <span className="text-xs text-slate-500">Sabana Centro, Cundinamarca</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 uppercase font-bold text-[10px] tracking-wider">
+                    <th className="py-2.5 px-3">Municipio</th>
+                    <th className="py-2.5 px-3">Comercios Indexados</th>
+                    <th className="py-2.5 px-3">Ofertas Activas</th>
+                    <th className="py-2.5 px-3">Comercios con WhatsApp</th>
+                    <th className="py-2.5 px-3">Estado para Oli</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {Object.entries(catalogAnalytics.cityMap).map(([city, data]) => {
+                    const isOptimal = data.businesses >= 3 && data.posts >= 2;
+                    return (
+                      <tr key={city} className="hover:bg-slate-50/50">
+                        <td className="py-2.5 px-3 font-bold text-slate-900">{city}</td>
+                        <td className="py-2.5 px-3 font-semibold">{data.businesses}</td>
+                        <td className="py-2.5 px-3 font-semibold text-blue-600">{data.posts}</td>
+                        <td className="py-2.5 px-3 font-semibold text-emerald-600">{data.withWa}</td>
+                        <td className="py-2.5 px-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            isOptimal
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}>
+                            {isOptimal ? 'Óptimo para Itinerarios' : 'Cobertura Básica'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Sub-Tab: Reglas & Prompts */}
+      {activeSubTab === 'settings' && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-6">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Reglas de Negocio y Tono Sabanero de Oli</h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Políticas fijas aplicadas por el sistema al interactuar con usuarios en la app y WhatsApp.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
+                1. Tono y Saludo Oficial
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Toda respuesta debe iniciar con <strong>"¡Listo veci!"</strong>, con calidez sabanera, naturalidad y sin formato técnico o markdown roto.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
+                2. Regla de Cero Comercios Duplicados
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Un solo itinerario jamás debe repetir el mismo comercio en dos paradas distintas, garantizando variedad comercial y soporte a múltiples vecinos.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
+                3. Una Sola Comida Fuerte
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Los itinerarios se estructuran cronológicamente (Actividad &gt; Almuerzo &gt; Café/Postre &gt; Cervezas/Relax). Nunca dos comidas pesadas continuas.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
+                4. Control Estricto de Presupuesto
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Si el usuario da un presupuesto, la suma de los precios oficiales no debe superarlo. Si lo supera, se le avisa explícitamente sin inventar cifras.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Modal Simulator */}
+      <OliWhatsAppModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+      />
+    </div>
+  );
+};
