@@ -573,17 +573,28 @@ app.post('/api/oli/plan', async (req, res) => {
 app.get('/api/oli/config', (_req, res) => {
   const hasGroq = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0);
   const hasGemini = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
+  const currentProvider = process.env.OLI_PROVIDER || (hasGroq ? 'groq' : (hasGemini ? 'gemini' : 'local'));
   return res.json({
     hasApiKey: hasGroq || hasGemini,
-    provider: hasGroq ? 'groq' : (hasGemini ? 'gemini' : 'none'),
+    provider: currentProvider,
+    groqApiKey: process.env.GROQ_API_KEY || '',
+    geminiApiKey: process.env.GEMINI_API_KEY || '',
+    hasGroq,
+    hasGemini,
   });
 });
 
 app.post('/api/oli/set-key', (req, res) => {
   try {
-    const { apiKey, groqApiKey } = req.body;
-    if (groqApiKey && typeof groqApiKey === 'string' && groqApiKey.trim().length > 0) {
+    const { apiKey, groqApiKey, geminiApiKey, provider } = req.body;
+    if (provider && ['groq', 'gemini', 'local'].includes(provider)) {
+      process.env.OLI_PROVIDER = provider;
+    }
+    if (groqApiKey !== undefined && typeof groqApiKey === 'string') {
       process.env.GROQ_API_KEY = groqApiKey.trim();
+    }
+    if (geminiApiKey !== undefined && typeof geminiApiKey === 'string') {
+      process.env.GEMINI_API_KEY = geminiApiKey.trim();
     }
     if (apiKey && typeof apiKey === 'string' && apiKey.trim().length > 0) {
       if (apiKey.trim().startsWith('gsk_')) {
@@ -591,12 +602,53 @@ app.post('/api/oli/set-key', (req, res) => {
       } else {
         process.env.GEMINI_API_KEY = apiKey.trim();
       }
-      return res.json({ success: true, hasApiKey: true });
     }
-    if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
-      return res.json({ success: true, hasApiKey: true });
+
+    // Persist to .env if file exists
+    try {
+      const envPath = path.join(process.cwd(), '.env');
+      if (fs.existsSync(envPath)) {
+        let envContent = fs.readFileSync(envPath, 'utf-8');
+        if (process.env.GROQ_API_KEY !== undefined) {
+          if (envContent.includes('GROQ_API_KEY=')) {
+            envContent = envContent.replace(/GROQ_API_KEY=.*/g, `GROQ_API_KEY=${process.env.GROQ_API_KEY}`);
+          } else {
+            envContent += `\nGROQ_API_KEY=${process.env.GROQ_API_KEY}`;
+          }
+        }
+        if (process.env.GEMINI_API_KEY !== undefined) {
+          if (envContent.includes('GEMINI_API_KEY=')) {
+            envContent = envContent.replace(/GEMINI_API_KEY=.*/g, `GEMINI_API_KEY=${process.env.GEMINI_API_KEY}`);
+          } else {
+            envContent += `\nGEMINI_API_KEY=${process.env.GEMINI_API_KEY}`;
+          }
+        }
+        if (process.env.OLI_PROVIDER) {
+          if (envContent.includes('OLI_PROVIDER=')) {
+            envContent = envContent.replace(/OLI_PROVIDER=.*/g, `OLI_PROVIDER=${process.env.OLI_PROVIDER}`);
+          } else {
+            envContent += `\nOLI_PROVIDER=${process.env.OLI_PROVIDER}`;
+          }
+        }
+        fs.writeFileSync(envPath, envContent, 'utf-8');
+      }
+    } catch (persistErr) {
+      console.warn('Could not persist keys to .env:', persistErr);
     }
-    return res.status(400).json({ error: 'Clave API inválida' });
+
+    const hasGroq = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0);
+    const hasGemini = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
+    const currentProvider = process.env.OLI_PROVIDER || (hasGroq ? 'groq' : (hasGemini ? 'gemini' : 'local'));
+
+    return res.json({
+      success: true,
+      hasApiKey: hasGroq || hasGemini,
+      provider: currentProvider,
+      groqApiKey: process.env.GROQ_API_KEY || '',
+      geminiApiKey: process.env.GEMINI_API_KEY || '',
+      hasGroq,
+      hasGemini,
+    });
   } catch (error) {
     return res.status(500).json({ error: 'Error configurando clave API' });
   }

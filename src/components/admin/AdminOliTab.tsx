@@ -34,6 +34,9 @@ import {
   RotateCcw,
   X,
   HelpCircle,
+  Eye,
+  EyeOff,
+  Copy,
 } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
@@ -65,8 +68,13 @@ export const AdminOliTab: React.FC = () => {
 
   // LLM Config & Key management
   const [hasApiKey, setHasApiKey] = useState(false);
-  const [provider, setProvider] = useState<'groq' | 'gemini' | 'none'>('none');
+  const [provider, setProvider] = useState<'groq' | 'gemini' | 'local'>('groq');
+  const [groqApiKey, setGroqApiKey] = useState('');
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [selectedLlm, setSelectedLlm] = useState<'groq' | 'gemini' | 'local'>('groq');
   const [inputApiKey, setInputApiKey] = useState('');
+  const [showKey, setShowKey] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
   const [isSavingKey, setIsSavingKey] = useState(false);
   const [keySaveMessage, setKeySaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -115,10 +123,33 @@ export const AdminOliTab: React.FC = () => {
       .then((data) => {
         if (data) {
           setHasApiKey(Boolean(data.hasApiKey));
-          setProvider(data.provider || 'none');
+          const prov = (data.provider === 'none' ? 'local' : data.provider) || 'groq';
+          setProvider(prov);
+          setGroqApiKey(data.groqApiKey || '');
+          setGeminiApiKey(data.geminiApiKey || '');
+          setSelectedLlm((curr) => {
+            const next = curr || prov;
+            if (next === 'groq') setInputApiKey(data.groqApiKey || '');
+            else if (next === 'gemini') setInputApiKey(data.geminiApiKey || '');
+            else setInputApiKey('');
+            return next;
+          });
         }
       })
       .catch(() => {});
+  };
+
+  const handleSelectLlmCard = (card: 'groq' | 'gemini' | 'local') => {
+    setSelectedLlm(card);
+    setKeySaveMessage(null);
+    setShowKey(false);
+    if (card === 'groq') {
+      setInputApiKey(groqApiKey);
+    } else if (card === 'gemini') {
+      setInputApiKey(geminiApiKey);
+    } else {
+      setInputApiKey('');
+    }
   };
 
   const fetchLogs = () => {
@@ -176,33 +207,49 @@ export const AdminOliTab: React.FC = () => {
     }
   }, [activeSubTab]);
 
-  // Handle save API key
-  const handleSaveApiKey = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputApiKey.trim()) return;
-
+  // Handle save API key or active provider
+  const handleSaveApiKey = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSavingKey(true);
     setKeySaveMessage(null);
     try {
+      const payload: any = { provider: selectedLlm };
+      if (selectedLlm === 'groq') {
+        payload.groqApiKey = inputApiKey.trim();
+      } else if (selectedLlm === 'gemini') {
+        payload.geminiApiKey = inputApiKey.trim();
+      }
+
       const res = await fetch('/api/oli/set-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: inputApiKey.trim() }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (res.ok && data.hasApiKey) {
-        setHasApiKey(true);
-        setKeySaveMessage({ type: 'success', text: '¡Clave API configurada con éxito en el servidor!' });
-        setInputApiKey('');
-        fetchConfig();
+      if (res.ok) {
+        setHasApiKey(data.hasApiKey);
+        setProvider(data.provider);
+        setGroqApiKey(data.groqApiKey || '');
+        setGeminiApiKey(data.geminiApiKey || '');
+        setKeySaveMessage({
+          type: 'success',
+          text: `¡Motor ${selectedLlm === 'groq' ? 'Groq Cloud (Llama 3.3)' : selectedLlm === 'gemini' ? 'Google Gemini (Flash)' : 'Motor Semántico Local'} activado correctamente!`,
+        });
       } else {
-        setKeySaveMessage({ type: 'error', text: data.error || 'Error al validar la clave API' });
+        setKeySaveMessage({ type: 'error', text: data.error || 'Error al guardar la clave API' });
       }
     } catch {
       setKeySaveMessage({ type: 'error', text: 'Error de conexión con el servidor local' });
     } finally {
       setIsSavingKey(false);
     }
+  };
+
+  const handleCopyCurrentKey = (keyVal: string) => {
+    if (!keyVal) return;
+    navigator.clipboard.writeText(keyVal);
+    setCopiedKey(true);
+    setTimeout(() => setCopiedKey(false), 2000);
   };
 
   // Handle Run Test Prompt
@@ -533,92 +580,171 @@ export const AdminOliTab: React.FC = () => {
           {/* Models Architecture Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Groq Cloud */}
-            <div className={`p-5 rounded-2xl border transition-all ${
-              provider === 'groq'
-                ? 'bg-blue-50/50 border-blue-300 ring-2 ring-blue-500/20'
-                : 'bg-white border-slate-200'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-black text-[#0066FF] uppercase tracking-wider flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  Nivel 1 · Ultra Rápido
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-                  Plan Free $0
-                </span>
+            <div
+              onClick={() => handleSelectLlmCard('groq')}
+              className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                selectedLlm === 'groq'
+                  ? 'bg-blue-50/40 border-[#007af7] ring-2 ring-blue-500/15 shadow-xs'
+                  : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+                      selectedLlm === 'groq' ? 'bg-blue-100 text-[#007af7]' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      <Zap className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 leading-tight">Groq Cloud</h4>
+                      <span className="text-[11px] text-slate-500 font-medium">Llama 3.3 70B</span>
+                    </div>
+                  </div>
+                  {provider === 'groq' ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                      {selectedLlm === 'groq' ? 'Seleccionado' : 'Disponible'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Inferencia ultra-rápida en la nube (~300 tokens/seg) con soporte nativo de JSON estructurado para armar planes sin latencia.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-slate-900">Groq Cloud (Llama 3.3 70B)</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Inferencia ultra-rápida (~300 tokens/segundo) con soporte de formato JSON estructurado para armar itinerarios sin latencia.
-              </p>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Modelos:</span>
-                <span className="font-bold text-slate-700 font-mono text-[11px]">llama-3.3-70b / gpt-oss-120b</span>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Estado API:</span>
+                <span className="font-semibold flex items-center gap-1.5 text-slate-700">
+                  <span className={`w-2 h-2 rounded-full ${groqApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-slate-300'}`} />
+                  {groqApiKey ? 'Configurada' : 'Sin configurar'}
+                </span>
               </div>
             </div>
 
             {/* Google Gemini */}
-            <div className={`p-5 rounded-2xl border transition-all ${
-              provider === 'gemini'
-                ? 'bg-blue-50/50 border-blue-300 ring-2 ring-blue-500/20'
-                : 'bg-white border-slate-200'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-black text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
-                  <Bot className="w-4 h-4 text-indigo-500" />
-                  Nivel 2 · Razonamiento
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
-                  Tier Gratuito
-                </span>
+            <div
+              onClick={() => handleSelectLlmCard('gemini')}
+              className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                selectedLlm === 'gemini'
+                  ? 'bg-blue-50/40 border-[#007af7] ring-2 ring-blue-500/15 shadow-xs'
+                  : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+                      selectedLlm === 'gemini' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 leading-tight">Google Gemini</h4>
+                      <span className="text-[11px] text-slate-500 font-medium">Gemini 2.5 Flash</span>
+                    </div>
+                  </div>
+                  {provider === 'gemini' ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                      {selectedLlm === 'gemini' ? 'Seleccionado' : 'Disponible'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Comprensión contextual profunda de modismos colombianos y cálculo presupuestario riguroso en caso de consultas complejas.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-slate-900">Google Gemini (Flash)</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Comprensión contextual profunda de modismos colombianos y cálculo presupuestario riguroso en caso de consultas complejas.
-              </p>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Modelos:</span>
-                <span className="font-bold text-slate-700 font-mono text-[11px]">gemini-2.5-flash / 1.5-flash</span>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Estado API:</span>
+                <span className="font-semibold flex items-center gap-1.5 text-slate-700">
+                  <span className={`w-2 h-2 rounded-full ${geminiApiKey ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-slate-300'}`} />
+                  {geminiApiKey ? 'Configurada' : 'Sin configurar'}
+                </span>
               </div>
             </div>
 
-            {/* Motor Local */}
-            <div className={`p-5 rounded-2xl border transition-all ${
-              !hasApiKey
-                ? 'bg-amber-50/50 border-amber-300 ring-2 ring-amber-500/20'
-                : 'bg-white border-slate-200'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-black text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  Nivel 3 · Respaldo Offline
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
-                  Sin API Externa
-                </span>
+            {/* Motor Semántico Local */}
+            <div
+              onClick={() => handleSelectLlmCard('local')}
+              className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                selectedLlm === 'local'
+                  ? 'bg-blue-50/40 border-[#007af7] ring-2 ring-blue-500/15 shadow-xs'
+                  : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+                      selectedLlm === 'local' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 leading-tight">Motor Semántico</h4>
+                      <span className="text-[11px] text-slate-500 font-medium">Ensamble Local Offline</span>
+                    </div>
+                  </div>
+                  {provider === 'local' ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                      {selectedLlm === 'local' ? 'Seleccionado' : 'Disponible'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                  Garantiza que la app responda siempre de manera determinística y local, sin costos de API externa ni latencia de red.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-slate-900">Motor Semántico OleVeci</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Garantiza que la app NUNCA falle aunque no haya internet exterior o se agote la cuota de la API. Ensamble determinístico local.
-              </p>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Disponibilidad:</span>
-                <span className="font-bold text-emerald-600">100% Permanente</span>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Estado API:</span>
+                <span className="font-semibold flex items-center gap-1.5 text-slate-700">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+                  Integrado 100% offline
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Key Management Card */}
+          {/* Dynamic API Configuration Panel for Selected LLM */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0066FF] flex items-center justify-center shrink-0">
-                  <Key className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#007af7] flex items-center justify-center shrink-0">
+                  {selectedLlm === 'groq' ? (
+                    <Zap className="w-4 h-4" />
+                  ) : selectedLlm === 'gemini' ? (
+                    <Bot className="w-4 h-4" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Configuración de Llave API (Groq / Gemini)</h3>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    {selectedLlm === 'groq'
+                      ? 'Configuración de Llave API: Groq Cloud (Llama 3.3 70B)'
+                      : selectedLlm === 'gemini'
+                      ? 'Configuración de Llave API: Google Gemini (Flash)'
+                      : 'Motor Semántico Local OleVeci (Modo Offline)'}
+                  </h3>
                   <p className="text-xs text-slate-500">
-                    Ingresa tu llave de Groq (<code className="font-mono text-blue-600">gsk_...</code>) o tu llave de Google AI Studio.
+                    {selectedLlm === 'groq'
+                      ? 'Inferencia ultra-rápida. Llave de acceso de Groq (inicia con gsk_...)'
+                      : selectedLlm === 'gemini'
+                      ? 'Comprensión contextual de Google AI Studio. Llave de acceso (inicia con AIzaSy...)'
+                      : 'Opera de forma 100% local en el servidor, sin requerir ninguna llave API externa ni conexión exterior.'}
                   </p>
                 </div>
               </div>
@@ -628,6 +754,7 @@ export const AdminOliTab: React.FC = () => {
                   type="button"
                   onClick={fetchConfig}
                   className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Verificar estado de configuración"
                 >
                   <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
                   <span>Verificar Estado</span>
@@ -635,32 +762,135 @@ export const AdminOliTab: React.FC = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSaveApiKey} className="flex flex-col sm:flex-row gap-3 pt-2">
-              <input
-                type="password"
-                value={inputApiKey}
-                onChange={(e) => setInputApiKey(e.target.value)}
-                placeholder="Pegar nueva API Key (ej: gsk_... o AIzaSy...)"
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#0066FF] focus:ring-2 focus:ring-blue-500/10 outline-none text-xs sm:text-sm font-mono text-slate-800 placeholder:text-slate-400"
-              />
-              <button
-                type="submit"
-                disabled={isSavingKey || !inputApiKey.trim()}
-                className="px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052cc] disabled:bg-slate-200 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95"
-              >
-                {isSavingKey ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Guardando...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Guardar y Aplicar</span>
-                  </>
+            {/* Display Current Configured Key if Present */}
+            {selectedLlm === 'groq' && groqApiKey && (
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-bold text-slate-600 shrink-0">API Key actual:</span>
+                  <span className="font-mono text-slate-800 truncate select-all">
+                    {showKey
+                      ? groqApiKey
+                      : `${groqApiKey.slice(0, 8)}••••••••••••••••••••${groqApiKey.slice(-4)}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowKey(!showKey)}
+                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors"
+                    title={showKey ? 'Ocultar llave' : 'Mostrar llave'}
+                  >
+                    {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyCurrentKey(groqApiKey)}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[11px] flex items-center gap-1 shadow-2xs"
+                  >
+                    {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                    <span>{copiedKey ? 'Copiado' : 'Copiar'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {selectedLlm === 'gemini' && geminiApiKey && (
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-bold text-slate-600 shrink-0">API Key actual:</span>
+                  <span className="font-mono text-slate-800 truncate select-all">
+                    {showKey
+                      ? geminiApiKey
+                      : `${geminiApiKey.slice(0, 8)}••••••••••••••••••••${geminiApiKey.slice(-4)}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowKey(!showKey)}
+                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors"
+                    title={showKey ? 'Ocultar llave' : 'Mostrar llave'}
+                  >
+                    {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyCurrentKey(geminiApiKey)}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[11px] flex items-center gap-1 shadow-2xs"
+                  >
+                    {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                    <span>{copiedKey ? 'Copiado' : 'Copiar'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Input Form for Groq and Gemini */}
+            {selectedLlm !== 'local' ? (
+              <form onSubmit={handleSaveApiKey} className="flex flex-col sm:flex-row gap-3 pt-1">
+                <div className="relative flex-1">
+                  <input
+                    type={showKey ? 'text' : 'password'}
+                    value={inputApiKey}
+                    onChange={(e) => setInputApiKey(e.target.value)}
+                    placeholder={
+                      selectedLlm === 'groq'
+                        ? 'Pegar clave de Groq (ej: gsk_...)'
+                        : 'Pegar clave de Google AI Studio (ej: AIzaSy...)'
+                    }
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#007af7] focus:ring-2 focus:ring-blue-500/10 outline-none text-xs sm:text-sm font-mono text-slate-800 placeholder:text-slate-400"
+                  />
+                  {inputApiKey && (
+                    <button
+                      type="button"
+                      onClick={() => setShowKey(!showKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                      title={showKey ? 'Ocultar' : 'Mostrar'}
+                    >
+                      {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSavingKey || !inputApiKey.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-[#007af7] hover:bg-blue-600 disabled:bg-slate-200 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                >
+                  {isSavingKey ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Guardando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Guardar y Activar {selectedLlm === 'groq' ? 'Groq' : 'Gemini'}</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              /* Local engine action */
+              <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-emerald-950 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    El motor local no consume tokens ni requiere conexión a internet exterior. Las respuestas se ensamblan determinísticamente con el catálogo local.
+                  </span>
+                </div>
+                {provider !== 'local' && (
+                  <button
+                    type="button"
+                    onClick={() => handleSaveApiKey()}
+                    disabled={isSavingKey}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0 active:scale-95"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Activar Motor Local</span>
+                  </button>
                 )}
-              </button>
-            </form>
+              </div>
+            )}
 
             {keySaveMessage && (
               <div className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${

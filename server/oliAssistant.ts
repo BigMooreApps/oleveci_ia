@@ -2422,7 +2422,7 @@ export async function generateOliSearchResponse(
   const ai = getGenAI(input.apiKey);
   const hasGroq = Boolean((input.groqApiKey || process.env.GROQ_API_KEY)?.trim());
 
-  if (hasGroq || ai) {
+  if ((hasGroq || ai) && process.env.OLI_PROVIDER !== 'local') {
     try {
       const targetNorm = normalizeText(targetMunicipality);
       const catalogToUse = catalogBusinesses.filter(
@@ -2911,6 +2911,25 @@ async function callLLMWithFallback(
   geminiSchema: any,
   groqKey?: string
 ): Promise<{ text: string; modelUsed: string; provider: 'groq' | 'gemini' }> {
+  const preferred = process.env.OLI_PROVIDER || 'groq';
+
+  // If Gemini is preferred, try Gemini first
+  if (preferred === 'gemini' && aiInstance) {
+    try {
+      const geminiRes = await callGeminiWithModelFallback(
+        aiInstance,
+        prompt,
+        systemInstruction,
+        geminiSchema
+      );
+      if (geminiRes && geminiRes.text) {
+        return { ...geminiRes, provider: 'gemini' };
+      }
+    } catch (geminiErr: any) {
+      console.warn('Fallo en intento preferente con Gemini, intentando Groq:', geminiErr?.message || geminiErr);
+    }
+  }
+
   // 1. Try Groq (Ultra-fast, high quota, 100% free)
   try {
     const groqRes = await callGroqWithFallback(prompt, systemInstruction, groqKey);
@@ -2918,11 +2937,11 @@ async function callLLMWithFallback(
       return { ...groqRes, provider: 'groq' };
     }
   } catch (groqErr: any) {
-    console.warn('Fallo en intento principal con Groq:', groqErr?.message || groqErr);
+    console.warn('Fallo en intento con Groq:', groqErr?.message || groqErr);
   }
 
-  // 2. Try Gemini Cascade
-  if (aiInstance) {
+  // 2. Try Gemini Cascade if not already tried
+  if (preferred !== 'gemini' && aiInstance) {
     const geminiRes = await callGeminiWithModelFallback(
       aiInstance,
       prompt,
@@ -3172,8 +3191,8 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
   const ai = getGenAI(input.apiKey);
   const hasGroq = Boolean((input.groqApiKey || process.env.GROQ_API_KEY)?.trim());
 
-  // If any LLM provider is available (Groq or Gemini), run unified autonomous LLM interpretation on the full catalog
-  if (hasGroq || ai) {
+  // If any LLM provider is available (Groq or Gemini) and not set to local, run unified autonomous LLM interpretation on the full catalog
+  if ((hasGroq || ai) && process.env.OLI_PROVIDER !== 'local') {
     try {
       const businessMap = new Map<string, Business>();
       catalogBusinesses.forEach((b) => businessMap.set(b.id, b));
