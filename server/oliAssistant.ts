@@ -120,6 +120,7 @@ export interface GenerateOliPlanInput {
   catalogBusinesses: Business[];
   referenceDate?: Date;
   apiKey?: string;
+  groqApiKey?: string;
 }
 
 export function getGenAI(customKey?: string): GoogleGenAI | null {
@@ -2237,9 +2238,11 @@ export async function generateOliSearchResponse(
   const { userPrompt, catalogBusinesses, catalogPosts, currentCity = 'Cajicá' } = input;
   const targetMunicipality = extractMunicipality(userPrompt, currentCity);
 
-  // 1. Prioritize autonomous LLM semantic search via Gemini cascade
+  // 1. Prioritize autonomous LLM semantic search via Groq / Gemini cascade
   const ai = getGenAI(input.apiKey);
-  if (ai) {
+  const hasGroq = Boolean((input.groqApiKey || process.env.GROQ_API_KEY)?.trim());
+
+  if (hasGroq || ai) {
     try {
       const catalogSummary = catalogBusinesses.map((b) => ({
         id: b.id,
@@ -2297,93 +2300,96 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
    - Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directamente.
    - PROHIBIDO TOTALMENTE el signo '$'.`;
 
-      for (const modelName of ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest']) {
-        try {
-          const aiResponse = await ai.models.generateContent({
-            model: modelName,
-            contents: searchAiPrompt,
-            config: {
-              responseMimeType: 'application/json',
-              responseSchema,
-              systemInstruction,
-            },
-          });
+      try {
+        const { text: rawText, modelUsed: searchModelUsed } = await callLLMWithFallback(
+          ai,
+          searchAiPrompt,
+          systemInstruction,
+          responseSchema,
+          input.groqApiKey
+        );
 
-          const rawText = aiResponse.text?.trim();
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            const bizMap = new Map(catalogBusinesses.map((b) => [b.id, b]));
-            const postMap = new Map(catalogPosts.map((p) => [p.id, p]));
+        if (rawText) {
+          const parsed = JSON.parse(rawText);
+          const bizMap = new Map(catalogBusinesses.map((b) => [b.id, b]));
+          const postMap = new Map(catalogPosts.map((p) => [p.id, p]));
 
-            const matchedBusinesses: Business[] = (parsed.selectedBusinessIds || [])
-              .map((id: string) => bizMap.get(id))
-              .filter(Boolean) as Business[];
+          const matchedBusinesses: Business[] = (parsed.selectedBusinessIds || [])
+            .map((id: string) => bizMap.get(id))
+            .filter(Boolean) as Business[];
 
-            const matchedPosts: Post[] = (parsed.selectedPostIds || [])
-              .map((id: string) => postMap.get(id))
-              .filter(Boolean) as Post[];
+          const matchedPosts: Post[] = (parsed.selectedPostIds || [])
+            .map((id: string) => postMap.get(id))
+            .filter(Boolean) as Post[];
 
-            const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
-
-            return {
-              type: 'search',
-              spokenText: spokenClean,
-              searchQuery: userPrompt,
-              targetMunicipality,
-              matchedBusinesses,
-              matchedPosts,
-              isAlternativeSuggestion: !parsed.exactMatchInRequestedCity,
-              alternativeNotice: !parsed.exactMatchInRequestedCity ? parsed.understanding : undefined,
-              auditTrace: {
-                rawPrompt: userPrompt,
-                timestamp: new Date().toISOString(),
-                executionMode: 'llm',
-                modelUsed: modelName,
-                apiKeyPresent: true,
-                intentDetected: 'search',
-                interpretation: {
-                  targetMunicipality,
-                  detectedTopic: parsed.understanding,
-                  isSpecificProductOrService: true,
-                  isRefinementIntent: false,
-                },
-                databaseFiltering: {
-                  totalBusinessesInCatalog: catalogBusinesses.length,
-                  totalPostsInCatalog: catalogPosts.length,
-                  businessesInTargetMunicipality: catalogBusinesses.filter((b) => normalizeText(b.city) === normalizeText(targetMunicipality)).length,
-                  eligiblePostsAfterValidity: catalogPosts.length,
-                  matchedBusinessesCount: matchedBusinesses.length,
-                  matchedPostsCount: matchedPosts.length,
-                  selectedEntities: [
-                    ...matchedBusinesses.map((b) => ({ id: b.id, name: b.name, type: 'business' as const, category: b.subCategory || b.categoryId, city: b.city })),
-                    ...matchedPosts.map((p) => ({ id: p.id, name: p.title, type: 'post' as const, category: p.planCategoryName || p.categoryId, city: p.businessCity })),
-                  ],
-                },
-                steps: [
-                  {
-                    step: '1',
-                    title: 'Interpretación Semántica con Gemini',
-                    status: 'success',
-                    details: `Gemini comprendió: "${parsed.understanding}". Coincidencia exacta en municipio: ${parsed.exactMatchInRequestedCity ? 'Sí' : 'No'}.`,
-                  },
-                  {
-                    step: '2',
-                    title: 'Filtrado Autónomo en Base de Datos',
-                    status: 'success',
-                    details: `Comercios seleccionados: ${matchedBusinesses.length}. Ofertas seleccionadas: ${matchedPosts.length}.`,
-                  },
-                ],
-                antiHallucination: {
-                  allEntitiesVerifiedInCatalog: true,
-                  hallucinationsDetected: 0,
-                  correctedEntities: [],
-                },
-              },
-            };
+          // Guarantee that the business owning any matched post is always present in matchedBusinesses
+          for (const p of matchedPosts) {
+            const b = bizMap.get(p.businessId);
+            if (b && !matchedBusinesses.some((mb) => mb.id === b.id)) {
+              matchedBusinesses.push(b);
+            }
           }
-        } catch (mErr: any) {
-          console.warn(`Intento de búsqueda LLM con ${modelName} falló:`, mErr?.message || mErr);
+
+          const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
+
+          return {
+            type: 'search',
+            spokenText: spokenClean,
+            searchQuery: userPrompt,
+            targetMunicipality,
+            matchedBusinesses,
+            matchedPosts,
+            isAlternativeSuggestion: !parsed.exactMatchInRequestedCity,
+            alternativeNotice: !parsed.exactMatchInRequestedCity ? parsed.understanding : undefined,
+            auditTrace: {
+              rawPrompt: userPrompt,
+              timestamp: new Date().toISOString(),
+              executionMode: 'llm',
+              modelUsed: searchModelUsed,
+              apiKeyPresent: true,
+              intentDetected: 'search',
+              interpretation: {
+                targetMunicipality,
+                detectedTopic: parsed.understanding,
+                isSpecificProductOrService: true,
+                isRefinementIntent: false,
+              },
+              databaseFiltering: {
+                totalBusinessesInCatalog: catalogBusinesses.length,
+                totalPostsInCatalog: catalogPosts.length,
+                businessesInTargetMunicipality: catalogBusinesses.filter((b) => normalizeText(b.city) === normalizeText(targetMunicipality)).length,
+                eligiblePostsAfterValidity: catalogPosts.length,
+                matchedBusinessesCount: matchedBusinesses.length,
+                matchedPostsCount: matchedPosts.length,
+                selectedEntities: [
+                  ...matchedBusinesses.map((b) => ({ id: b.id, name: b.name, type: 'business' as const, category: b.subCategory || b.categoryId, city: b.city })),
+                  ...matchedPosts.map((p) => ({ id: p.id, name: p.title, type: 'post' as const, category: p.planCategoryName || p.categoryId, city: p.businessCity })),
+                ],
+              },
+              steps: [
+                {
+                  step: '1',
+                  title: 'Interpretación Semántica con IA',
+                  status: 'success',
+                  details: `Modelo interpretó: "${parsed.understanding}". Coincidencia exacta en municipio: ${parsed.exactMatchInRequestedCity ? 'Sí' : 'No'}.`,
+                },
+                {
+                  step: '2',
+                  title: 'Filtrado Autónomo en Base de Datos',
+                  status: 'success',
+                  details: `Comercios seleccionados: ${matchedBusinesses.length}. Ofertas seleccionadas: ${matchedPosts.length}.`,
+                },
+              ],
+              antiHallucination: {
+                allEntitiesVerifiedInCatalog: true,
+                hallucinationsDetected: 0,
+                correctedEntities: [],
+              },
+            },
+          };
         }
+      } catch (mErr: any) {
+        console.warn('Intento de búsqueda LLM falló, recurriendo a determinista:', mErr?.message || mErr);
       }
     } catch (llmErr) {
       console.warn('Fallo en búsqueda con LLM, recurriendo a búsqueda determinista:', llmErr);
@@ -2596,6 +2602,73 @@ Genera la respuesta hablada de Oli:
 }
 
 /**
+ * Ultra-fast Groq caller cascading through available high-performance models
+ */
+async function callGroqWithFallback(
+  prompt: string,
+  systemInstruction: string,
+  apiKey?: string
+): Promise<{ text: string; modelUsed: string } | null> {
+  const key = apiKey || process.env.GROQ_API_KEY;
+  if (!key || key.trim().length === 0) return null;
+
+  const candidateModels = [
+    'openai/gpt-oss-120b',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-20b',
+  ];
+
+  for (const model of candidateModels) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${key.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: 'system',
+              content: `${systemInstruction}\nIMPORTANTE: Responde ESTRICTAMENTE con un único objeto JSON válido sin texto adicional.`,
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.1,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.warn(`Groq modelo ${model} retornó HTTP ${res.status}:`, errText);
+        continue;
+      }
+
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content?.trim();
+      if (text) {
+        return { text, modelUsed: `groq/${model}` };
+      }
+    } catch (err: any) {
+      console.warn(`Intento con Groq ${model} falló o tardó demasiado:`, err?.message || err);
+    }
+  }
+
+  return null;
+}
+
+/**
  * Resilient multi-model Gemini caller cascading through fastest available models
  */
 async function callGeminiWithModelFallback(
@@ -2606,10 +2679,10 @@ async function callGeminiWithModelFallback(
 ): Promise<{ text: string; modelUsed: string }> {
   // Candidate models: cascade from fastest active models to resilient fallbacks
   const candidateModels = [
-    'gemini-3-flash-preview',
-    'gemini-3.5-flash',
-    'gemini-2.5-flash',
     'gemini-flash-latest',
+    'gemini-2.5-flash',
+    'gemini-3.5-flash',
+    'gemini-3-flash-preview',
   ];
   let lastError: any = null;
 
@@ -2644,6 +2717,42 @@ async function callGeminiWithModelFallback(
 }
 
 /**
+ * Unified multi-provider LLM caller: Groq (ultra-fast & 100% free high quota) -> Gemini -> Error for fallback
+ */
+async function callLLMWithFallback(
+  aiInstance: GoogleGenAI | null,
+  prompt: string,
+  systemInstruction: string,
+  geminiSchema: any,
+  groqKey?: string
+): Promise<{ text: string; modelUsed: string; provider: 'groq' | 'gemini' }> {
+  // 1. Try Groq (Ultra-fast, high quota, 100% free)
+  try {
+    const groqRes = await callGroqWithFallback(prompt, systemInstruction, groqKey);
+    if (groqRes && groqRes.text) {
+      return { ...groqRes, provider: 'groq' };
+    }
+  } catch (groqErr: any) {
+    console.warn('Fallo en intento principal con Groq:', groqErr?.message || groqErr);
+  }
+
+  // 2. Try Gemini Cascade
+  if (aiInstance) {
+    const geminiRes = await callGeminiWithModelFallback(
+      aiInstance,
+      prompt,
+      systemInstruction,
+      geminiSchema
+    );
+    if (geminiRes && geminiRes.text) {
+      return { ...geminiRes, provider: 'gemini' };
+    }
+  }
+
+  throw new Error('No hay modelos de IA disponibles (Groq ni Gemini)');
+}
+
+/**
  * Main entry point for Oli Assistant
  */
 export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliPlanResponse> {
@@ -2670,9 +2779,10 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
 
   const isRefinement = isPlanRefinementIntent(userPrompt, previousPlan);
   const ai = getGenAI(input.apiKey);
+  const hasGroq = Boolean((input.groqApiKey || process.env.GROQ_API_KEY)?.trim());
 
-  // If Gemini is available, run unified autonomous LLM interpretation on the full catalog
-  if (ai) {
+  // If any LLM provider is available (Groq or Gemini), run unified autonomous LLM interpretation on the full catalog
+  if (hasGroq || ai) {
     try {
       const businessMap = new Map<string, Business>();
       catalogBusinesses.forEach((b) => businessMap.set(b.id, b));
@@ -2814,11 +2924,12 @@ ${JSON.stringify(catalogSummary, null, 2)}`;
         required: ['intent', 'understanding', 'targetMunicipality', 'exactMatchInRequestedCity', 'spokenText'],
       };
 
-      const { text: rawJson, modelUsed: actualModelUsed } = await callGeminiWithModelFallback(
+      const { text: rawJson, modelUsed: actualModelUsed } = await callLLMWithFallback(
         ai,
         userPromptContent,
         systemInstruction,
-        unifiedResponseSchema
+        unifiedResponseSchema,
+        input.groqApiKey
       );
 
       if (rawJson) {
@@ -2834,6 +2945,14 @@ ${JSON.stringify(catalogSummary, null, 2)}`;
           const matchedPosts: Post[] = (parsed.selectedPostIds || [])
             .map((id: string) => postMap.get(id))
             .filter(Boolean) as Post[];
+
+          // Guarantee that the business owning any matched post is always present in matchedBusinesses
+          for (const p of matchedPosts) {
+            const b = businessMap.get(p.businessId);
+            if (b && !matchedBusinesses.some((mb) => mb.id === b.id)) {
+              matchedBusinesses.push(b);
+            }
+          }
 
           const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
 
@@ -2899,7 +3018,25 @@ ${JSON.stringify(catalogSummary, null, 2)}`;
         let mainCourseCount = 0;
         const coherentStops: OliPlanStop[] = [];
 
-        for (const rawStop of (parsed.stops || [])) {
+        const candidateStops = (parsed.stops && parsed.stops.length > 0)
+          ? parsed.stops
+          : (parsed.selectedPostIds || []).map((pId: string, idx: number) => {
+              const p = postMap.get(pId);
+              const b = p ? businessMap.get(p.businessId) : undefined;
+              return {
+                time: idx === 0 ? '12:30 PM' : (idx === 1 ? '3:30 PM' : '6:00 PM'),
+                activity: p?.title || 'Actividad local',
+                businessId: p?.businessId,
+                businessName: b?.name,
+                businessCity: b?.city,
+                postId: pId,
+                postTitle: p?.title,
+                cost: p?.promotionalPrice || p?.originalPrice || p?.approximatePrice || 25000,
+                whySelected: p?.title,
+              };
+            });
+
+        for (const rawStop of candidateStops) {
           const post = catalogPosts.find((p) => p.id === rawStop.postId);
           if (!post) continue; // Verify postId exists
           if (seenBiz.has(post.businessId)) continue; // Reject duplicate businesses

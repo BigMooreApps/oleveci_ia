@@ -523,6 +523,7 @@ app.post('/api/oli/plan', async (req, res) => {
       catalogPosts: posts,
       catalogBusinesses: businesses,
       apiKey: apiKey || process.env.GEMINI_API_KEY,
+      groqApiKey: req.body.groqApiKey || process.env.GROQ_API_KEY,
     });
 
     // Record conversation log for diagnostic analysis
@@ -562,16 +563,29 @@ app.post('/api/oli/plan', async (req, res) => {
 });
 
 app.get('/api/oli/config', (_req, res) => {
+  const hasGroq = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0);
+  const hasGemini = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
   return res.json({
-    hasApiKey: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0),
+    hasApiKey: hasGroq || hasGemini,
+    provider: hasGroq ? 'groq' : (hasGemini ? 'gemini' : 'none'),
   });
 });
 
 app.post('/api/oli/set-key', (req, res) => {
   try {
-    const { apiKey } = req.body;
+    const { apiKey, groqApiKey } = req.body;
+    if (groqApiKey && typeof groqApiKey === 'string' && groqApiKey.trim().length > 0) {
+      process.env.GROQ_API_KEY = groqApiKey.trim();
+    }
     if (apiKey && typeof apiKey === 'string' && apiKey.trim().length > 0) {
-      process.env.GEMINI_API_KEY = apiKey.trim();
+      if (apiKey.trim().startsWith('gsk_')) {
+        process.env.GROQ_API_KEY = apiKey.trim();
+      } else {
+        process.env.GEMINI_API_KEY = apiKey.trim();
+      }
+      return res.json({ success: true, hasApiKey: true });
+    }
+    if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
       return res.json({ success: true, hasApiKey: true });
     }
     return res.status(400).json({ error: 'Clave API inválida' });
