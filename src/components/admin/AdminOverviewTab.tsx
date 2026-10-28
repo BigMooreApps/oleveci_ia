@@ -58,7 +58,7 @@ interface AdminOverviewTabProps {
 }
 
 type TableFilter = 'top_leads' | 'attention_needed' | 'all';
-type MetricChartType = 'all' | 'whatsapp' | 'views' | 'maps';
+type MetricChartType = 'all' | 'whatsapp' | 'calls' | 'maps' | 'shares' | 'qr' | 'views';
 
 // Sunburst sparks matching the OleVeci brand
 const SunburstSparks: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -73,16 +73,18 @@ const SunburstSparks: React.FC<{ className?: string }> = ({ className = '' }) =>
 const AdminTimelineTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const rawData = payload[0]?.payload;
-    const vistas = payload.find((p: any) => p.dataKey === 'vistas')?.value || 0;
-    const leads = payload.find((p: any) => p.dataKey === 'leads')?.value || 0;
+    const vistas = rawData?.vistas || 0;
+    const leads = rawData?.leads || 0;
     const whatsapp = rawData?.whatsapp || 0;
     const maps = rawData?.maps || 0;
     const llamadas = rawData?.llamadas || 0;
+    const compartidos = rawData?.compartidos || 0;
+    const qr = rawData?.qr || 0;
     const conversion = vistas > 0 ? ((leads / vistas) * 100).toFixed(1) : '0';
     const displayDate = rawData?.fullDateLabel || label;
 
     return (
-      <div className="bg-[#041f5e] text-white p-3 rounded-2xl shadow-xl text-xs border border-white/20 min-w-[200px] space-y-2 select-none pointer-events-none">
+      <div className="bg-[#041f5e] text-white p-3 rounded-2xl shadow-xl text-xs border border-white/20 min-w-[220px] space-y-2 select-none pointer-events-none">
         <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
           <div className="flex items-center gap-1.5 font-medium text-sky-200">
             <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
@@ -101,10 +103,12 @@ const AdminTimelineTooltip = ({ active, payload, label }: any) => {
             <span>Total Contactos:</span>
             <span className="font-semibold text-emerald-400">{leads.toLocaleString('es-CO')}</span>
           </div>
-          <div className="pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-300">
-            <span>💬 {whatsapp} WA</span>
-            <span>📍 {maps} Rutas</span>
-            <span>📞 {llamadas} Tel</span>
+          <div className="pt-1.5 border-t border-white/10 grid grid-cols-3 gap-1 text-[10px] text-slate-300">
+            <span className="text-emerald-300 font-medium">WA: {whatsapp}</span>
+            <span className="text-sky-300 font-medium">Tel: {llamadas}</span>
+            <span className="text-amber-300 font-medium">Rutas: {maps}</span>
+            <span className="text-indigo-300 font-medium">Shares: {compartidos}</span>
+            <span className="text-purple-300 font-medium">QR: {qr}</span>
           </div>
         </div>
       </div>
@@ -437,6 +441,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
       let dayWa = 0;
       let dayMaps = 0;
       let dayCalls = 0;
+      let dayShares = 0;
+      let dayQr = 0;
 
       filteredPosts.forEach((post) => {
         const d = getPostDayRecord(post, dateKey);
@@ -444,6 +450,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         dayWa += d.whatsappClicks;
         dayMaps += d.mapsClicks;
         dayCalls += d.calls;
+        dayShares += d.shares;
+        dayQr += d.qrRedemptions || 0;
       });
 
       filteredBusinesses.forEach((biz) => {
@@ -452,6 +460,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         dayWa += d.whatsappClicks;
         dayMaps += d.mapsClicks;
         dayCalls += d.calls;
+        dayShares += d.shares;
+        dayQr += d.qrRedemptions || 0;
       });
 
       const dayLeads = dayWa + dayMaps + dayCalls;
@@ -467,6 +477,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         whatsapp: dayWa,
         maps: dayMaps,
         llamadas: dayCalls,
+        compartidos: dayShares,
+        qr: dayQr,
       };
     });
   }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap, cutDays]);
@@ -874,7 +886,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
       )}
 
       {/* 2. Top Executive KPI Cards (Vibrant OleVeci Color Identity + Refined Typography) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {/* Vistas Feed */}
         <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-white border border-sky-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
           <div className="mb-1.5">
@@ -922,6 +934,23 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
             <div className="mt-1 text-xs text-[#ff7700] font-medium truncate">
               Cómo llegar
+            </div>
+          </div>
+        </div>
+
+        {/* Llamadas Telefónicas */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/90 via-sky-50/40 to-white border border-blue-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-blue-800">
+              Llamadas
+            </span>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutCalls.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-[#007af7] font-medium truncate">
+              Directas
             </div>
           </div>
         </div>
@@ -1071,7 +1100,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
 
             {/* Metric Toggle Buttons */}
-            <div className="inline-flex bg-slate-100 p-0.5 rounded-xl text-xs self-start sm:self-auto border border-slate-200/80">
+            <div className="inline-flex flex-wrap gap-1 bg-slate-100 p-0.5 rounded-xl text-xs self-start sm:self-auto border border-slate-200/80">
               <button
                 type="button"
                 onClick={() => setChartMetric('all')}
@@ -1081,7 +1110,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Ambos
+                Todas
               </button>
               <button
                 type="button"
@@ -1096,6 +1125,17 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               </button>
               <button
                 type="button"
+                onClick={() => setChartMetric('calls')}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  chartMetric === 'calls'
+                    ? 'bg-white text-blue-700 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Llamadas
+              </button>
+              <button
+                type="button"
                 onClick={() => setChartMetric('maps')}
                 className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
                   chartMetric === 'maps'
@@ -1103,7 +1143,29 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Maps
+                Rutas
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartMetric('shares')}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  chartMetric === 'shares'
+                    ? 'bg-white text-indigo-700 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Compartidos
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartMetric('qr')}
+                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  chartMetric === 'qr'
+                    ? 'bg-white text-purple-700 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                QR
               </button>
               <button
                 type="button"
@@ -1125,16 +1187,28 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <defs>
                   <linearGradient id="adminViewsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#007af7" stopOpacity={0.45} />
+                    <stop offset="0%" stopColor="#007af7" stopOpacity={0.4} />
                     <stop offset="100%" stopColor="#007af7" stopOpacity={0.02} />
                   </linearGradient>
-                  <linearGradient id="adminLeadsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00d8a5" stopOpacity={0.5} />
+                  <linearGradient id="adminWaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00d8a5" stopOpacity={0.45} />
                     <stop offset="100%" stopColor="#00d8a5" stopOpacity={0.02} />
                   </linearGradient>
+                  <linearGradient id="adminCallsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0284c7" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="#0284c7" stopOpacity={0.02} />
+                  </linearGradient>
                   <linearGradient id="adminMapsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ff7700" stopOpacity={0.5} />
+                    <stop offset="0%" stopColor="#ff7700" stopOpacity={0.45} />
                     <stop offset="100%" stopColor="#ff7700" stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="adminSharesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="adminQrGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#a855f7" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -1149,31 +1223,47 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip content={<AdminTimelineTooltip />} />
 
+                {/* Vistas Feed */}
                 {(chartMetric === 'all' || chartMetric === 'views') && (
                   <Area
                     type="monotone"
                     dataKey="vistas"
                     name="Vistas Feed"
                     stroke="#007af7"
-                    strokeWidth={2.5}
+                    strokeWidth={chartMetric === 'views' ? 2.5 : 1.5}
                     fillOpacity={1}
                     fill="url(#adminViewsGradient)"
                   />
                 )}
 
+                {/* WhatsApp */}
                 {(chartMetric === 'all' || chartMetric === 'whatsapp') && (
                   <Area
                     type="monotone"
-                    dataKey={chartMetric === 'whatsapp' ? 'whatsapp' : 'leads'}
-                    name={chartMetric === 'whatsapp' ? 'WhatsApp' : 'Total Contactos'}
+                    dataKey="whatsapp"
+                    name="WhatsApp"
                     stroke="#00d8a5"
                     strokeWidth={2.5}
                     fillOpacity={1}
-                    fill="url(#adminLeadsGradient)"
+                    fill="url(#adminWaGradient)"
                   />
                 )}
 
-                {chartMetric === 'maps' && (
+                {/* Llamadas */}
+                {(chartMetric === 'all' || chartMetric === 'calls') && (
+                  <Area
+                    type="monotone"
+                    dataKey="llamadas"
+                    name="Llamadas"
+                    stroke="#0284c7"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#adminCallsGradient)"
+                  />
+                )}
+
+                {/* Rutas Maps */}
+                {(chartMetric === 'all' || chartMetric === 'maps') && (
                   <Area
                     type="monotone"
                     dataKey="maps"
@@ -1184,27 +1274,103 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                     fill="url(#adminMapsGradient)"
                   />
                 )}
+
+                {/* Compartidos */}
+                {(chartMetric === 'all' || chartMetric === 'shares') && (
+                  <Area
+                    type="monotone"
+                    dataKey="compartidos"
+                    name="Compartidos"
+                    stroke="#6366f1"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#adminSharesGradient)"
+                  />
+                )}
+
+                {/* Canjes QR */}
+                {(chartMetric === 'all' || chartMetric === 'qr') && (
+                  <Area
+                    type="monotone"
+                    dataKey="qr"
+                    name="Canjes QR"
+                    stroke="#a855f7"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#adminQrGradient)"
+                  />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
           {/* Quick Metrics Bar Under Chart */}
-          <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-center">
-            <div className="p-2 rounded-xl bg-sky-50/60 border border-sky-100">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2 border-t border-slate-100 text-center">
+            <div
+              onClick={() => setChartMetric('views')}
+              className={`p-2 rounded-xl cursor-pointer transition ${
+                chartMetric === 'views'
+                  ? 'bg-sky-100 border border-sky-300 ring-2 ring-sky-400/30'
+                  : 'bg-sky-50/60 border border-sky-100 hover:bg-sky-50'
+              }`}
+            >
               <div className="text-[10px] text-sky-800 font-medium uppercase tracking-wider">Vistas</div>
               <div className="text-sm sm:text-base font-bold text-[#041f5e]">{cutViews.toLocaleString('es-CO')}</div>
             </div>
-            <div className="p-2 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <div
+              onClick={() => setChartMetric('whatsapp')}
+              className={`p-2 rounded-xl cursor-pointer transition ${
+                chartMetric === 'whatsapp'
+                  ? 'bg-emerald-100 border border-emerald-300 ring-2 ring-emerald-400/30'
+                  : 'bg-emerald-50/60 border border-emerald-100 hover:bg-emerald-50'
+              }`}
+            >
               <div className="text-[10px] text-emerald-800 font-medium uppercase tracking-wider">WhatsApp</div>
               <div className="text-sm sm:text-base font-bold text-emerald-700">{cutWhatsapp.toLocaleString('es-CO')}</div>
             </div>
-            <div className="p-2 rounded-xl bg-orange-50/60 border border-orange-100">
-              <div className="text-[10px] text-orange-800 font-medium uppercase tracking-wider">Maps GPS</div>
+            <div
+              onClick={() => setChartMetric('calls')}
+              className={`p-2 rounded-xl cursor-pointer transition ${
+                chartMetric === 'calls'
+                  ? 'bg-blue-100 border border-blue-300 ring-2 ring-blue-400/30'
+                  : 'bg-blue-50/60 border border-blue-100 hover:bg-blue-50'
+              }`}
+            >
+              <div className="text-[10px] text-blue-800 font-medium uppercase tracking-wider">Llamadas</div>
+              <div className="text-sm sm:text-base font-bold text-[#0284c7]">{cutCalls.toLocaleString('es-CO')}</div>
+            </div>
+            <div
+              onClick={() => setChartMetric('maps')}
+              className={`p-2 rounded-xl cursor-pointer transition ${
+                chartMetric === 'maps'
+                  ? 'bg-orange-100 border border-orange-300 ring-2 ring-orange-400/30'
+                  : 'bg-orange-50/60 border border-orange-100 hover:bg-orange-50'
+              }`}
+            >
+              <div className="text-[10px] text-orange-800 font-medium uppercase tracking-wider">Rutas</div>
               <div className="text-sm sm:text-base font-bold text-[#ff7700]">{cutMaps.toLocaleString('es-CO')}</div>
             </div>
-            <div className="p-2 rounded-xl bg-blue-50/60 border border-blue-100">
-              <div className="text-[10px] text-blue-800 font-medium uppercase tracking-wider">Llamadas</div>
-              <div className="text-sm sm:text-base font-bold text-[#007af7]">{cutCalls.toLocaleString('es-CO')}</div>
+            <div
+              onClick={() => setChartMetric('shares')}
+              className={`p-2 rounded-xl cursor-pointer transition ${
+                chartMetric === 'shares'
+                  ? 'bg-indigo-100 border border-indigo-300 ring-2 ring-indigo-400/30'
+                  : 'bg-indigo-50/60 border border-indigo-100 hover:bg-indigo-50'
+              }`}
+            >
+              <div className="text-[10px] text-indigo-800 font-medium uppercase tracking-wider">Compartidos</div>
+              <div className="text-sm sm:text-base font-bold text-indigo-700">{cutShares.toLocaleString('es-CO')}</div>
+            </div>
+            <div
+              onClick={() => setChartMetric('qr')}
+              className={`p-2 rounded-xl cursor-pointer transition ${
+                chartMetric === 'qr'
+                  ? 'bg-purple-100 border border-purple-300 ring-2 ring-purple-400/30'
+                  : 'bg-purple-50/60 border border-purple-100 hover:bg-purple-50'
+              }`}
+            >
+              <div className="text-[10px] text-purple-800 font-medium uppercase tracking-wider">Canjes QR</div>
+              <div className="text-sm sm:text-base font-bold text-purple-700">{cutQrRedemptions.toLocaleString('es-CO')}</div>
             </div>
           </div>
         </div>
