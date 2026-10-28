@@ -1794,10 +1794,10 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
-              Evaluación Individual de Comercios ({cutDays} días de corte)
+              Evaluación Individual de Comercios en el corte
             </h3>
             <p className="text-xs text-slate-500 font-normal">
-              Diagnóstico de retorno por negocio calculado entre {formatDateLabel(startDate, false)} y {formatDateLabel(endDate, false)}
+              Diagnóstico de retorno por negocio
             </p>
           </div>
 
