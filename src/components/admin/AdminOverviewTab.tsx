@@ -1037,7 +1037,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               {/* Clean Footer without icon */}
               <div className="pt-2.5 border-t border-slate-100 flex flex-col justify-center mt-auto">
                 <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">ARR proyectado anual:</div>
-                <div className="text-sm sm:text-base font-black text-slate-900 leading-snug">
+                <div className="text-sm sm:text-base font-black text-[#041f5e] leading-snug">
                   {formatCOP(projectedARR)}
                 </div>
               </div>
@@ -1083,7 +1083,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               {/* Clean Footer without icon */}
               <div className="pt-2.5 border-t border-slate-100 flex flex-col justify-center mt-auto">
                 <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">CAC Real (Canjes QR):</div>
-                <div className="text-sm sm:text-base font-black text-amber-950 leading-snug">
+                <div className="text-sm sm:text-base font-black text-[#041f5e] leading-snug">
                   {cutCACReal > 0 ? `${formatCOP(cutCACReal)} / canje` : 'Sin canjes en corte'}
                 </div>
               </div>
@@ -1097,7 +1097,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
             <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
               <div>
-                <div className="text-2xl sm:text-3xl font-black text-[#047857] tracking-tight">
+                <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
                   {formatCOP(estimatedMerchantSavings)}
                 </div>
                 <div className="text-xs text-slate-500 font-medium mt-0.5">
@@ -1129,7 +1129,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               {/* Clean Footer without icon */}
               <div className="pt-2.5 border-t border-slate-100 flex flex-col justify-center mt-auto">
                 <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Retorno de inversión (ROI):</div>
-                <div className="text-sm sm:text-base font-black text-[#047857] leading-snug">
+                <div className="text-sm sm:text-base font-black text-[#041f5e] leading-snug">
                   {cutProratedRevenueCOP > 0 ? `${(traditionalAdsBenchmark / cutProratedRevenueCOP).toFixed(1)}x de retorno` : '14.3x de retorno'}
                 </div>
               </div>
@@ -1175,7 +1175,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               {/* Clean Footer without icon */}
               <div className="pt-2.5 border-t border-slate-100 flex flex-col justify-center mt-auto">
                 <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Promedio por comercio:</div>
-                <div className="text-sm sm:text-base font-black text-[#6d28d9] leading-snug">
+                <div className="text-sm sm:text-base font-black text-[#041f5e] leading-snug">
                   ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
                 </div>
               </div>
