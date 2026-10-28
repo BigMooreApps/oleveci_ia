@@ -4,18 +4,37 @@ import { APP_CONFIG } from '../../config/brand';
 import { Business, Post, DailyMetricRecord } from '../../types';
 import { OleVeciIcon } from '../OleVeciLogo';
 import {
+  TrendingUp,
+  FileText,
+  Users,
   MessageCircle,
+  CheckCircle2,
+  ArrowRight,
+  AlertTriangle,
+  Clock,
+  Ban,
+  Phone,
   Calendar,
+  ExternalLink,
+  ChevronRight,
+  Filter,
+  BarChart3,
+  Flame,
+  ArrowUpRight,
+  RefreshCw,
   Search,
   Check,
+  ShieldCheck,
+  Info,
   HelpCircle,
-  TrendingUp,
-  AlertTriangle,
+  ArrowDownRight,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   PieChart,
   Pie,
   Cell,
@@ -38,10 +57,19 @@ interface AdminOverviewTabProps {
   onNavigateTab: (tab: 'businesses' | 'posts' | 'municipalities' | 'categories' | 'post_types') => void;
 }
 
-type TableFilter = 'top_leads' | 'churn_risk' | 'at_risk_cartera' | 'all';
-type MetricChartType = 'all' | 'whatsapp' | 'maps' | 'views';
+type TableFilter = 'top_leads' | 'attention_needed' | 'all';
+type MetricChartType = 'all' | 'whatsapp' | 'views' | 'maps';
 
-// Custom Tooltip for Timeline AreaChart
+// Sunburst sparks matching the OleVeci brand
+const SunburstSparks: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`flex items-center gap-0.5 select-none ${className}`} aria-hidden="true">
+    <span className="w-1 h-3.5 bg-gradient-to-b from-[#ffbe00] to-[#ff5500] rounded-full rotate-12 inline-block shadow-2xs" />
+    <span className="w-1 h-3 bg-gradient-to-b from-[#ffbe00] to-[#ff7700] rounded-full rotate-45 inline-block shadow-2xs" />
+    <span className="w-1 h-2.5 bg-gradient-to-b from-[#ffbe00] to-[#ff7700] rounded-full rotate-75 inline-block shadow-2xs" />
+  </div>
+);
+
+// Branded Custom Tooltip for Timeline AreaChart
 const AdminTimelineTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const rawData = payload[0]?.payload;
@@ -54,26 +82,29 @@ const AdminTimelineTooltip = ({ active, payload, label }: any) => {
     const displayDate = rawData?.fullDateLabel || label;
 
     return (
-      <div className="bg-[#041f5e] text-white p-3 rounded-2xl shadow-xl text-xs border border-white/20 min-w-[210px] space-y-2 select-none pointer-events-none">
+      <div className="bg-[#041f5e] text-white p-3 rounded-2xl shadow-xl text-xs border border-white/20 min-w-[200px] space-y-2 select-none pointer-events-none">
         <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
-          <span className="font-semibold text-sky-200 capitalize">{displayDate}</span>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-400 text-[#041f5e]">
+          <div className="flex items-center gap-1.5 font-medium text-sky-200">
+            <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span className="capitalize">{displayDate}</span>
+          </div>
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-[#ff7700] text-[#041f5e]">
             {conversion}% conv.
           </span>
         </div>
-        <div className="space-y-1 text-slate-200">
-          <div className="flex items-center justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-3 text-slate-200">
             <span>Vistas Feed:</span>
             <span className="font-semibold text-white">{vistas.toLocaleString('es-CO')}</span>
           </div>
-          <div className="flex items-center justify-between gap-3">
-            <span>Contactos Directos:</span>
+          <div className="flex items-center justify-between gap-3 text-slate-200">
+            <span>Total Contactos:</span>
             <span className="font-semibold text-emerald-400">{leads.toLocaleString('es-CO')}</span>
           </div>
           <div className="pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-300">
-            <span>{whatsapp} WA</span>
-            <span>{maps} Rutas</span>
-            <span>{llamadas} Tel</span>
+            <span>💬 {whatsapp} WA</span>
+            <span>📍 {maps} Rutas</span>
+            <span>📞 {llamadas} Tel</span>
           </div>
         </div>
       </div>
@@ -82,16 +113,45 @@ const AdminTimelineTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
+// Branded Custom Tooltip for Day of Week BarChart
+const AdminBarTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white/95 backdrop-blur-md p-2.5 rounded-xl border border-slate-200 shadow-xl text-xs min-w-[150px] select-none pointer-events-none">
+        <div className="flex items-center justify-between pb-1 mb-1 border-b border-slate-100">
+          <span className="font-semibold text-[#041f5e]">{data.diaCompleto || data.dia}</span>
+          {data.esPico && (
+            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-[#ff7700] text-white flex items-center gap-0.5 shadow-2xs">
+              <Flame className="w-2.5 h-2.5" /> PICO
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-slate-500">Interacciones:</span>
+          <span className="font-bold text-[#041f5e]">{data.interacciones.toLocaleString('es-CO')}</span>
+        </div>
+        <div className="text-[10px] text-slate-400 mt-0.5">
+          {data.esPico ? 'Mayor flujo de consultas' : 'Actividad vecinal'}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTab }) => {
   const {
     businesses,
     posts,
     municipalities,
+    sectors,
     categories,
+    postTypes,
     isPostActive,
   } = useApp();
 
-  // 1. DATE RANGE CUT STATE
+  // 1. DATE RANGE CUT STATE (Exact match with "Mi Espacio")
   const [startDate, setStartDate] = useState<string>(() => getDaysAgoKey(29));
   const [endDate, setEndDate] = useState<string>(() => getTodayKey());
 
@@ -103,45 +163,40 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
   const [showFormulaExplanation, setShowFormulaExplanation] = useState<boolean>(false);
   const [copiedBizId, setCopiedBizId] = useState<string | null>(null);
 
-  // Quick Presets
-  const handlePresetChange = (preset: '7d' | '30d' | 'month') => {
-    if (preset === '7d') {
-      setStartDate(getDaysAgoKey(6));
-      setEndDate(getTodayKey());
-    } else if (preset === '30d') {
-      setStartDate(getDaysAgoKey(29));
-      setEndDate(getTodayKey());
-    } else if (preset === 'month') {
-      setStartDate(getStartOfMonthKey());
-      setEndDate(getTodayKey());
-    }
-  };
-
+  // Handle Cut Date Range Changes
   const handleStartDateChange = (newStart: string) => {
     if (!newStart) return;
     setStartDate(newStart);
-    if (newStart > endDate) setEndDate(newStart);
+    if (newStart > endDate) {
+      setEndDate(newStart);
+    }
   };
 
   const handleEndDateChange = (newEnd: string) => {
     if (!newEnd) return;
     setEndDate(newEnd);
-    if (newEnd < startDate) setStartDate(newEnd);
+    if (newEnd < startDate) {
+      setStartDate(newEnd);
+    }
   };
 
-  const rangeDateKeys = useMemo(() => getDateKeysInRange(startDate, endDate), [startDate, endDate]);
+  // Days in selected cut (inclusive)
   const cutDays = useMemo(() => countCutDays(startDate, endDate), [startDate, endDate]);
+  // All 'YYYY-MM-DD' keys in the selected date cut
+  const rangeDateKeys = useMemo(() => getDateKeysInRange(startDate, endDate), [startDate, endDate]);
 
+  // Filtered lists based on territory selector
   const filteredBusinesses = useMemo(() => {
     if (selectedCity === 'all') return businesses;
-    return businesses.filter((b) => b.city === selectedCity);
+    return businesses.filter((b) => b.city?.toLowerCase() === selectedCity.toLowerCase());
   }, [businesses, selectedCity]);
 
   const filteredPosts = useMemo(() => {
     if (selectedCity === 'all') return posts;
-    return posts.filter((p) => p.businessCity === selectedCity);
+    return posts.filter((p) => p.businessCity?.toLowerCase() === selectedCity.toLowerCase());
   }, [posts, selectedCity]);
 
+  // Current timestamp references
   const now = Date.now();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
 
@@ -186,9 +241,12 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     return map;
   }, [filteredBusinesses, cutDays]);
 
+  // Helper to retrieve post daily record
   const getPostDayRecord = (post: Post, dateKey: string): DailyMetricRecord => {
     const dMap = guaranteedPostDailyMap.get(post.id);
-    if (dMap && dMap[dateKey]) return dMap[dateKey];
+    if (dMap && dMap[dateKey]) {
+      return dMap[dateKey];
+    }
     const totals = post.metrics || { views: 0, whatsappClicks: 0, mapsClicks: 0, calls: 0, shares: 0 };
     return {
       views: Math.max(0, Math.round((totals.views || 0) / 30)),
@@ -200,9 +258,12 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     };
   };
 
+  // Helper to retrieve business profile daily record
   const getBusinessDayRecord = (biz: Business, dateKey: string): DailyMetricRecord => {
     const dMap = guaranteedBusinessDailyMap.get(biz.id);
-    if (dMap && dMap[dateKey]) return dMap[dateKey];
+    if (dMap && dMap[dateKey]) {
+      return dMap[dateKey];
+    }
     const totals = biz.metrics || { views: 0, whatsappClicks: 0, mapsClicks: 0, calls: 0, shares: 0 };
     return {
       views: Math.max(0, Math.round((totals.views || 0) / 30)),
@@ -233,6 +294,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     let qr = 0;
 
     rangeDateKeys.forEach((key) => {
+      // Aggregate from posts
       filteredPosts.forEach((post) => {
         const d = getPostDayRecord(post, key);
         views += d.views;
@@ -243,6 +305,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
         qr += d.qrRedemptions || 0;
       });
 
+      // Aggregate direct business profile views
       filteredBusinesses.forEach((biz) => {
         const d = getBusinessDayRecord(biz, key);
         views += d.views;
@@ -268,11 +331,6 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
       cutConversionRate: convRate,
     };
   }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap]);
-
-  // Channel Contribution Shares
-  const waShare = cutTotalLeads > 0 ? Math.round((cutWhatsapp / cutTotalLeads) * 100) : 0;
-  const mapsShare = cutTotalLeads > 0 ? Math.round((cutMaps / cutTotalLeads) * 100) : 0;
-  const callsShare = cutTotalLeads > 0 ? Math.round((cutCalls / cutTotalLeads) * 100) : 0;
 
   // 4. FINANCIAL & CARTERA CALCULATIONS
   const totalBusinesses = filteredBusinesses.length;
@@ -313,7 +371,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     );
   }, [filteredBusinesses]);
 
-  // Financial Metrics
+  // Monthly Recurring Revenue (MRR)
   const monthlyRevenueCOP = useMemo(() => {
     return filteredBusinesses.reduce((sum, b) => {
       if (b.subscription?.status === 'active') {
@@ -325,21 +383,37 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     }, 0);
   }, [filteredBusinesses]);
 
+  // Annualized Run Rate (ARR)
   const projectedARR = monthlyRevenueCOP * 12;
+
+  // Exact period prorated revenue according to the cut days
   const dailyBillingRate = monthlyRevenueCOP / 30;
   const cutProratedRevenueCOP = cutDays === 30 ? monthlyRevenueCOP : Math.round(cutDays * dailyBillingRate);
+
+  // Average Revenue Per User / Business (ARPU)
+  const arpuCOP = activeSubscribers > 0 ? Math.round(monthlyRevenueCOP / activeSubscribers) : 0;
+
+  // Collection Health %
   const collectionRate = totalBusinesses > 0 ? Math.round((activeSubscribers / totalBusinesses) * 100) : 0;
-  const atRiskRevenueCOP = (expiringSoonBusinesses.length + pastDueBusinesses.length) * 29900;
+
+  // Cost Per Lead (CPL) in cut
   const cutCostPerLead = cutTotalLeads > 0 ? Math.round(cutProratedRevenueCOP / cutTotalLeads) : 0;
+
+  // Real Customer Acquisition Cost (CAC) based on QR redemptions in cut
+  const cutCACReal = cutQrRedemptions > 0 ? Math.round(cutProratedRevenueCOP / cutQrRedemptions) : 0;
+
+  // Estimated Savings vs traditional Meta/Google Ads
   const traditionalAdsBenchmark = cutTotalLeads * 1800;
   const estimatedMerchantSavings = Math.max(0, traditionalAdsBenchmark - cutProratedRevenueCOP);
-  const leadsPerActiveBiz = activeSubscribers > 0 ? (cutTotalLeads / activeSubscribers).toFixed(1) : '0';
 
-  // Content Health
+  // 5. CONTENT AND ECOSYSTEM HEALTH
   const activePostsCount = useMemo(() => {
     return filteredPosts.filter((p) => isPostActive(p)).length;
   }, [filteredPosts, isPostActive]);
 
+  const postsPerActiveBiz = activeSubscribers > 0 ? (activePostsCount / activeSubscribers).toFixed(1) : '0';
+
+  // Businesses without active posts (churn warning)
   const businessesWithoutActivePosts = useMemo(() => {
     return filteredBusinesses.filter((b) => {
       const bizPosts = posts.filter((p) => p.businessId === b.id && isPostActive(p));
@@ -347,15 +421,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     });
   }, [filteredBusinesses, posts, isPostActive]);
 
-  // Health Score of the Network (0 - 100)
-  const healthScore = useMemo(() => {
-    if (totalBusinesses === 0) return 100;
-    const collectionWeight = collectionRate; // 0-100
-    const publishingWeight = Math.min(100, Math.round(((totalBusinesses - businessesWithoutActivePosts.length) / totalBusinesses) * 100));
-    const leadWeight = cutTotalLeads > 0 ? Math.min(100, Math.round(parseFloat(cutConversionRate) * 4)) : 0;
-    return Math.round(collectionWeight * 0.45 + publishingWeight * 0.35 + leadWeight * 0.2);
-  }, [collectionRate, totalBusinesses, businessesWithoutActivePosts.length, cutTotalLeads, cutConversionRate]);
-
+  // Currency Formatter
   const formatCOP = (val: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -364,7 +430,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     }).format(val);
   };
 
-  // 5. TIMELINE CHART SERIES
+  // 6. TIMELINE CHART SERIES
   const timelineData = useMemo(() => {
     return rangeDateKeys.map((dateKey) => {
       let dayViews = 0;
@@ -405,57 +471,217 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
     });
   }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap, cutDays]);
 
+  // Evenly spaced ticks
   const timelineTicks = useMemo(() => {
-    if (timelineData.length <= 6) return timelineData.map((d) => d.name);
+    if (timelineData.length <= 6) {
+      return timelineData.map((d) => d.name);
+    }
     const total = timelineData.length;
     const step = (total - 1) / 4;
     const indices = [0, Math.round(step), Math.round(step * 2), Math.round(step * 3), total - 1];
-    return Array.from(new Set(indices)).map((idx) => timelineData[idx].name);
+    const uniqueIndices = Array.from(new Set(indices));
+    return uniqueIndices.map((idx) => timelineData[idx].name);
   }, [timelineData]);
 
-  // 6. PORTFOLIO BREAKDOWN (Donut Chart)
+  // 7. DAY OF WEEK DEMAND (Highlights Peak Day)
+  const dayActivityData = useMemo(() => {
+    const daysOrder = [
+      { day: 'Lun', diaCompleto: 'Lunes', dayIdx: 1 },
+      { day: 'Mar', diaCompleto: 'Martes', dayIdx: 2 },
+      { day: 'Mié', diaCompleto: 'Miércoles', dayIdx: 3 },
+      { day: 'Jue', diaCompleto: 'Jueves', dayIdx: 4 },
+      { day: 'Vie', diaCompleto: 'Viernes', dayIdx: 5 },
+      { day: 'Sáb', diaCompleto: 'Sábado', dayIdx: 6 },
+      { day: 'Dom', diaCompleto: 'Domingo', dayIdx: 0 },
+    ];
+    const daySums: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+
+    rangeDateKeys.forEach((dateKey) => {
+      const parts = dateKey.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const dayOfWeek = isNaN(d.getTime()) ? 1 : d.getDay();
+
+        let dayInteractions = 0;
+        filteredPosts.forEach((p) => {
+          const m = getPostDayRecord(p, dateKey);
+          dayInteractions += m.whatsappClicks + m.mapsClicks + m.calls;
+        });
+        filteredBusinesses.forEach((b) => {
+          const m = getBusinessDayRecord(b, dateKey);
+          dayInteractions += m.whatsappClicks + m.mapsClicks + m.calls;
+        });
+
+        daySums[dayOfWeek] = (daySums[dayOfWeek] || 0) + dayInteractions;
+      }
+    });
+
+    const maxVal = Math.max(1, ...Object.values(daySums));
+    return daysOrder.map((d) => {
+      const count = daySums[d.dayIdx] || 0;
+      return {
+        dia: d.day,
+        diaCompleto: d.diaCompleto,
+        interacciones: count,
+        esPico: count === maxVal && maxVal > 0,
+      };
+    });
+  }, [rangeDateKeys, filteredPosts, filteredBusinesses, guaranteedPostDailyMap, guaranteedBusinessDailyMap]);
+
+  // 8. CHANNELS DISTRIBUTION IN CUT
+  const channelData = useMemo(() => {
+    return [
+      {
+        name: 'WhatsApp Directo',
+        value: cutWhatsapp,
+        color: '#00d8a5',
+        share: cutTotalLeads > 0 ? Math.round((cutWhatsapp / cutTotalLeads) * 100) : 0,
+        icon: '💬',
+      },
+      {
+        name: 'Rutas Google Maps',
+        value: cutMaps,
+        color: '#ff8400',
+        share: cutTotalLeads > 0 ? Math.round((cutMaps / cutTotalLeads) * 100) : 0,
+        icon: '📍',
+      },
+      {
+        name: 'Llamadas Telefónicas',
+        value: cutCalls,
+        color: '#007af7',
+        share: cutTotalLeads > 0 ? Math.round((cutCalls / cutTotalLeads) * 100) : 0,
+        icon: '📞',
+      },
+      {
+        name: 'Boca a boca (Shares)',
+        value: cutShares,
+        color: '#6366f1',
+        share: cutTotalLeads > 0 ? Math.round((cutShares / (cutTotalLeads + cutShares)) * 100) : 0,
+        icon: '🔁',
+      },
+      {
+        name: 'Canjes QR en Local',
+        value: cutQrRedemptions,
+        color: '#a855f7',
+        share: cutTotalLeads > 0 ? Math.round((cutQrRedemptions / cutTotalLeads) * 100) : 0,
+        icon: '🎟️',
+      },
+    ];
+  }, [cutWhatsapp, cutMaps, cutCalls, cutShares, cutQrRedemptions, cutTotalLeads]);
+
+  // 9. FINANCIAL PORTFOLIO COMPOSITION (Donut Chart)
   const financialDistributionData = useMemo(() => {
     return [
       { name: 'Al Día', value: activeSubscribers, color: '#00d8a5', amount: activeSubscribers * 29900 },
       { name: 'Por Vencer (<7d)', value: expiringSoonBusinesses.length, color: '#ffb703', amount: expiringSoonBusinesses.length * 29900 },
-      { name: 'Vencidos / Mora', value: pastDueBusinesses.length, color: '#ef4444', amount: pastDueBusinesses.length * 29900 },
+      { name: 'Vencido / En Mora', value: pastDueBusinesses.length, color: '#ef4444', amount: pastDueBusinesses.length * 29900 },
       { name: 'En Verificación', value: suspendedOrPendingBusinesses.length, color: '#007af7', amount: 0 },
     ].filter((item) => item.value > 0);
   }, [activeSubscribers, expiringSoonBusinesses.length, pastDueBusinesses.length, suspendedOrPendingBusinesses.length]);
 
-  // 7. TERRITORIAL PERFORMANCE
+  // 10. TERRITORIAL PERFORMANCE IN CUT
   const municipalityBreakdown = useMemo(() => {
-    const map: Record<string, { city: string; businesses: number; activePosts: number; leads: number; avgLeads: string }> = {};
+    const map: Record<string, { city: string; businesses: number; activePosts: number; leads: number; views: number }> = {};
     municipalities.forEach((m) => {
-      map[m.name] = { city: m.name, businesses: 0, activePosts: 0, leads: 0, avgLeads: '0' };
+      map[m.name] = { city: m.name, businesses: 0, activePosts: 0, leads: 0, views: 0 };
     });
 
     businesses.forEach((b) => {
       const city = b.city || 'Otro';
-      if (!map[city]) map[city] = { city, businesses: 0, activePosts: 0, leads: 0, avgLeads: '0' };
+      if (!map[city]) {
+        map[city] = { city, businesses: 0, activePosts: 0, leads: 0, views: 0 };
+      }
       map[city].businesses += 1;
     });
 
     posts.forEach((p) => {
       const city = p.businessCity || 'Otro';
-      if (!map[city]) map[city] = { city, businesses: 0, activePosts: 0, leads: 0, avgLeads: '0' };
-      if (isPostActive(p)) map[city].activePosts += 1;
+      if (!map[city]) {
+        map[city] = { city, businesses: 0, activePosts: 0, leads: 0, views: 0 };
+      }
+      if (isPostActive(p)) {
+        map[city].activePosts += 1;
+      }
       rangeDateKeys.forEach((key) => {
         const d = getPostDayRecord(p, key);
+        map[city].views += d.views;
         map[city].leads += (d.whatsappClicks + d.mapsClicks + d.calls);
       });
     });
 
     return Object.values(map)
-      .map((item) => ({
-        ...item,
-        avgLeads: item.businesses > 0 ? (item.leads / item.businesses).toFixed(1) : '0',
-      }))
       .filter((m) => m.businesses > 0 || m.activePosts > 0 || m.leads > 0)
       .sort((a, b) => b.leads - a.leads);
   }, [municipalities, businesses, posts, isPostActive, rangeDateKeys, guaranteedPostDailyMap]);
 
-  // 8. MERCHANTS TABLE FILTERING
+  // 11. CATEGORIES DEMAND IN CUT
+  const categoryBreakdown = useMemo(() => {
+    const map: Record<string, { id: string; name: string; icon?: string; count: number; leads: number }> = {};
+    categories.forEach((cat) => {
+      map[cat.id] = { id: cat.id, name: cat.name, icon: cat.icon, count: 0, leads: 0 };
+    });
+
+    businesses.forEach((b) => {
+      const catId = b.categoryId;
+      if (map[catId]) {
+        map[catId].count += 1;
+      }
+    });
+
+    posts.forEach((p) => {
+      const biz = businesses.find((b) => b.id === p.businessId);
+      const catId = biz?.categoryId || p.categoryId;
+      if (catId && map[catId]) {
+        rangeDateKeys.forEach((key) => {
+          const d = getPostDayRecord(p, key);
+          map[catId].leads += (d.whatsappClicks + d.mapsClicks + d.calls);
+        });
+      }
+    });
+
+    return Object.values(map)
+      .filter((c) => c.count > 0 || c.leads > 0)
+      .sort((a, b) => b.leads - a.leads)
+      .slice(0, 6);
+  }, [categories, businesses, posts, rangeDateKeys, guaranteedPostDailyMap]);
+
+  // 12. TOP 5 NETWORK POSTS IN CUT
+  const topCutPosts = useMemo(() => {
+    const list = filteredPosts.map((post) => {
+      let views = 0;
+      let wa = 0;
+      let maps = 0;
+      let calls = 0;
+
+      rangeDateKeys.forEach((k) => {
+        const d = getPostDayRecord(post, k);
+        views += d.views;
+        wa += d.whatsappClicks;
+        maps += d.mapsClicks;
+        calls += d.calls;
+      });
+
+      const totalLeads = wa + maps + calls;
+      const ctr = views > 0 ? ((totalLeads / views) * 100).toFixed(1) : '0';
+      const biz = businesses.find((b) => b.id === post.businessId);
+
+      return {
+        ...post,
+        businessName: biz?.name || post.businessCity || 'Comercio',
+        businessLogo: biz?.logo,
+        cutViews: views,
+        cutWhatsapp: wa,
+        cutMaps: maps,
+        cutCalls: calls,
+        cutTotalLeads: totalLeads,
+        cutCtr: ctr,
+      };
+    });
+
+    return list.sort((a, b) => b.cutTotalLeads - a.cutTotalLeads).slice(0, 5);
+  }, [filteredPosts, businesses, rangeDateKeys, guaranteedPostDailyMap]);
+
+  // 13. MERCHANTS TABLE FILTERING FOR THE CUT
   const displayedMerchants = useMemo(() => {
     let list = [...filteredBusinesses];
 
@@ -465,7 +691,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
         (b) =>
           b.name.toLowerCase().includes(q) ||
           b.subCategory.toLowerCase().includes(q) ||
-          b.city.toLowerCase().includes(q)
+          b.city.toLowerCase().includes(q) ||
+          (b.accessEmail && b.accessEmail.toLowerCase().includes(q))
       );
     }
 
@@ -473,6 +700,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
       list.sort((a, b) => {
         const aPosts = posts.filter((p) => p.businessId === a.id);
         const bPosts = posts.filter((p) => p.businessId === b.id);
+
         let aLeads = 0;
         let bLeads = 0;
 
@@ -489,14 +717,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
 
         return bLeads - aLeads;
       });
-    } else if (tableFilter === 'churn_risk') {
-      // Suscritos activos pero con CERO publicaciones vigentes
-      list = list.filter((b) => {
-        const hasPosts = posts.some((p) => p.businessId === b.id && isPostActive(p));
-        return !hasPosts;
-      });
-    } else if (tableFilter === 'at_risk_cartera') {
-      // Vencidos o por vencer en menos de 7 días
+    } else if (tableFilter === 'attention_needed') {
       list = list.filter((b) => {
         const isPastDue =
           b.subscription?.status === 'expired' ||
@@ -505,86 +726,89 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
           b.subscription?.expiresAt &&
           new Date(b.subscription.expiresAt).getTime() > now &&
           new Date(b.subscription.expiresAt).getTime() - now <= sevenDaysMs;
-        return isPastDue || isExpiring;
+        const hasNoPosts = !posts.some((p) => p.businessId === b.id && isPostActive(p));
+        const isSuspended = b.status === 'suspended' || b.status === 'pending_review';
+        return isPastDue || isExpiring || hasNoPosts || isSuspended;
       });
     }
 
     return list;
   }, [filteredBusinesses, searchMerchant, tableFilter, posts, now, sevenDaysMs, isPostActive, rangeDateKeys, guaranteedPostDailyMap]);
 
-  // Contact / Renewal WhatsApp
-  const handleCopyContactMessage = (b: Business, type: 'renewal' | 'publish' | 'general') => {
-    let text = '';
-    if (type === 'renewal') {
-      text = `Hola ${b.name}, te saludamos del equipo de ${APP_CONFIG.name}. Tu suscripción comercial vence pronto (${b.subscription?.expiresAt ? new Date(b.subscription.expiresAt).toLocaleDateString('es-CO') : 'este mes'}). Recuerda renovar para seguir recibiendo contactos directos por WhatsApp en ${b.city}. ¡Gracias por ser parte de nuestra red local!`;
-    } else if (type === 'publish') {
-      text = `Hola ${b.name}, te saludamos de ${APP_CONFIG.name}. Notamos que tu negocio no tiene publicaciones vigentes activas en el feed de ${b.city}. Publicar ofertas semanales aumenta tus contactos directos. ¿Te apoyamos publicando tu contenido?`;
-    } else {
-      text = `Hola ${b.name}, te saludamos de ${APP_CONFIG.name}. Queremos compartirte el balance de contactos vecinales generados para tu negocio en ${b.city}. ¿Tienes 5 minutos para revisar tu rendimiento?`;
-    }
-
-    const cleanPhone = (b.whatsapp || b.phone || '').replace(/\D/g, '');
-    if (cleanPhone) {
-      const fullPhone = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;
-      window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`, '_blank');
-    } else {
-      navigator.clipboard.writeText(text);
-      setCopiedBizId(b.id);
-      setTimeout(() => setCopiedBizId(null), 3000);
-    }
+  // Send renewal reminder WhatsApp message
+  const handleCopyRenewalMessage = (b: Business) => {
+    const text = `Hola ${b.name}, te saludamos del equipo de ${APP_CONFIG.name}. Tu suscripción comercial vence pronto (${b.subscription?.expiresAt ? new Date(b.subscription.expiresAt).toLocaleDateString('es-CO') : 'este mes'}). Recuerda renovar para seguir recibiendo contactos directos por WhatsApp en ${b.city}. ¡Gracias por ser parte de nuestra red local!`;
+    navigator.clipboard.writeText(text);
+    setCopiedBizId(b.id);
+    setTimeout(() => setCopiedBizId(null), 3000);
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Control Bar & Global Network Health (Clean white card style) */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                <OleVeciIcon size={22} />
-              </div>
-              <h2 className="text-base sm:text-lg font-bold text-[#041f5e]">
-                Centro de Inteligencia & Métricas de Red
-              </h2>
+      {/* 1. Header Toolbar with Territory & Cut Date Range Filters */}
+      <div className="bg-gradient-to-r from-white via-sky-50/30 to-amber-50/20 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-sky-100 shadow-sm space-y-4">
+        {/* Title & Brand Row */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-white border border-sky-200 shadow-sm flex items-center justify-center shrink-0">
+              <OleVeciIcon size={28} />
             </div>
-            <p className="text-xs text-slate-500 font-normal mt-1">
-              Supervisión de facturación, retención, conversión vecinal y rendimiento territorial en Sabana Centro
-            </p>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-[#041f5e] leading-snug">
+                  Centro de Inteligencia & Métricas de Red
+                </h2>
+                <SunburstSparks />
+              </div>
+              <p className="text-xs text-slate-500 font-normal mt-0.5">
+                Supervisión en tiempo real de facturación, retención, tracción comunitaria y retorno vecinal
+              </p>
+            </div>
           </div>
 
-          {/* Quick Presets & Date Cut Controls */}
-          <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
-            <div className="inline-flex bg-slate-100 p-0.5 rounded-xl text-xs border border-slate-200/80">
-              <button
-                type="button"
-                onClick={() => handlePresetChange('7d')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  cutDays === 7 ? 'bg-white text-[#041f5e] font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                7 días
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePresetChange('30d')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  cutDays === 30 ? 'bg-white text-[#041f5e] font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                30 días
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePresetChange('month')}
-                className="px-2.5 py-1 rounded-lg transition cursor-pointer font-medium text-slate-600 hover:text-slate-900"
-              >
-                Este mes
-              </button>
-            </div>
+          {/* Toggle Formula Explanations Button */}
+          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowFormulaExplanation(!showFormulaExplanation)}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-2xs ${
+                showFormulaExplanation
+                  ? 'bg-gradient-to-r from-sky-500 to-[#007af7] text-white border-transparent'
+                  : 'bg-white border-slate-200 text-slate-600 hover:text-[#041f5e] hover:border-sky-300'
+              }`}
+              title="Explicación de fórmulas y métricas"
+            >
+              <HelpCircle className={`w-3.5 h-3.5 ${showFormulaExplanation ? 'text-white' : 'text-[#007af7]'}`} />
+              <span>Glosario & Fórmulas</span>
+            </button>
+          </div>
+        </div>
 
-            <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 px-3 py-1 gap-2 text-xs">
-              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        {/* Filter Controls Row (Territory + Exact Date Cut Picker) */}
+        <div className="pt-3 border-t border-sky-100/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Territory Dropdown */}
+          <div className="relative">
+            <select
+              id="select-admin-metrics-city"
+              aria-label="Filtrar por Municipio"
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="text-xs font-semibold bg-white border border-sky-200/90 rounded-2xl px-3.5 py-2 text-[#041f5e] hover:border-[#007af7] focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer shadow-2xs w-full sm:w-auto transition"
+            >
+              <option value="all">📍 Todos los Municipios ({municipalities.length})</option>
+              {municipalities.map((m) => (
+                <option key={m.id} value={m.name}>
+                  {m.name} ({businesses.filter((b) => b.city === m.name).length} com.)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Compact Date Range Filter (Identical to "Mi Espacio") */}
+          <div className="flex items-center bg-white rounded-2xl border border-sky-200/90 shadow-2xs px-3.5 py-1.5 gap-2.5 text-xs self-start sm:self-auto hover:border-sky-300 transition">
+            <Calendar className="w-3.5 h-3.5 text-[#007af7] shrink-0" />
+            <div className="flex items-center gap-1.5 font-medium text-slate-700">
+              <span className="text-[10px] text-slate-400 uppercase select-none font-semibold">Del</span>
               <input
                 type="date"
                 value={startDate}
@@ -593,7 +817,9 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
                 className="text-xs font-semibold text-[#041f5e] bg-transparent outline-none cursor-pointer p-0"
                 title="Fecha inicial de corte"
               />
-              <span className="text-slate-300 select-none text-[10px]">al</span>
+            </div>
+            <span className="text-slate-300 select-none text-[10px] font-medium">al</span>
+            <div className="flex items-center gap-1.5 font-medium text-slate-700">
               <input
                 type="date"
                 value={endDate}
@@ -604,95 +830,141 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
                 title="Fecha final de corte"
               />
             </div>
-
-            <button
-              type="button"
-              onClick={() => setShowFormulaExplanation(!showFormulaExplanation)}
-              className={`p-2 rounded-xl border text-xs transition cursor-pointer ${
-                showFormulaExplanation
-                  ? 'bg-[#007af7] text-white border-transparent'
-                  : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-900'
-              }`}
-              title="Glosario de fórmulas matemáticas"
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Territory Selector & Executive Status Indicators */}
-        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <select
-              id="select-admin-metrics-city"
-              aria-label="Filtrar por Municipio"
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-[#041f5e] focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer transition"
-            >
-              <option value="all">Todos los Municipios ({municipalities.length})</option>
-              {municipalities.map((m) => (
-                <option key={m.id} value={m.name}>
-                  {m.name} ({businesses.filter((b) => b.city === m.name).length} com.)
-                </option>
-              ))}
-            </select>
-            <span className="text-xs text-slate-400 font-normal">
-              {filteredBusinesses.length} comercios en alcance
+            <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-sky-500 to-[#007af7] text-white font-semibold text-[10px] shadow-2xs select-none">
+              {cutDays}d
             </span>
-          </div>
-
-          <div className="flex items-center gap-4 text-xs font-medium text-slate-600 flex-wrap">
-            <div>
-              Salud de Red: <span className="font-bold text-[#007af7]">{healthScore}/100</span>
-            </div>
-            <div>
-              Comercios al Día: <span className="font-bold text-emerald-600">{activeSubscribers} / {totalBusinesses}</span>
-            </div>
-            <div>
-              Posts Vigentes: <span className="font-bold text-[#041f5e]">{activePostsCount}</span>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Formula Explanation Collapsible Banner */}
       {showFormulaExplanation && (
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-slate-50 border border-slate-200 shadow-xs text-xs space-y-2.5 animate-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between pb-1 border-b border-slate-200">
-            <span className="font-bold text-[#041f5e]">Glosario de Indicadores Matemáticos Reconciliados</span>
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-amber-50/60 border border-sky-200 shadow-sm text-xs space-y-2.5 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-[#041f5e]">
+              <Info className="w-4 h-4 text-[#007af7]" />
+              <span>Glosario de Indicadores y Fórmulas Matemáticas de OleVeci</span>
+            </div>
             <button
               onClick={() => setShowFormulaExplanation(false)}
-              className="text-slate-400 hover:text-slate-700 font-semibold cursor-pointer"
+              className="text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
             >
               Cerrar
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-slate-600">
-            <div className="bg-white p-3 rounded-xl border border-slate-200">
-              <span className="font-semibold text-[#041f5e] block mb-1">MRR & Facturación Prorrateada</span>
-              Ingresos mensuales recurrentes de suscripciones activas ($29.900 COP/mes). En cortes de {cutDays} días equivale a $996,67 COP/día por comercio.
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">MRR & Prorrateo de Corte</span>
+              Facturación recurrente mensual activa ($29.900 COP / mes por comercio). En cortes personalizados de {cutDays} días, se calcula a una tasa diaria de $996,67 COP/día.
             </div>
-            <div className="bg-white p-3 rounded-xl border border-slate-200">
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
               <span className="font-semibold text-[#041f5e] block mb-1">Costo Por Lead (CPL)</span>
-              Facturación prorrateada del corte ÷ Total de contactos vecinales (WhatsApp + Rutas GPS + Llamadas).
+              Facturación prorrateada del periodo ÷ Total de contactos vecinales (WhatsApp + Rutas GPS + Llamadas). Muestra el costo real por cliente interesado.
             </div>
-            <div className="bg-white p-3 rounded-xl border border-slate-200">
-              <span className="font-semibold text-[#041f5e] block mb-1">Ahorro para Comercios</span>
-              Comparativa contra Meta/Google Ads en Colombia (~$1.800 COP/lead). Ahorro neto entregado a la red comercial local.
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">CAC Real (Canjes QR)</span>
+              Costo de adquisición por cliente validado físicamente en caja o negocio mediante canje de código QR en el periodo.
             </div>
-            <div className="bg-white p-3 rounded-xl border border-slate-200">
-              <span className="font-semibold text-[#041f5e] block mb-1">Cartera en Riesgo Inmediato</span>
-              Suma en COP de cuotas vencidas y por vencer en menos de 7 días que requieren contacto preventivo.
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">Ahorro vs Pauta Tradicional</span>
+              Comparativa transparente contra Google Ads o Meta Ads en Colombia (~$1.800 COP por lead). Ahorro neto entregado a la red comercial local.
             </div>
           </div>
         </div>
       )}
 
-      {/* 2. Four Core Financial & Impact Cards (No icons, clean typography, high data value) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {/* Card 1: MRR & Facturación */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between">
+      {/* 2. Top Executive KPI Cards (Vibrant OleVeci Color Identity + Refined Typography) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+        {/* Vistas Feed */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/90 via-blue-50/40 to-white border border-sky-200 shadow-2xs hover:border-[#007af7] transition-all flex flex-col justify-between min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+              Vistas Feed
+            </span>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutViews.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-[#007af7] font-medium truncate">
+              Corte ({cutDays}d)
+            </div>
+          </div>
+        </div>
+
+        {/* WhatsApp Directo */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border border-emerald-200 shadow-2xs hover:border-emerald-400 transition-all flex flex-col justify-between min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
+              WhatsApp
+            </span>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutWhatsapp.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-emerald-700 font-medium truncate">
+              Chats iniciados
+            </div>
+          </div>
+        </div>
+
+        {/* Rutas (Maps) */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-50/90 via-amber-50/40 to-white border border-orange-200 shadow-2xs hover:border-[#ff7700] transition-all flex flex-col justify-between min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-orange-800">
+              Rutas Maps
+            </span>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutMaps.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-[#ff7700] font-medium truncate">
+              Cómo llegar
+            </div>
+          </div>
+        </div>
+
+        {/* Boca a boca (Shares) */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50/90 via-violet-50/40 to-white border border-indigo-200 shadow-2xs hover:border-indigo-400 transition-all flex flex-col justify-between min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-indigo-800">
+              Compartidos
+            </span>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutShares.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-indigo-600 font-medium truncate">
+              Boca a boca
+            </div>
+          </div>
+        </div>
+
+        {/* Clientes QR Validados */}
+        <div className="p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-50/90 via-fuchsia-50/40 to-white border border-purple-200 shadow-2xs hover:border-purple-400 transition-all flex flex-col justify-between min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-purple-800">
+              Canjes QR
+            </span>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-[#041f5e] tracking-tight leading-tight">
+              {cutQrRedemptions.toLocaleString('es-CO')}
+            </div>
+            <div className="mt-1 text-xs text-purple-700 font-medium truncate">
+              En locales
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Financial & ROI Matrix Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: MRR & Facturación del Corte */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
             <div className="mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -714,31 +986,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
           </div>
         </div>
 
-        {/* Card 2: Cartera en Riesgo Inmediato */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Cartera en Riesgo
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-rose-600">
-              {formatCOP(atRiskRevenueCOP)}
-            </div>
-            <div className="mt-1 text-xs text-slate-500 font-normal">
-              {expiringSoonBusinesses.length} por vencer (&lt;7d) · {pastDueBusinesses.length} en mora
-            </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-normal">Tasa de cobro:</span>
-            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200/60">
-              {collectionRate}% al día
-            </span>
-          </div>
-        </div>
-
-        {/* Card 3: Costo Por Lead (CPL) */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between">
+        {/* Card 2: Costo Por Lead (CPL) & CAC Real */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
             <div className="mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -749,19 +998,19 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
               {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
             </div>
             <div className="mt-1 text-xs text-slate-500 font-normal">
-              Inversión por contacto vecinal en el corte
+              Por cada contacto vecinal generado en el corte
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-normal">Promedio/negocio:</span>
-            <span className="font-semibold text-slate-700">
-              {leadsPerActiveBiz} leads
+            <span className="text-slate-500 font-normal">CAC Real (QR):</span>
+            <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-200/60">
+              {cutCACReal > 0 ? formatCOP(cutCACReal) : 'Sin canjes'}
             </span>
           </div>
         </div>
 
-        {/* Card 4: Ahorro para Comercios */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between">
+        {/* Card 3: Ahorro Comunitario vs Pauta Meta/Google */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-amber-50/30 border border-emerald-200/80 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
             <div className="mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
@@ -775,45 +1024,72 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
               Vs. pauta tradicional (~$1.800 COP/lead)
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-normal">Leads generados:</span>
-            <span className="font-semibold text-emerald-700">
-              {cutTotalLeads.toLocaleString('es-CO')}
-            </span>
+          <div className="mt-3 pt-3 border-t border-emerald-100 flex items-center justify-between text-xs text-slate-500 font-normal">
+            <span>Ticket Promedio (ARPU):</span>
+            <span className="font-semibold text-slate-700">{formatCOP(arpuCOP)}/mes</span>
+          </div>
+        </div>
+
+        {/* Card 4: Cartera & Retención Activa */}
+        <div
+          onClick={() => onNavigateTab('businesses')}
+          className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div>
+            <div className="mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Salud de Cartera
+              </span>
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900">
+              {activeSubscribers}{' '}
+              <span className="text-xs text-slate-400 font-normal">/ {totalBusinesses} com.</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-xs">
+              <span className="font-semibold text-emerald-600">{collectionRate}% al día</span>
+              {pastDueBusinesses.length > 0 && (
+                <span className="text-rose-500 font-medium">({pastDueBusinesses.length} mora)</span>
+              )}
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#007af7] font-semibold">
+            <span>Auditar cartera de negocios</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
           </div>
         </div>
       </div>
 
-      {/* 3. Traffic Timeline & Conversion Funnel */}
+      {/* 4. Visual Analytics: Dynamic Timeline Chart + Cartera Donut Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Main Timeline Chart */}
+        {/* Main Chart: Traffic & Contact Generation Timeline in Selected Cut */}
         <div className="lg:col-span-2 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
-                Evolución de Tráfico y Contactos en el Corte
+                Tráfico & Contactos Vecinales en el Corte
               </h3>
-              <p className="text-xs text-slate-500 font-normal">
-                Comportamiento diario de vistas e interacciones comerciales
-              </p>
             </div>
 
-            {/* Metric Toggle */}
+            {/* Metric Toggle Buttons */}
             <div className="inline-flex bg-slate-100 p-0.5 rounded-xl text-xs self-start sm:self-auto border border-slate-200/80">
               <button
                 type="button"
                 onClick={() => setChartMetric('all')}
                 className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'all' ? 'bg-white text-[#041f5e] font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  chartMetric === 'all'
+                    ? 'bg-white text-[#041f5e] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Contactos
+                Ambos
               </button>
               <button
                 type="button"
                 onClick={() => setChartMetric('whatsapp')}
                 className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'whatsapp' ? 'bg-white text-emerald-700 font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  chartMetric === 'whatsapp'
+                    ? 'bg-white text-emerald-700 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 WhatsApp
@@ -822,42 +1098,43 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
                 type="button"
                 onClick={() => setChartMetric('maps')}
                 className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'maps' ? 'bg-white text-[#ff7700] font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  chartMetric === 'maps'
+                    ? 'bg-white text-[#ff7700] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Maps GPS
+                Maps
               </button>
               <button
                 type="button"
                 onClick={() => setChartMetric('views')}
                 className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'views' ? 'bg-white text-[#007af7] font-semibold shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  chartMetric === 'views'
+                    ? 'bg-white text-[#007af7] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Vistas Feed
+                Vistas
               </button>
             </div>
           </div>
 
-          <div className="h-56 sm:h-64 w-full">
+          {/* Area Chart Container with Recharts */}
+          <div className="w-full h-64 min-h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="adminLeadsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#007af7" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#007af7" stopOpacity={0.0} />
+                  <linearGradient id="adminViewsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#007af7" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="#007af7" stopOpacity={0.02} />
                   </linearGradient>
-                  <linearGradient id="adminWaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00d8a5" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#00d8a5" stopOpacity={0.0} />
+                  <linearGradient id="adminLeadsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#00d8a5" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#00d8a5" stopOpacity={0.02} />
                   </linearGradient>
                   <linearGradient id="adminMapsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ff7700" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#ff7700" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="adminViewsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#041f5e" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#041f5e" stopOpacity={0.0} />
+                    <stop offset="0%" stopColor="#ff7700" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#ff7700" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -869,53 +1146,42 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
                   tickLine={false}
                   axisLine={{ stroke: '#e2e8f0' }}
                 />
-                <YAxis
-                  stroke="#94a3b8"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(val) => (val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val)}
-                />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip content={<AdminTimelineTooltip />} />
 
-                {chartMetric === 'all' && (
+                {(chartMetric === 'all' || chartMetric === 'views') && (
                   <Area
                     type="monotone"
-                    dataKey="leads"
+                    dataKey="vistas"
+                    name="Vistas Feed"
                     stroke="#007af7"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#adminViewsGradient)"
+                  />
+                )}
+
+                {(chartMetric === 'all' || chartMetric === 'whatsapp') && (
+                  <Area
+                    type="monotone"
+                    dataKey={chartMetric === 'whatsapp' ? 'whatsapp' : 'leads'}
+                    name={chartMetric === 'whatsapp' ? 'WhatsApp' : 'Total Contactos'}
+                    stroke="#00d8a5"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#adminLeadsGradient)"
                   />
                 )}
-                {chartMetric === 'whatsapp' && (
-                  <Area
-                    type="monotone"
-                    dataKey="whatsapp"
-                    stroke="#00d8a5"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#adminWaGradient)"
-                  />
-                )}
+
                 {chartMetric === 'maps' && (
                   <Area
                     type="monotone"
                     dataKey="maps"
+                    name="Rutas Maps"
                     stroke="#ff7700"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#adminMapsGradient)"
-                  />
-                )}
-                {chartMetric === 'views' && (
-                  <Area
-                    type="monotone"
-                    dataKey="vistas"
-                    stroke="#041f5e"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#adminViewsGradient)"
                   />
                 )}
               </AreaChart>
@@ -923,173 +1189,49 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
           </div>
 
           {/* Quick Metrics Bar Under Chart */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-center">
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Vistas Feed</div>
+          <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-center">
+            <div className="p-2 rounded-xl bg-sky-50/60 border border-sky-100">
+              <div className="text-[10px] text-sky-800 font-medium uppercase tracking-wider">Vistas</div>
               <div className="text-sm sm:text-base font-bold text-[#041f5e]">{cutViews.toLocaleString('es-CO')}</div>
             </div>
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="text-[10px] text-emerald-800 uppercase tracking-wider font-semibold">WhatsApp</div>
-              <div className="text-sm sm:text-base font-bold text-emerald-700">
-                {cutWhatsapp.toLocaleString('es-CO')} <span className="text-[10px] text-slate-400 font-normal">({waShare}%)</span>
-              </div>
+            <div className="p-2 rounded-xl bg-emerald-50/60 border border-emerald-100">
+              <div className="text-[10px] text-emerald-800 font-medium uppercase tracking-wider">WhatsApp</div>
+              <div className="text-sm sm:text-base font-bold text-emerald-700">{cutWhatsapp.toLocaleString('es-CO')}</div>
             </div>
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="text-[10px] text-orange-800 uppercase tracking-wider font-semibold">Rutas Maps</div>
-              <div className="text-sm sm:text-base font-bold text-[#ff7700]">
-                {cutMaps.toLocaleString('es-CO')} <span className="text-[10px] text-slate-400 font-normal">({mapsShare}%)</span>
-              </div>
+            <div className="p-2 rounded-xl bg-orange-50/60 border border-orange-100">
+              <div className="text-[10px] text-orange-800 font-medium uppercase tracking-wider">Maps GPS</div>
+              <div className="text-sm sm:text-base font-bold text-[#ff7700]">{cutMaps.toLocaleString('es-CO')}</div>
             </div>
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="text-[10px] text-[#007af7] uppercase tracking-wider font-semibold">Llamadas</div>
-              <div className="text-sm sm:text-base font-bold text-[#007af7]">
-                {cutCalls.toLocaleString('es-CO')} <span className="text-[10px] text-slate-400 font-normal">({callsShare}%)</span>
-              </div>
+            <div className="p-2 rounded-xl bg-blue-50/60 border border-blue-100">
+              <div className="text-[10px] text-blue-800 font-medium uppercase tracking-wider">Llamadas</div>
+              <div className="text-sm sm:text-base font-bold text-[#007af7]">{cutCalls.toLocaleString('es-CO')}</div>
             </div>
           </div>
         </div>
 
-        {/* Conversion Funnel & Channel Mix */}
+        {/* Secondary Card: Financial Composition & Cartera Breakdown */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
-              Embudo de Conversión Vecinal
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Composición de Cartera
+              </h3>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                {collectionRate}% Cobrado
+              </span>
+            </div>
             <p className="text-xs text-slate-500 mt-0.5 font-normal">
-              Flujo desde la visualización del anuncio hasta la intención directa
+              Estado de facturación de los {totalBusinesses} comercios en {selectedCity === 'all' ? 'todos los municipios' : selectedCity}.
             </p>
           </div>
 
-          <div className="space-y-3">
-            {/* Stage 1: Impresiones */}
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700">1. Alcance en Feed</span>
-                <span className="font-bold text-[#041f5e]">{cutViews.toLocaleString('es-CO')}</span>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
-                <div className="h-full bg-[#041f5e] rounded-full w-full" />
-              </div>
-            </div>
-
-            {/* Stage 2: Interés y Boca a Boca */}
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700">2. Boca a Boca (Compartidos)</span>
-                <span className="font-bold text-indigo-600">{cutShares.toLocaleString('es-CO')}</span>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
-                <div
-                  className="h-full bg-indigo-500 rounded-full"
-                  style={{ width: `${cutViews > 0 ? Math.max(5, Math.min(100, (cutShares / cutViews) * 100)) : 5}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Stage 3: Contacto Comercial Efectivo */}
-            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-semibold text-emerald-900">3. Contacto Directo (Leads)</span>
-                <span className="font-bold text-emerald-700">
-                  {cutTotalLeads.toLocaleString('es-CO')} ({cutConversionRate}%)
-                </span>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-emerald-200 overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full"
-                  style={{ width: `${Math.max(5, Math.min(100, parseFloat(cutConversionRate)))}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-            <div className="flex justify-between">
-              <span>WhatsApp Directo:</span>
-              <span className="font-semibold text-slate-800">{cutWhatsapp.toLocaleString('es-CO')} ({waShare}%)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Rutas Cómo Llegar:</span>
-              <span className="font-semibold text-slate-800">{cutMaps.toLocaleString('es-CO')} ({mapsShare}%)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Llamadas Directas:</span>
-              <span className="font-semibold text-slate-800">{cutCalls.toLocaleString('es-CO')} ({callsShare}%)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Territorial Performance & Financial Portfolio Composition */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Territorial Performance Matrix */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
-                Rendimiento & Densidad por Territorio
-              </h3>
-              <p className="text-xs text-slate-500 font-normal">
-                Comercios afiliados, volumen de posts y contactos vecinales por municipio
-              </p>
-            </div>
-            <span className="text-xs text-slate-400 font-medium">
-              {municipalityBreakdown.length} activos
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="pb-2">Municipio</th>
-                  <th className="pb-2 text-center">Comercios</th>
-                  <th className="pb-2 text-center">Posts</th>
-                  <th className="pb-2 text-right">Leads</th>
-                  <th className="pb-2 text-right">Promedio/Negocio</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {municipalityBreakdown.map((m) => (
-                  <tr key={m.city} className="hover:bg-slate-50/60 transition">
-                    <td className="py-2.5 font-semibold text-slate-800">{m.city}</td>
-                    <td className="py-2.5 text-center text-slate-600">{m.businesses}</td>
-                    <td className="py-2.5 text-center text-slate-600">{m.activePosts}</td>
-                    <td className="py-2.5 text-right font-bold text-[#041f5e]">
-                      {m.leads.toLocaleString('es-CO')}
-                    </td>
-                    <td className="py-2.5 text-right font-semibold text-emerald-600">
-                      {m.avgLeads}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Financial Composition Donut */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
-                Composición de Cartera & Cobranza
-              </h3>
-              <p className="text-xs text-slate-500 font-normal">
-                Estado de facturación de los {totalBusinesses} comercios registrados
-              </p>
-            </div>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60">
-              {collectionRate}% Cobrado
-            </span>
-          </div>
-
+          {/* Donut Chart with Recharts */}
           <div className="h-44 flex items-center justify-center relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={financialDistributionData}
-                  innerRadius={46}
+                  innerRadius={45}
                   outerRadius={68}
                   paddingAngle={4}
                   dataKey="value"
@@ -1112,6 +1254,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
             </div>
           </div>
 
+          {/* Legend Items */}
           <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1119,7 +1262,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
                 <span className="text-slate-600 font-normal">Al Día (Activos)</span>
               </div>
               <span className="font-semibold text-slate-800">
-                {activeSubscribers} com. ({formatCOP(activeSubscribers * 29900)})
+                {activeSubscribers} ({formatCOP(activeSubscribers * 29900)})
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -1128,197 +1271,545 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = () => {
                 <span className="text-slate-600 font-normal">Por Vencer (&lt;7 días)</span>
               </div>
               <span className="font-semibold text-amber-700">
-                {expiringSoonBusinesses.length} com. ({formatCOP(expiringSoonBusinesses.length * 29900)})
+                {expiringSoonBusinesses.length}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
-                <span className="text-slate-600 font-normal">Vencidos / En Mora</span>
+                <span className="text-slate-600 font-normal">Vencidos / Mora</span>
               </div>
               <span className="font-semibold text-rose-600">
-                {pastDueBusinesses.length} com. ({formatCOP(pastDueBusinesses.length * 29900)})
+                {pastDueBusinesses.length}
               </span>
             </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigateTab('businesses')}
+            className="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 text-xs font-semibold text-[#007af7] flex items-center justify-center gap-1.5 transition cursor-pointer"
+          >
+            <span>Ver detalle de suscripciones</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 5. Channel Breakdown & Day of Week Demand Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Canales de Captación Vecinal */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Canales de Captación en el Corte
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Distribución de puntos de contacto preferidos por los vecinos
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-[#041f5e] bg-sky-50 border border-sky-100 px-2.5 py-0.5 rounded-full">
+              {cutTotalLeads} contactos
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {channelData.map((channel) => (
+              <div key={channel.name} className="p-2.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-sky-100 transition">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <div className="font-medium text-slate-700">
+                    <span>{channel.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-slate-900">{channel.value.toLocaleString('es-CO')}</span>
+                    <span className="text-[10px] font-normal text-slate-400">({channel.share}%)</span>
+                  </div>
+                </div>
+                <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(4, Math.min(100, channel.share))}%`,
+                      backgroundColor: channel.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Demanda por Día de la Semana */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Días Pico de Demanda Vecinal
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Intensidad de consultas e interacciones según el día en el periodo
+              </p>
+            </div>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              Pico comercial
+            </span>
+          </div>
+
+          <div className="h-44 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dayActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="dia" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip content={<AdminBarTooltip />} />
+                <Bar dataKey="interacciones" radius={[6, 6, 0, 0]}>
+                  {dayActivityData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.esPico ? '#ff7700' : '#007af7'}
+                      fillOpacity={entry.esPico ? 1 : 0.8}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* 5. Diagnostic Merchant Table: Churn Prevention & Retention */}
+      {/* 6. Top 5 Successful Posts in Network During Cut */}
+      <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Top Publicaciones con Mayor Retorno en el Corte
+              </h3>
+            <p className="text-xs text-slate-500 font-normal">
+              Anuncios de la red que más contactos y clientes generaron durante los {cutDays} días seleccionados
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigateTab('posts')}
+            className="text-xs font-semibold text-[#007af7] hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+          >
+            <span>Ver todas las publicaciones</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {topCutPosts.length === 0 ? (
+          <div className="py-6 text-center text-xs text-slate-400 font-normal">
+            No hay publicaciones con actividad registrada en el corte.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {topCutPosts.map((post, idx) => (
+              <div
+                key={post.id}
+                className="p-3 rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 hover:border-sky-300 hover:shadow-xs transition space-y-2 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                      #{idx + 1} en Retorno
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400">{post.businessCity}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {post.imageUrl && (
+                      <img
+                        src={post.imageUrl}
+                        alt={post.title}
+                        className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-semibold text-slate-900 truncate" title={post.title}>
+                        {post.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 font-normal truncate">{post.businessName}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-[#007af7]">{post.cutViews} vistas</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="font-semibold text-emerald-600">{post.cutTotalLeads} leads</span>
+                  </div>
+                  <span className="font-semibold text-[#041f5e] bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
+                    {post.cutCtr}% CTR
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 7. Territorial & Category Intelligence Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Territorial Penetration */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Rendimiento por Territorio en el Corte
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Demanda vecinal y comercios activos por cada municipio
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigateTab('municipalities')}
+              className="text-xs font-semibold text-[#007af7] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>Gestionar</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
+            {municipalityBreakdown.slice(0, 5).map((m) => {
+              const share = cutTotalLeads > 0 ? Math.round((m.leads / cutTotalLeads) * 100) : 0;
+              return (
+                <div key={m.city} className="p-2.5 rounded-xl bg-slate-50/70 hover:bg-sky-50/40 transition border border-slate-100">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <div className="font-medium text-slate-800 flex items-center gap-1.5">
+                      <span>{m.city}</span>
+                      <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-slate-200/70 text-slate-600">
+                        {m.businesses} com. · {m.activePosts} posts
+                      </span>
+                    </div>
+                    <span className="font-semibold text-emerald-600">
+                      {m.leads} leads ({share}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#007af7] to-[#00d8a5] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(5, Math.min(100, share))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Categories Leadership */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
+                Demanda por Categorías en el Corte
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Sectores con mayor captación de clientes vecinales
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigateTab('categories')}
+              className="text-xs font-semibold text-[#007af7] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>Gestionar</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
+            {categoryBreakdown.map((c) => {
+              const share = cutTotalLeads > 0 ? Math.round((c.leads / cutTotalLeads) * 100) : 0;
+              return (
+                <div key={c.id} className="p-2.5 rounded-xl bg-slate-50/70 hover:bg-purple-50/40 transition border border-slate-100">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <div className="font-medium text-slate-800 flex items-center gap-1.5">
+                      <span>{c.name}</span>
+                      <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-slate-200/70 text-slate-600">
+                        {c.count} comercios
+                      </span>
+                    </div>
+                    <span className="font-semibold text-purple-600">
+                      {c.leads} leads ({share}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-purple-500 to-[#007af7] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(5, Math.min(100, share))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 8. Merchant Churn & Inactivity Alert */}
+      {businessesWithoutActivePosts.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-amber-50/90 border border-amber-200 shadow-2xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-4 h-4 text-amber-800" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-semibold text-amber-950">
+                  Alerta de Retención: {businessesWithoutActivePosts.length} comercios sin publicaciones vigentes
+                </h4>
+                <p className="text-[11px] text-amber-800 font-normal">
+                  Comercios que no tienen anuncios activos en el feed corren riesgo de churn por falta de visibilidad.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigateTab('businesses')}
+              className="text-xs font-semibold text-amber-950 bg-white px-3 py-1.5 rounded-xl border border-amber-300 hover:bg-amber-100 transition self-start sm:self-auto cursor-pointer shadow-2xs"
+            >
+              Contactar para reactivación
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 9. Individual Merchant Evaluation Table with Dynamic Cut Calculation */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
-              Matriz de Retención & Diagnóstico de Negocios
+              Evaluación Individual de Comercios ({cutDays} días de corte)
             </h3>
             <p className="text-xs text-slate-500 font-normal">
-              Detección de comercios en riesgo de churn por inactividad o mora en {cutDays} días de corte
+              Diagnóstico de retorno por negocio calculado entre {formatDateLabel(startDate, false)} y {formatDateLabel(endDate, false)}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
+            {/* Search Input */}
             <div className="relative w-full sm:w-auto">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchMerchant}
                 onChange={(e) => setSearchMerchant(e.target.value)}
-                placeholder="Buscar negocio o municipio..."
+                placeholder="Buscar comercio o ciudad..."
                 className="text-xs pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-slate-800 placeholder-slate-400 w-full sm:w-56"
               />
+            </div>
+
+            {/* Table Segmented Filter */}
+            <div className="inline-flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setTableFilter('top_leads')}
+                className={`text-xs px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  tableFilter === 'top_leads'
+                    ? 'bg-white text-[#041f5e] font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                🏆 Top Retorno
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter('attention_needed')}
+                className={`text-xs px-2.5 py-1 rounded-lg transition cursor-pointer flex items-center gap-1 font-medium ${
+                  tableFilter === 'attention_needed'
+                    ? 'bg-white text-rose-600 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>⚠️ Atención</span>
+                {(pastDueBusinesses.length > 0 || expiringSoonBusinesses.length > 0) && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter('all')}
+                className={`text-xs px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
+                  tableFilter === 'all'
+                    ? 'bg-white text-slate-900 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Todos ({filteredBusinesses.length})
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Filter Segment Tabs */}
-        <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2 overflow-x-auto text-xs">
-          <button
-            type="button"
-            onClick={() => setTableFilter('top_leads')}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer font-medium shrink-0 ${
-              tableFilter === 'top_leads'
-                ? 'bg-[#041f5e] text-white font-semibold'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Mayor Retorno (Top Leads)
-          </button>
-          <button
-            type="button"
-            onClick={() => setTableFilter('churn_risk')}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer font-medium shrink-0 ${
-              tableFilter === 'churn_risk'
-                ? 'bg-amber-500 text-white font-semibold'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Riesgo de Churn ({businessesWithoutActivePosts.length} sin publicaciones)
-          </button>
-          <button
-            type="button"
-            onClick={() => setTableFilter('at_risk_cartera')}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer font-medium shrink-0 ${
-              tableFilter === 'at_risk_cartera'
-                ? 'bg-rose-600 text-white font-semibold'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Cartera por Cobrar ({expiringSoonBusinesses.length + pastDueBusinesses.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setTableFilter('all')}
-            className={`px-3 py-1.5 rounded-xl transition cursor-pointer font-medium shrink-0 ${
-              tableFilter === 'all'
-                ? 'bg-slate-700 text-white font-semibold'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            Todos ({filteredBusinesses.length})
-          </button>
-        </div>
-
-        {/* Table Content */}
+        {/* Table View */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                <th className="pb-2.5">Comercio</th>
-                <th className="pb-2.5">Estado Suscripción</th>
-                <th className="pb-2.5 text-center">Posts Vigentes</th>
-                <th className="pb-2.5 text-right">Leads en Corte</th>
-                <th className="pb-2.5 text-right">CPL Estimado</th>
-                <th className="pb-2.5 text-right">Acción</th>
+              <tr className="border-b border-slate-200 text-slate-400 font-medium uppercase tracking-wider text-[10px]">
+                <th className="py-2.5 px-3">Comercio</th>
+                <th className="py-2.5 px-3">Territorio</th>
+                <th className="py-2.5 px-3 text-right">Vistas ({cutDays}d)</th>
+                <th className="py-2.5 px-3 text-right">Leads WhatsApp</th>
+                <th className="py-2.5 px-3 text-right">Rutas Maps</th>
+                <th className="py-2.5 px-3 text-right">Conversión</th>
+                <th className="py-2.5 px-3 text-center">Estado Cartera</th>
+                <th className="py-2.5 px-3 text-right">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {displayedMerchants.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-slate-400">
-                    No se encontraron comercios con el filtro seleccionado.
+                  <td colSpan={8} className="py-8 text-center text-slate-400 font-normal">
+                    No se encontraron comercios que coincidan con los filtros seleccionados.
                   </td>
                 </tr>
               ) : (
-                displayedMerchants.map((biz) => {
-                  const bizPosts = posts.filter((p) => p.businessId === biz.id);
-                  const activePosts = bizPosts.filter((p) => isPostActive(p)).length;
+                displayedMerchants.map((b) => {
+                  const bizPosts = posts.filter((p) => p.businessId === b.id);
+                  const bizActivePosts = bizPosts.filter((p) => isPostActive(p));
 
-                  let bLeads = 0;
+                  let bViews = 0;
+                  let bWhatsapp = 0;
+                  let bMaps = 0;
+                  let bCalls = 0;
+
                   rangeDateKeys.forEach((k) => {
-                    bizPosts.forEach((p) => {
-                      const d = getPostDayRecord(p, k);
-                      bLeads += d.whatsappClicks + d.mapsClicks + d.calls;
-                    });
+                    if (bizPosts.length > 0) {
+                      bizPosts.forEach((p) => {
+                        const d = getPostDayRecord(p, k);
+                        bViews += d.views;
+                        bWhatsapp += d.whatsappClicks;
+                        bMaps += d.mapsClicks;
+                        bCalls += d.calls;
+                      });
+                    } else {
+                      const d = getBusinessDayRecord(b, k);
+                      bViews += d.views;
+                      bWhatsapp += d.whatsappClicks;
+                      bMaps += d.mapsClicks;
+                      bCalls += d.calls;
+                    }
                   });
 
-                  const isPastDue =
-                    biz.subscription?.status === 'expired' ||
-                    (biz.subscription?.expiresAt && new Date(biz.subscription.expiresAt).getTime() <= now);
-                  const isExpiring =
-                    biz.subscription?.expiresAt &&
-                    new Date(biz.subscription.expiresAt).getTime() > now &&
-                    new Date(biz.subscription.expiresAt).getTime() - now <= sevenDaysMs;
+                  const totalBizLeads = bWhatsapp + bMaps + bCalls;
+                  const conv = bViews > 0 ? ((totalBizLeads / bViews) * 100).toFixed(1) : '0';
 
-                  const costPerBizLead = bLeads > 0 ? Math.round(cutProratedRevenueCOP / bLeads) : 0;
+                  const isExpired =
+                    b.subscription?.status === 'expired' ||
+                    (b.subscription?.expiresAt && new Date(b.subscription.expiresAt).getTime() <= now);
+                  const isExpiringSoon =
+                    b.subscription?.expiresAt &&
+                    new Date(b.subscription.expiresAt).getTime() > now &&
+                    new Date(b.subscription.expiresAt).getTime() - now <= sevenDaysMs;
 
                   return (
-                    <tr key={biz.id} className="hover:bg-slate-50/70 transition">
-                      <td className="py-3">
-                        <div className="font-semibold text-slate-900">{biz.name}</div>
-                        <div className="text-[11px] text-slate-400 font-normal">
-                          {biz.city}{biz.sector ? ` · ${biz.sector}` : ''}
+                    <tr key={b.id} className="hover:bg-sky-50/30 transition">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {b.logo ? (
+                            <img
+                              src={b.logo}
+                              alt={b.name}
+                              referrerPolicy="no-referrer"
+                              className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-[#041f5e] text-white font-semibold flex items-center justify-center text-xs shrink-0">
+                              {b.name.slice(0, 2)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900 truncate flex items-center gap-1">
+                              <span>{b.name}</span>
+                              {b.verified && <ShieldCheck className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-normal truncate">
+                              {b.subCategory} · {bizActivePosts.length} posts
+                            </div>
+                          </div>
                         </div>
                       </td>
 
-                      <td className="py-3">
-                        {isPastDue ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
-                            Vencido / Mora
+                      <td className="py-3 px-3">
+                        <span className="text-slate-700 font-medium">{b.city}</span>
+                        <span className="block text-[10px] text-slate-400 font-normal truncate">{b.sector}</span>
+                      </td>
+
+                      <td className="py-3 px-3 text-right font-medium text-slate-800">
+                        {bViews.toLocaleString('es-CO')}
+                      </td>
+
+                      <td className="py-3 px-3 text-right font-semibold text-emerald-600">
+                        {bWhatsapp.toLocaleString('es-CO')}
+                      </td>
+
+                      <td className="py-3 px-3 text-right font-semibold text-[#ff7700]">
+                        {bMaps.toLocaleString('es-CO')}
+                      </td>
+
+                      <td className="py-3 px-3 text-right">
+                        <span className="font-semibold text-[#041f5e] bg-sky-50 px-2 py-0.5 rounded text-[11px] border border-sky-100">
+                          {conv}%
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3 text-center">
+                        {isExpired ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                            Vencido
                           </span>
-                        ) : isExpiring ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                        ) : isExpiringSoon ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
                             Vence en &lt;7d
                           </span>
-                        ) : (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        ) : b.subscription?.status === 'active' ? (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                             Al Día
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                            {b.status}
                           </span>
                         )}
                       </td>
 
-                      <td className="py-3 text-center">
-                        <span
-                          className={`font-semibold ${
-                            activePosts === 0 ? 'text-amber-600' : 'text-slate-700'
-                          }`}
-                        >
-                          {activePosts}
-                        </span>
-                      </td>
-
-                      <td className="py-3 text-right font-bold text-[#041f5e]">
-                        {bLeads.toLocaleString('es-CO')}
-                      </td>
-
-                      <td className="py-3 text-right text-slate-600 font-medium">
-                        {costPerBizLead > 0 ? formatCOP(costPerBizLead) : '$0'}
-                      </td>
-
-                      <td className="py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleCopyContactMessage(
-                              biz,
-                              isPastDue || isExpiring ? 'renewal' : activePosts === 0 ? 'publish' : 'general'
-                            )
-                          }
-                          className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
-                          title="Contactar vía WhatsApp"
-                        >
-                          <MessageCircle className="w-3 h-3 text-emerald-600" />
-                          <span>Contactar</span>
-                        </button>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {isExpiringSoon || isExpired ? (
+                            <button
+                              type="button"
+                              onClick={() => handleCopyRenewalMessage(b)}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-medium border border-emerald-200 flex items-center gap-1 transition cursor-pointer"
+                              title="Copiar mensaje de renovación para WhatsApp"
+                            >
+                              {copiedBizId === b.id ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-600" />
+                                  <span>Copiado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <MessageCircle className="w-3 h-3" />
+                                  <span>Recordar</span>
+                                </>
+                              )}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateTab('businesses')}
+                              className="p-1 rounded-lg hover:bg-sky-50 text-slate-400 hover:text-[#007af7] transition cursor-pointer"
+                              title="Ver ficha comercial"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
