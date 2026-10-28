@@ -7,7 +7,6 @@ import {
   TrendingUp,
   FileText,
   Users,
-  MessageCircle,
   CheckCircle2,
   ArrowRight,
   AlertTriangle,
@@ -16,7 +15,6 @@ import {
   Phone,
   Calendar,
   ExternalLink,
-  ChevronRight,
   Filter,
   BarChart3,
   Flame,
@@ -176,7 +174,6 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
     return selectedMetrics.includes(key);
   };
   const [showFormulaExplanation, setShowFormulaExplanation] = useState<boolean>(false);
-  const [copiedBizId, setCopiedBizId] = useState<string | null>(null);
 
   // Handle Cut Date Range Changes
   const handleStartDateChange = (newStart: string) => {
@@ -759,12 +756,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
   }, [filteredBusinesses, searchMerchant, tableFilter, posts, now, sevenDaysMs, isPostActive, rangeDateKeys, guaranteedPostDailyMap]);
 
   // Send renewal reminder WhatsApp message
-  const handleCopyRenewalMessage = (b: Business) => {
-    const text = `Hola ${b.name}, te saludamos del equipo de ${APP_CONFIG.name}. Tu suscripción comercial vence pronto (${b.subscription?.expiresAt ? new Date(b.subscription.expiresAt).toLocaleDateString('es-CO') : 'este mes'}). Recuerda renovar para seguir recibiendo contactos directos por WhatsApp en ${b.city}. ¡Gracias por ser parte de nuestra red local!`;
-    navigator.clipboard.writeText(text);
-    setCopiedBizId(b.id);
-    setTimeout(() => setCopiedBizId(null), 3000);
-  };
+  
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -1692,13 +1684,12 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 <th className="py-2.5 px-3 text-right">Rutas Maps</th>
                 <th className="py-2.5 px-3 text-right">Conversión</th>
                 <th className="py-2.5 px-3 text-center">Estado Cartera</th>
-                <th className="py-2.5 px-3 text-right">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {displayedMerchants.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-400 font-normal">
+                  <td colSpan={7} className="py-8 text-center text-slate-400 font-normal">
                     No se encontraron comercios que coincidan con los filtros seleccionados.
                   </td>
                 </tr>
@@ -1812,39 +1803,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                         )}
                       </td>
 
-                      <td className="py-3 px-3 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {isExpiringSoon || isExpired ? (
-                            <button
-                              type="button"
-                              onClick={() => handleCopyRenewalMessage(b)}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-medium border border-emerald-200 flex items-center gap-1 transition cursor-pointer"
-                              title="Copiar mensaje de renovación para WhatsApp"
-                            >
-                              {copiedBizId === b.id ? (
-                                <>
-                                  <Check className="w-3 h-3 text-emerald-600" />
-                                  <span>Copiado</span>
-                                </>
-                              ) : (
-                                <>
-                                  <MessageCircle className="w-3 h-3" />
-                                  <span>Recordar</span>
-                                </>
-                              )}
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => onNavigateTab('businesses')}
-                              className="p-1 rounded-lg hover:bg-sky-50 text-slate-400 hover:text-[#007af7] transition cursor-pointer"
-                              title="Ver ficha comercial"
-                            >
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                      
                     </tr>
                   );
                 })
