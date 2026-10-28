@@ -345,9 +345,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
       if (hasStops) {
         setCurrentPlan(responseData);
-      } else if (responseData.type === 'search') {
-        // If it's a direct search, reset currentPlan so subsequent queries are not trapped in plan refinement!
-        setCurrentPlan(null);
       }
 
       if (responseData.auditTrace?.executionMode === 'llm') {

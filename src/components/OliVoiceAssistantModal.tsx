@@ -360,7 +360,9 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
       }
 
       const planData: OliPlanResponse = await response.json();
-      setCurrentPlan(planData);
+      if (planData.stops && planData.stops.length > 0) {
+        setCurrentPlan(planData);
+      }
 
       setChatHistory([
         ...updatedHistory,
