@@ -1008,7 +1008,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
                   {formatCOP(monthlyRevenueCOP)}
                 </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                <div className="text-[10px] sm:text-[10.5px] text-slate-500 font-medium mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                   MRR recurrente activo mensual
                 </div>
 
@@ -1054,7 +1054,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
                   {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
                 </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                <div className="text-[10px] sm:text-[10.5px] text-slate-500 font-medium mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                   Costo real por cliente interesado
                 </div>
 
@@ -1100,7 +1100,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
                   {formatCOP(estimatedMerchantSavings)}
                 </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                <div className="text-[10px] sm:text-[10.5px] text-slate-500 font-medium mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                   Ahorro neto frente a pauta digital
                 </div>
 
@@ -1146,7 +1146,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
                   {cutConversionRate}%
                 </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                <div className="text-[10px] sm:text-[10.5px] text-slate-500 font-medium mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                   De vistas convertidas en contactos
                 </div>
 
