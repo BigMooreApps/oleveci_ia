@@ -1001,15 +1001,12 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
       {/* 3. Financial & ROI Matrix Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: MRR & Facturación del Corte */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
+        {/* Card 1: MRR & Facturación del Corte (Pastel Azul Suave) */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/80 via-sky-50/40 to-blue-50/30 border border-sky-200/80 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <div className="mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-sky-800/80">
                 Facturación & MRR
-              </span>
-              <span className="text-[10px] font-semibold text-[#007af7] bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
-                Corte {cutDays}d
               </span>
             </div>
             <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
@@ -1020,8 +1017,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
 
             {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-sky-100/90 shadow-2xs text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-sky-800">
                 Desglose de Facturación
               </div>
               <div className="space-y-1 text-[11px]">
@@ -1033,7 +1030,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                   <span>Ticket promedio (ARPU):</span>
                   <span className="font-semibold text-slate-900">{formatCOP(arpuCOP)}/mes</span>
                 </div>
-                <div className="pt-1 border-t border-slate-200/60 flex justify-between font-bold text-[#041f5e]">
+                <div className="pt-1 border-t border-sky-100 flex justify-between font-bold text-[#041f5e]">
                   <span>Prorrateo corte ({cutDays}d):</span>
                   <span>{formatCOP(cutProratedRevenueCOP)}</span>
                 </div>
@@ -1041,24 +1038,21 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="pt-2.5 border-t border-sky-100/80 flex items-center justify-between text-xs text-slate-500">
             <span>ARR proyectado anual:</span>
             <span className="font-bold text-[#041f5e]">{formatCOP(projectedARR)}</span>
           </div>
         </div>
 
-        {/* Card 2: Costo Por Lead (CPL) & CAC Real */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
+        {/* Card 2: Costo Por Lead (CPL) (Pastel Ámbar Suave) */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50/80 via-amber-50/40 to-orange-50/20 border border-amber-200/80 hover:border-amber-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <div className="mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-800/80">
                 Costo Por Lead (CPL)
               </span>
-              <span className="text-[10px] font-semibold text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
-                Efectividad
-              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black text-amber-950 tracking-tight">
               {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
             </div>
             <div className="text-xs text-slate-500 font-medium mt-0.5">
@@ -1066,8 +1060,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
 
             {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-sky-50/60 border border-sky-100 text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-sky-800">
+            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-amber-100/90 shadow-2xs text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
                 Fórmula de Costo Unitario
               </div>
               <div className="space-y-1 text-[11px]">
@@ -1079,7 +1073,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                   <span>Contactos vecinales:</span>
                   <span className="font-semibold text-slate-900">÷ {cutTotalLeads.toLocaleString('es-CO')} leads</span>
                 </div>
-                <div className="pt-1 border-t border-sky-200/60 flex justify-between font-bold text-[#041f5e]">
+                <div className="pt-1 border-t border-amber-100 flex justify-between font-bold text-amber-900">
                   <span>Costo por lead entregado:</span>
                   <span className="text-emerald-700">{formatCOP(cutCostPerLead)} COP</span>
                 </div>
@@ -1087,28 +1081,25 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="pt-2.5 border-t border-amber-100/80 flex items-center justify-between text-xs text-slate-500">
             <span>CAC Real (Canjes QR):</span>
             <span className={`font-semibold px-2 py-0.5 rounded-md text-[11px] ${
-              cutCACReal > 0 ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600'
+              cutCACReal > 0 ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-white/80 text-slate-600 border border-slate-200/60'
             }`}>
               {cutCACReal > 0 ? `${formatCOP(cutCACReal)}/canje` : 'Sin canjes en corte'}
             </span>
           </div>
         </div>
 
-        {/* Card 3: Ahorro Comunitario vs Pauta Meta/Google */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/20 border border-emerald-200/90 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
+        {/* Card 3: Ahorro para Comercios (Pastel Menta Suave) */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/80 via-emerald-50/40 to-teal-50/20 border border-emerald-200/80 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+            <div className="mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800/80">
                 Ahorro para Comercios
               </span>
-              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/70 border border-emerald-200 px-2 py-0.5 rounded-full">
-                ROI Vecinal
-              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
               {formatCOP(estimatedMerchantSavings)}
             </div>
             <div className="text-xs text-emerald-700 font-medium mt-0.5">
@@ -1116,7 +1107,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
 
             {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-xs space-y-1.5">
+            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-emerald-100 shadow-2xs text-xs space-y-1.5">
               <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
                 Comparativa vs Google / Meta Ads
               </div>
@@ -1129,7 +1120,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                   <span>Inversión en OleVeci:</span>
                   <span className="font-semibold">-{formatCOP(cutProratedRevenueCOP)}</span>
                 </div>
-                <div className="pt-1 border-t border-emerald-200/60 flex justify-between font-bold text-emerald-800">
+                <div className="pt-1 border-t border-emerald-100 flex justify-between font-bold text-emerald-800">
                   <span>Ahorro neto entregado:</span>
                   <span>{formatCOP(estimatedMerchantSavings)}</span>
                 </div>
@@ -1145,27 +1136,24 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
           </div>
         </div>
 
-        {/* Card 4: Conversión Vecinal (Reemplazo de Salud de Cartera) */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
+        {/* Card 4: Conversión Vecinal (Pastel Lavanda Suave) */}
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-50/80 via-purple-50/40 to-indigo-50/20 border border-purple-200/80 hover:border-purple-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <div className="mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-purple-800/80">
                 Conversión Vecinal
               </span>
-              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                Feed → Contacto
-              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black text-purple-900 tracking-tight">
               {cutConversionRate}%
             </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
+            <div className="text-xs text-purple-700 font-medium mt-0.5">
               De vistas convertidas en contactos
             </div>
 
             {/* Structured Calculation Box */}
-            <div className="my-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="my-3 p-2.5 rounded-xl bg-white/85 border border-purple-100 shadow-2xs text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-purple-800">
                 Embudo de Conversión
               </div>
               <div className="space-y-1 text-[11px]">
@@ -1177,7 +1165,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                   <span>Vistas en el feed:</span>
                   <span className="font-semibold text-slate-900">÷ {cutViews.toLocaleString('es-CO')} vistas</span>
                 </div>
-                <div className="pt-1 border-t border-slate-200/60 flex justify-between font-bold text-emerald-700">
+                <div className="pt-1 border-t border-purple-100 flex justify-between font-bold text-purple-700">
                   <span>Tasa de efectividad:</span>
                   <span>{cutConversionRate}%</span>
                 </div>
@@ -1185,9 +1173,9 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
           </div>
 
-          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="pt-2.5 border-t border-purple-100/80 flex items-center justify-between text-xs text-slate-500">
             <span>Promedio por negocio activo:</span>
-            <span className="font-semibold text-slate-800">
+            <span className="font-semibold text-purple-900">
               ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
             </span>
           </div>
