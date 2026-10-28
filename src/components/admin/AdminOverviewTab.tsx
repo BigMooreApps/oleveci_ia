@@ -965,107 +965,35 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
       {/* Formula Explanation Collapsible Banner */}
       {showFormulaExplanation && (
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-sky-50/90 via-white to-indigo-50/40 border border-sky-200/90 shadow-sm text-xs space-y-3.5 animate-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between pb-2 border-b border-sky-100">
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-amber-50/60 border border-sky-200 shadow-sm text-xs space-y-2.5 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold text-[#041f5e]">
               <Info className="w-4 h-4 text-[#007af7]" />
-              <span className="text-sm">Glosario de Indicadores y Fórmulas Matemáticas en Vivo</span>
+              <span>Glosario de Indicadores y Fórmulas Matemáticas de OleVeci</span>
             </div>
             <button
               onClick={() => setShowFormulaExplanation(false)}
-              className="text-xs font-semibold text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              className="text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
             >
               Cerrar
             </button>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {/* Box 1: Facturación & MRR (explica Card 1) */}
-            <div className="bg-white p-3.5 rounded-2xl border border-sky-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-sky-300 transition">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-[#041f5e] text-xs">Facturación & MRR</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-sky-50 text-[#007af7]">Recurrencia</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Ingreso mensual de comercios activos ($29.900 COP/mes). En cortes de {cutDays} días se prorratea a tasa diaria.
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
-                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
-                  Activos × $29.900/mes
-                </div>
-                <div className="text-[11px] text-sky-700 font-semibold flex items-center justify-between">
-                  <span>Corte ({cutDays}d):</span>
-                  <span>{formatCOP(cutProratedRevenueCOP)}</span>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-slate-600">
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">MRR & Facturación del Corte</span>
+              Facturación activa ({formatCOP(monthlyRevenueCOP)}/mes). En cortes de {cutDays} días, equivale a {formatCOP(cutProratedRevenueCOP)} a una tasa diaria de {formatCOP(cutDays > 0 ? cutProratedRevenueCOP / cutDays : 0)}/día.
             </div>
-
-            {/* Box 2: Costo Por Lead (CPL) (explica Card 2) */}
-            <div className="bg-white p-3.5 rounded-2xl border border-sky-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-sky-300 transition">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-[#041f5e] text-xs">Costo Por Lead (CPL)</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700">Eficiencia</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Costo de generar cada contacto vecinal interesado (WhatsApp, Rutas Maps o Llamadas directas).
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
-                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
-                  Facturación ÷ {cutTotalLeads.toLocaleString('es-CO')} contactos
-                </div>
-                <div className="text-[11px] text-indigo-700 font-semibold flex items-center justify-between">
-                  <span>CPL resultante:</span>
-                  <span>{formatCOP(cutCostPerLead)} / lead</span>
-                </div>
-              </div>
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">Costo Por Lead (CPL)</span>
+              Facturación del corte ÷ Total de contactos vecinales ({cutTotalLeads.toLocaleString('es-CO')}). Costo real: {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'} por contacto interesado.
             </div>
-
-            {/* Box 3: Ahorro para Comercios (explica Card 3) */}
-            <div className="bg-white p-3.5 rounded-2xl border border-emerald-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-emerald-300 transition">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-emerald-800 text-xs">Ahorro para Comercios</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Retorno / ROI</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Comparativa de ahorro contra pauta tradicional de Google o Meta Ads en Colombia (~$1.800 COP/lead).
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
-                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
-                  ({cutTotalLeads.toLocaleString('es-CO')} × $1.800) - Facturación
-                </div>
-                <div className="text-[11px] text-emerald-700 font-semibold flex items-center justify-between">
-                  <span>Ahorro entregado:</span>
-                  <span>{formatCOP(estimatedMerchantSavings)}</span>
-                </div>
-              </div>
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">Ahorro vs Pauta Tradicional</span>
+              Comparativa contra pauta en Google/Meta Ads (~$1.800 COP/lead). Ahorro neto entregado: {formatCOP(estimatedMerchantSavings)}.
             </div>
-
-            {/* Box 4: Salud de Cartera (explica Card 4) */}
-            <div className="bg-white p-3.5 rounded-2xl border border-sky-100 shadow-2xs flex flex-col justify-between space-y-2 hover:border-sky-300 transition">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-[#041f5e] text-xs">Salud de Cartera</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700">Recaudo</span>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Comercios con suscripción activa al día respecto al total registrado en el municipio seleccionado.
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
-                <div className="text-[10px] font-mono bg-slate-50 px-2 py-1 rounded-lg text-slate-700 border border-slate-200/60 font-semibold truncate">
-                  Activos ÷ {totalBusinesses} com. totales
-                </div>
-                <div className="text-[11px] text-slate-800 font-semibold flex items-center justify-between">
-                  <span>Tasa al día:</span>
-                  <span className="text-emerald-600 font-bold">{collectionRate}% ({pastDueBusinesses.length} mora)</span>
-                </div>
-              </div>
+            <div className="bg-white/90 p-3 rounded-xl border border-sky-100 shadow-2xs">
+              <span className="font-semibold text-[#041f5e] block mb-1">Salud de Cartera</span>
+              Porcentaje de recaudo al día ({collectionRate}%). {activeSubscribers} comercios al día ÷ {totalBusinesses} registrados ({pastDueBusinesses.length} en mora).
             </div>
           </div>
         </div>
@@ -1076,67 +1004,139 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
         {/* Card 1: MRR & Facturación del Corte */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Facturación & MRR
               </span>
+              <span className="text-[10px] font-semibold text-[#007af7] bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
+                Corte {cutDays}d
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-[#041f5e]">
+            <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
               {formatCOP(monthlyRevenueCOP)}
             </div>
-            <div className="mt-1 text-xs text-slate-500 font-normal">
-              ARR proyectado: <span className="font-semibold text-slate-700">{formatCOP(projectedARR)}</span>
+            <div className="text-xs text-slate-500 font-medium mt-0.5">
+              MRR recurrente activo mensual
+            </div>
+
+            {/* Formula Breakdown Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-[11px] space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>Fórmula de cálculo:</span>
+                <span className="text-[#041f5e] font-bold">Activos × Ticket</span>
+              </div>
+              <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
+                <span className="font-semibold text-slate-800">{activeSubscribers} comercios</span>
+                <span className="text-slate-400">×</span>
+                <span className="font-semibold text-slate-800">{formatCOP(arpuCOP)}</span>
+                <span className="text-slate-400">=</span>
+                <span className="font-bold text-[#041f5e]">{formatCOP(monthlyRevenueCOP)}</span>
+              </div>
+              <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Tasa diaria ({cutDays}d):</span>
+                <span className="font-semibold text-slate-700">{formatCOP(cutDays > 0 ? cutProratedRevenueCOP / cutDays : 0)}/día</span>
+              </div>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-normal">Corte ({cutDays}d):</span>
-            <span className="font-semibold text-[#007af7] bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200/60">
-              {formatCOP(cutProratedRevenueCOP)}
-            </span>
+
+          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>ARR proyectado anual:</span>
+            <span className="font-bold text-[#041f5e]">{formatCOP(projectedARR)}</span>
           </div>
         </div>
 
         {/* Card 2: Costo Por Lead (CPL) & CAC Real */}
         <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Costo Por Lead (CPL)
               </span>
+              <span className="text-[10px] font-semibold text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
+                Efectividad
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-[#041f5e]">
+            <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
               {cutCostPerLead > 0 ? formatCOP(cutCostPerLead) : '$0 COP'}
             </div>
-            <div className="mt-1 text-xs text-slate-500 font-normal">
-              Por cada contacto vecinal generado en el corte
+            <div className="text-xs text-slate-500 font-medium mt-0.5">
+              Costo real por cliente interesado
+            </div>
+
+            {/* Formula Breakdown Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-sky-50/70 border border-sky-100/90 text-[11px] space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-sky-800">
+                <span>Fórmula aplicada:</span>
+                <span className="text-sky-700 font-bold">Facturación ÷ Leads</span>
+              </div>
+              <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
+                <span className="font-semibold text-slate-800">{formatCOP(cutProratedRevenueCOP)}</span>
+                <span className="text-slate-400">÷</span>
+                <span className="font-semibold text-slate-800">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
+                <span className="text-slate-400">=</span>
+                <span className="font-bold text-[#041f5e]">{formatCOP(cutCostPerLead)}</span>
+              </div>
+              <div className="pt-1 border-t border-sky-100 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Contactos:</span>
+                <span className="font-medium text-slate-700 truncate">WhatsApp + Rutas + Llamadas</span>
+              </div>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-normal">CAC Real (QR):</span>
-            <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-200/60">
-              {cutCACReal > 0 ? formatCOP(cutCACReal) : 'Sin canjes'}
+
+          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>CAC Real (Canjes QR):</span>
+            <span className={`font-semibold px-2 py-0.5 rounded-md text-[11px] ${
+              cutCACReal > 0 ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {cutCACReal > 0 ? `${formatCOP(cutCACReal)}/canje` : 'Sin canjes en corte'}
             </span>
           </div>
         </div>
 
         {/* Card 3: Ahorro Comunitario vs Pauta Meta/Google */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/50 via-white to-amber-50/30 border border-emerald-200/80 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50/40 via-white to-amber-50/20 border border-emerald-200/90 hover:border-emerald-300 shadow-xs transition-all flex flex-col justify-between">
           <div>
-            <div className="mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
                 Ahorro para Comercios
               </span>
+              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/70 border border-emerald-200 px-2 py-0.5 rounded-full">
+                ROI Vecinal
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-emerald-600">
+            <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">
               {formatCOP(estimatedMerchantSavings)}
             </div>
-            <div className="mt-1 text-xs text-slate-500 font-normal">
-              Vs. pauta tradicional (~$1.800 COP/lead)
+            <div className="text-xs text-emerald-700 font-medium mt-0.5">
+              Ahorro neto entregado a comercios
+            </div>
+
+            {/* Formula Breakdown Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-[11px] space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                <span>Fórmula aplicada:</span>
+                <span className="text-emerald-700 font-bold">Pauta Ads - OleVeci</span>
+              </div>
+              <div className="space-y-0.5 text-[11px] text-slate-600">
+                <div className="flex items-center justify-between">
+                  <span className="truncate">Google/Meta ({cutTotalLeads.toLocaleString('es-CO')} × $1.800):</span>
+                  <span className="font-semibold text-slate-800 shrink-0">{formatCOP(traditionalAdsBenchmark)}</span>
+                </div>
+                <div className="flex items-center justify-between text-rose-600">
+                  <span>Inversión OleVeci ({cutDays}d):</span>
+                  <span className="font-semibold shrink-0">-{formatCOP(cutProratedRevenueCOP)}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-emerald-200/60 font-bold text-emerald-800">
+                  <span>Ahorro neto generado:</span>
+                  <span className="shrink-0">{formatCOP(estimatedMerchantSavings)}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-emerald-100 flex items-center justify-between text-xs text-slate-500 font-normal">
+
+          <div className="pt-2.5 border-t border-emerald-100/80 flex items-center justify-between text-xs text-slate-500">
             <span>Ticket Promedio (ARPU):</span>
-            <span className="font-semibold text-slate-700">{formatCOP(arpuCOP)}/mes</span>
+            <span className="font-semibold text-slate-800">{formatCOP(arpuCOP)}/mes</span>
           </div>
         </div>
 
@@ -1146,23 +1146,43 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
           className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 hover:border-sky-300 shadow-xs transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div>
-            <div className="mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Salud de Cartera
               </span>
+              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                {collectionRate}% al día
+              </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {activeSubscribers}{' '}
               <span className="text-xs text-slate-400 font-normal">/ {totalBusinesses} com.</span>
             </div>
-            <div className="mt-1 flex items-center gap-1.5 text-xs">
-              <span className="font-semibold text-emerald-600">{collectionRate}% al día</span>
-              {pastDueBusinesses.length > 0 && (
-                <span className="text-rose-500 font-medium">({pastDueBusinesses.length} mora)</span>
-              )}
+            <div className="text-xs text-slate-500 font-medium mt-0.5">
+              Estado de recaudo de los comercios
+            </div>
+
+            {/* Formula Breakdown Box */}
+            <div className="my-3 p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-[11px] space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>Fórmula aplicada:</span>
+                <span className="text-slate-700 font-bold">Activos ÷ Registrados</span>
+              </div>
+              <div className="flex items-center justify-between font-mono text-[11px] text-slate-700">
+                <span className="font-semibold text-emerald-700">{activeSubscribers} al día</span>
+                <span className="text-slate-400">÷</span>
+                <span className="font-semibold text-slate-800">{totalBusinesses} comercios</span>
+                <span className="text-slate-400">=</span>
+                <span className="font-bold text-emerald-600">{collectionRate}%</span>
+              </div>
+              <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px]">
+                <span className="text-emerald-700 font-semibold">✓ {activeSubscribers} activos</span>
+                <span className="text-rose-600 font-semibold">⚠️ {pastDueBusinesses.length} en mora</span>
+              </div>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-[#007af7] font-semibold">
+
+          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-[#007af7] font-semibold group-hover:text-[#041f5e] transition">
             <span>Auditar cartera de negocios</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
           </div>
