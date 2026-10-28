@@ -29,6 +29,8 @@ import {
   Pencil,
   Trash2,
   Check,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Post, Business } from '../types';
@@ -114,6 +116,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [isSaved, setIsSaved] = useState(false);
   const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
   const [editingMessageText, setEditingMessageText] = useState('');
+  const [expandedResults, setExpandedResults] = useState<Record<number, boolean>>({});
 
   // Full Chat Conversation Log & WhatsApp Modal State
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -1046,6 +1049,34 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         const totalCount = postsList.length + directoryBusinesses.length;
                         if (totalCount === 0) return null;
 
+                        const prevUserMsg = (index > 0 && chatHistory[index - 1]?.sender === 'user')
+                          ? chatHistory[index - 1].text.toLowerCase()
+                          : '';
+
+                        const userAskedForAll =
+                          prevUserMsg.includes('toda') ||
+                          prevUserMsg.includes('todo') ||
+                          prevUserMsg.includes('completo') ||
+                          prevUserMsg.includes('completa') ||
+                          prevUserMsg.includes('promocion') ||
+                          prevUserMsg.includes('oferta') ||
+                          prevUserMsg.includes('anuncio') ||
+                          prevUserMsg.includes('descuento');
+
+                        const isExpanded = expandedResults[index] !== undefined
+                          ? expandedResults[index]
+                          : userAskedForAll;
+
+                        const INITIAL_LIMIT = 4;
+                        const displayedPosts = isExpanded ? postsList : postsList.slice(0, INITIAL_LIMIT);
+                        const remainingSlots = Math.max(0, INITIAL_LIMIT - displayedPosts.length);
+                        const displayedBusinesses = isExpanded
+                          ? directoryBusinesses
+                          : (postsList.length === 0 ? directoryBusinesses.slice(0, INITIAL_LIMIT) : directoryBusinesses.slice(0, remainingSlots));
+
+                        const totalRendered = displayedPosts.length + displayedBusinesses.length;
+                        const canExpand = totalCount > INITIAL_LIMIT;
+
                         return (
                           <div className="space-y-3">
                             <div className="flex items-center justify-between px-1">
@@ -1055,14 +1086,27 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   {postsList.length > 0 ? 'Opciones y Anuncios Disponibles' : 'Comercios Encontrados'}
                                 </span>
                               </div>
-                              <span className="text-[11px] text-slate-400 font-medium">
-                                {totalCount} {totalCount === 1 ? 'opción' : 'opciones'}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] text-slate-400 font-medium">
+                                  {totalCount} {totalCount === 1 ? 'opción' : 'opciones'}
+                                </span>
+                                {canExpand && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setExpandedResults((prev) => ({ ...prev, [index]: !isExpanded }))}
+                                    className="text-xs font-bold text-[#0066FF] hover:text-[#0052cc] bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
+                                    title={isExpanded ? 'Mostrar menos opciones' : `Ver todas las ${totalCount} opciones`}
+                                  >
+                                    <span>{isExpanded ? 'Ver menos' : `Ver todas (${totalCount})`}</span>
+                                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                  </button>
+                                )}
+                              </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-2.5">
                               {/* 1. Prioritize Posts / Anuncios (The Differential Value of OleVeci) */}
-                              {postsList.slice(0, 3).map((post) => {
+                              {displayedPosts.map((post) => {
                                 const waClean = (post.businessWhatsapp || post.businessPhone || '').replace(/\D/g, '');
                                 const waUrl = waClean
                                   ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
@@ -1154,7 +1198,14 @@ export const OliSection: React.FC<OliSectionProps> = ({
                               })}
 
                               {/* 2. Directory-Only Businesses (Only for businesses without active promotions) */}
-                              {directoryBusinesses.slice(0, 2).map((biz) => {
+                              {displayedBusinesses.length > 0 && postsList.length > 0 && (
+                                <div className="pt-2 pb-0.5">
+                                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    Otros comercios recomendados
+                                  </span>
+                                </div>
+                              )}
+                              {displayedBusinesses.map((biz) => {
                                 const waClean = (biz.whatsapp || biz.phone || '').replace(/\D/g, '');
                                 const waUrl = waClean
                                   ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
@@ -1235,6 +1286,31 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                 );
                               })}
                             </div>
+
+                            {/* Expand / Collapse Button at bottom when there are more items */}
+                            {canExpand && (
+                              <div className="pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedResults((prev) => ({ ...prev, [index]: !isExpanded }))}
+                                  className="w-full py-2.5 px-4 rounded-xl border border-blue-200/90 bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/90 hover:from-blue-100 hover:to-indigo-100 text-[#0056d6] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                                >
+                                  {isExpanded ? (
+                                    <>
+                                      <ChevronUp className="w-4 h-4 text-[#0066FF]" />
+                                      <span>Mostrar menos opciones (ver solo las primeras {INITIAL_LIMIT})</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDown className="w-4 h-4 text-[#0066FF]" />
+                                      <span>
+                                        Ver todas las {totalCount} opciones y promociones disponibles ({totalCount - totalRendered} más)
+                                      </span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         );
                       })()

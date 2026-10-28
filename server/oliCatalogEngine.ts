@@ -1204,7 +1204,14 @@ export function searchBusinessesAndPosts(
   const topBizScore = eligibleBizMatches.length > 0 ? eligibleBizMatches[0].score : 0;
   const filteredMatches = eligibleBizMatches.filter((sb) => sb.score >= topBizScore * 0.45);
 
-  const matchedBusinesses = filteredMatches.slice(0, 4).map((sb) => sb.business);
+  const wantsAllPromosOrOptions =
+    normPrompt.includes('toda') ||
+    normPrompt.includes('todo') ||
+    normPrompt.includes('promocion') ||
+    normPrompt.includes('oferta') ||
+    normPrompt.includes('anuncio');
+  const bizLimit = wantsAllPromosOrOptions ? 40 : 10;
+  const matchedBusinesses = filteredMatches.slice(0, bizLimit).map((sb) => sb.business);
 
   const matchedBizIds = new Set(matchedBusinesses.map((b) => b.id));
   const candidatePosts = catalogPosts
@@ -1294,7 +1301,8 @@ export function searchBusinessesAndPosts(
     ? refinedCandidates.filter((cp) => cp.postScore >= topPostScore * 0.55)
     : refinedCandidates;
 
-  const matchedPosts = filteredPosts.slice(0, 3).map((cp) => cp.post);
+  const postLimit = wantsAllPromosOrOptions ? 40 : 15;
+  const matchedPosts = filteredPosts.slice(0, postLimit).map((cp) => cp.post);
 
   return {
     matchedBusinesses,

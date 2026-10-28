@@ -2316,78 +2316,446 @@
     "imageFit": "cover",
     "promotionalPrice": 59000,
     "originalPrice": 79000,
-    "startsAt": "2026-10-05T19:04:01.739Z",
-    "expiresAt": "2027-10-20T23:59:59.000Z",
+    "startsAt": "2026-10-05T19:04:01.739+00:00",
+    "expiresAt": "2027-10-20T23:59:59+00:00",
     "expiryLabel": "Horario programado",
     "validitySchedule": {
       "mode": "table",
       "scheduleTable": [
         {
           "dia": "Lunes",
-          "dayIndex": 1,
           "active": true,
-          "horaInicio": "",
-          "horaFin": ""
+          "horaFin": "",
+          "dayIndex": 1,
+          "horaInicio": ""
         },
         {
           "dia": "Martes",
-          "dayIndex": 2,
           "active": true,
-          "horaInicio": "",
-          "horaFin": ""
+          "horaFin": "",
+          "dayIndex": 2,
+          "horaInicio": ""
         },
         {
           "dia": "Miércoles",
-          "dayIndex": 3,
           "active": true,
-          "horaInicio": "",
-          "horaFin": ""
+          "horaFin": "",
+          "dayIndex": 3,
+          "horaInicio": ""
         },
         {
           "dia": "Jueves",
-          "dayIndex": 4,
           "active": true,
-          "horaInicio": "",
-          "horaFin": ""
+          "horaFin": "",
+          "dayIndex": 4,
+          "horaInicio": ""
         },
         {
           "dia": "Viernes",
-          "dayIndex": 5,
           "active": true,
-          "horaInicio": "",
-          "horaFin": ""
+          "horaFin": "",
+          "dayIndex": 5,
+          "horaInicio": ""
         },
         {
           "dia": "Sábado",
-          "dayIndex": 6,
           "active": true,
-          "horaInicio": "",
-          "horaFin": ""
+          "horaFin": "",
+          "dayIndex": 6,
+          "horaInicio": ""
         },
         {
           "dia": "Domingo",
-          "dayIndex": 0,
           "active": true,
-          "horaInicio": "",
-          "horaFin": ""
+          "horaFin": "",
+          "dayIndex": 0,
+          "horaInicio": ""
         }
       ]
     },
     "categoryId": "cat_otros",
-    "planCategoryId": "plan_otros",
-    "planCategoryName": "Otros",
     "featured": false,
     "tags": [],
     "id": "post_1791227041739_g4srz",
-    "createdAt": "2026-10-05T19:04:01.739Z",
+    "createdAt": "2026-10-27T03:57:20.214598+00:00",
     "metrics": {
-      "views": 12,
-      "whatsappClicks": 0,
-      "mapsClicks": 0,
       "calls": 0,
-      "shares": 0
+      "views": 12,
+      "shares": 0,
+      "mapsClicks": 0,
+      "whatsappClicks": 0,
+      "dailyMetrics": {
+        "2026-09-14": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-15": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-16": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-17": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-18": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-19": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-20": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-21": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-22": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-23": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-24": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-25": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-26": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-27": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-28": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-29": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-30": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-01": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-02": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-03": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-04": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-05": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-06": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-07": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-08": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-09": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-10": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-11": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-12": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-13": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-14": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-15": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-16": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-17": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-18": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-19": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-20": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-21": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-22": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-23": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-24": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-25": {
+          "views": 1,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-26": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-27": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-28": {
+          "views": 0,
+          "whatsappClicks": 0,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        }
+      }
     },
-    "status": "active"
+    "status": "active",
+    "mediaBgFill": "blur",
+    "planCategoryIds": [],
+    "planRoles": [],
+    "targetAudience": [],
+    "isPlan": false,
+    "suspensionHistory": [],
+    "planCategoryId": "plan_otros",
+    "planCategoryName": "Otros"
   },
   {
     "businessId": "biz_oleveci",
