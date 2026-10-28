@@ -449,56 +449,38 @@ export const AdminOliTab: React.FC = () => {
   }, [logs, logFilterCity, logSearchQuery]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
-      {/* 1. Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0066FF] via-[#0056d6] to-[#0047b3] p-5 sm:p-7 text-white shadow-md">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-2 flex items-center justify-center shrink-0 shadow-inner">
+    <div className="space-y-4 animate-in fade-in duration-150 pb-12">
+      {/* 1. Header Banner matching Admin tabs (Itinerarios, Publicaciones, etc.) */}
+      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 p-1 flex items-center justify-center shrink-0">
               <img
                 src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
                 alt="Oli"
-                className="w-full h-full object-contain drop-shadow"
+                className="w-full h-full object-contain"
               />
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-                  Centro de Control Asistente OLI
-                </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-bold backdrop-blur-md uppercase tracking-wider">
-                  OleVeci IA v3
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-blue-100 mt-1 max-w-xl font-normal leading-relaxed">
-                Supervisión de modelos LLM (Groq & Gemini), directrices y reglas activas para el agente, registro de auditoría conversacional e integración con WhatsApp.
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span>Centro de Control Asistente OLI</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Supervisión de modelos LLM, directrices y reglas para el agente, registro de auditoría conversacional e integración con WhatsApp
               </p>
-            </div>
-          </div>
-
-          {/* Quick Status Badges */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold">
-              <span className={`w-2 h-2 rounded-full ${hasApiKey ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400'}`} />
-              <span>{hasApiKey ? `IA Activa (${provider.toUpperCase()})` : 'Motor Local de Respaldo'}</span>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold">
-              <Sliders className="w-3.5 h-3.5 text-cyan-300" />
-              <span>{activeRulesCount} Reglas Activas</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Sub-Tabs Navigation (Removed 'catalog') */}
+      {/* 2. Sub-Tabs Navigation */}
       <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setActiveSubTab('models')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'models'
-              ? 'bg-[#0066FF] text-white shadow-xs'
+              ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -511,7 +493,7 @@ export const AdminOliTab: React.FC = () => {
           onClick={() => setActiveSubTab('rules')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'rules'
-              ? 'bg-[#0066FF] text-white shadow-xs'
+              ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -524,7 +506,7 @@ export const AdminOliTab: React.FC = () => {
           onClick={() => setActiveSubTab('logs')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'logs'
-              ? 'bg-[#0066FF] text-white shadow-xs'
+              ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
@@ -537,7 +519,7 @@ export const AdminOliTab: React.FC = () => {
           onClick={() => setActiveSubTab('whatsapp')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeSubTab === 'whatsapp'
-              ? 'bg-[#0066FF] text-white shadow-xs'
+              ? 'bg-[#007af7] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
