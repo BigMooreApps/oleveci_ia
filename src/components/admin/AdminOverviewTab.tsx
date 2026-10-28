@@ -58,7 +58,7 @@ interface AdminOverviewTabProps {
 }
 
 type TableFilter = 'top_leads' | 'attention_needed' | 'all';
-type MetricChartType = 'all' | 'whatsapp' | 'calls' | 'maps' | 'shares' | 'qr' | 'views';
+type MetricKey = 'views' | 'whatsapp' | 'calls' | 'maps' | 'shares' | 'qr';
 
 // Sunburst sparks matching the OleVeci brand
 const SunburstSparks: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -163,7 +163,18 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [tableFilter, setTableFilter] = useState<TableFilter>('top_leads');
   const [searchMerchant, setSearchMerchant] = useState<string>('');
-  const [chartMetric, setChartMetric] = useState<MetricChartType>('all');
+  const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>([]);
+
+  const toggleMetric = (key: MetricKey) => {
+    setSelectedMetrics((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const isMetricVisible = (key: MetricKey) => {
+    if (selectedMetrics.length === 0) return true;
+    return selectedMetrics.includes(key);
+  };
   const [showFormulaExplanation, setShowFormulaExplanation] = useState<boolean>(false);
   const [copiedBizId, setCopiedBizId] = useState<string | null>(null);
 
@@ -1097,88 +1108,21 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
               <h3 className="text-sm sm:text-base font-bold text-[#041f5e]">
                 Tráfico & Contactos Vecinales en el Corte
               </h3>
+              <p className="text-[11px] text-slate-400 font-normal">
+                {selectedMetrics.length === 0
+                  ? 'Mostrando todas las métricas · Haz clic en las tarjetas inferiores para comparar'
+                  : `Comparando ${selectedMetrics.length} métrica${selectedMetrics.length > 1 ? 's' : ''}`}
+              </p>
             </div>
-
-            {/* Metric Toggle Buttons */}
-            <div className="inline-flex flex-wrap gap-1 bg-slate-100 p-0.5 rounded-xl text-xs self-start sm:self-auto border border-slate-200/80">
+            {selectedMetrics.length > 0 && (
               <button
                 type="button"
-                onClick={() => setChartMetric('all')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'all'
-                    ? 'bg-white text-[#041f5e] font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                onClick={() => setSelectedMetrics([])}
+                className="text-xs font-semibold text-[#007af7] hover:text-blue-800 hover:underline self-start sm:self-auto cursor-pointer transition py-0.5"
               >
-                Todas
+                Restablecer (ver todas)
               </button>
-              <button
-                type="button"
-                onClick={() => setChartMetric('whatsapp')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'whatsapp'
-                    ? 'bg-white text-emerald-700 font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                WhatsApp
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartMetric('calls')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'calls'
-                    ? 'bg-white text-blue-700 font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Llamadas
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartMetric('maps')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'maps'
-                    ? 'bg-white text-[#ff7700] font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Rutas
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartMetric('shares')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'shares'
-                    ? 'bg-white text-indigo-700 font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Compartidos
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartMetric('qr')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'qr'
-                    ? 'bg-white text-purple-700 font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                QR
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartMetric('views')}
-                className={`px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                  chartMetric === 'views'
-                    ? 'bg-white text-[#007af7] font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Vistas
-              </button>
-            </div>
+            )}
           </div>
 
           {/* Area Chart Container with Recharts */}
@@ -1224,20 +1168,20 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 <Tooltip content={<AdminTimelineTooltip />} />
 
                 {/* Vistas Feed */}
-                {(chartMetric === 'all' || chartMetric === 'views') && (
+                {isMetricVisible('views') && (
                   <Area
                     type="monotone"
                     dataKey="vistas"
                     name="Vistas Feed"
                     stroke="#007af7"
-                    strokeWidth={chartMetric === 'views' ? 2.5 : 1.5}
+                    strokeWidth={selectedMetrics.length === 1 && selectedMetrics.includes('views') ? 2.5 : 1.75}
                     fillOpacity={1}
                     fill="url(#adminViewsGradient)"
                   />
                 )}
 
                 {/* WhatsApp */}
-                {(chartMetric === 'all' || chartMetric === 'whatsapp') && (
+                {isMetricVisible('whatsapp') && (
                   <Area
                     type="monotone"
                     dataKey="whatsapp"
@@ -1250,7 +1194,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 )}
 
                 {/* Llamadas */}
-                {(chartMetric === 'all' || chartMetric === 'calls') && (
+                {isMetricVisible('calls') && (
                   <Area
                     type="monotone"
                     dataKey="llamadas"
@@ -1263,7 +1207,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 )}
 
                 {/* Rutas Maps */}
-                {(chartMetric === 'all' || chartMetric === 'maps') && (
+                {isMetricVisible('maps') && (
                   <Area
                     type="monotone"
                     dataKey="maps"
@@ -1276,7 +1220,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 )}
 
                 {/* Compartidos */}
-                {(chartMetric === 'all' || chartMetric === 'shares') && (
+                {isMetricVisible('shares') && (
                   <Area
                     type="monotone"
                     dataKey="compartidos"
@@ -1289,7 +1233,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                 )}
 
                 {/* Canjes QR */}
-                {(chartMetric === 'all' || chartMetric === 'qr') && (
+                {isMetricVisible('qr') && (
                   <Area
                     type="monotone"
                     dataKey="qr"
@@ -1304,72 +1248,101 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </ResponsiveContainer>
           </div>
 
-          {/* Quick Metrics Bar Under Chart */}
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2 border-t border-slate-100 text-center">
+          {/* Quick Metrics Bar Under Chart (Multi-select interactive comparison) */}
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2 border-t border-slate-100 text-center select-none">
+            {/* Vistas */}
             <div
-              onClick={() => setChartMetric('views')}
-              className={`p-2 rounded-xl cursor-pointer transition ${
-                chartMetric === 'views'
-                  ? 'bg-sky-100 border border-sky-300 ring-2 ring-sky-400/30'
-                  : 'bg-sky-50/60 border border-sky-100 hover:bg-sky-50'
+              onClick={() => toggleMetric('views')}
+              className={`p-2 rounded-xl cursor-pointer transition-all duration-150 ${
+                selectedMetrics.includes('views')
+                  ? 'bg-sky-100 border-2 border-sky-400 ring-2 ring-sky-400/30 shadow-xs'
+                  : selectedMetrics.length > 0
+                  ? 'bg-slate-50/60 border border-slate-200/60 opacity-45 hover:opacity-100 hover:border-sky-200'
+                  : 'bg-sky-50/60 border border-sky-200/80 hover:bg-sky-100/70'
               }`}
+              title={selectedMetrics.includes('views') ? 'Clic para desmarcar' : 'Clic para comparar'}
             >
-              <div className="text-[10px] text-sky-800 font-medium uppercase tracking-wider">Vistas</div>
+              <div className="text-[10px] text-sky-800 font-semibold uppercase tracking-wider">Vistas</div>
               <div className="text-sm sm:text-base font-bold text-[#041f5e]">{cutViews.toLocaleString('es-CO')}</div>
             </div>
+
+            {/* WhatsApp */}
             <div
-              onClick={() => setChartMetric('whatsapp')}
-              className={`p-2 rounded-xl cursor-pointer transition ${
-                chartMetric === 'whatsapp'
-                  ? 'bg-emerald-100 border border-emerald-300 ring-2 ring-emerald-400/30'
-                  : 'bg-emerald-50/60 border border-emerald-100 hover:bg-emerald-50'
+              onClick={() => toggleMetric('whatsapp')}
+              className={`p-2 rounded-xl cursor-pointer transition-all duration-150 ${
+                selectedMetrics.includes('whatsapp')
+                  ? 'bg-emerald-100 border-2 border-emerald-400 ring-2 ring-emerald-400/30 shadow-xs'
+                  : selectedMetrics.length > 0
+                  ? 'bg-slate-50/60 border border-slate-200/60 opacity-45 hover:opacity-100 hover:border-emerald-200'
+                  : 'bg-emerald-50/60 border border-emerald-200/80 hover:bg-emerald-100/70'
               }`}
+              title={selectedMetrics.includes('whatsapp') ? 'Clic para desmarcar' : 'Clic para comparar'}
             >
-              <div className="text-[10px] text-emerald-800 font-medium uppercase tracking-wider">WhatsApp</div>
+              <div className="text-[10px] text-emerald-800 font-semibold uppercase tracking-wider">WhatsApp</div>
               <div className="text-sm sm:text-base font-bold text-emerald-700">{cutWhatsapp.toLocaleString('es-CO')}</div>
             </div>
+
+            {/* Llamadas */}
             <div
-              onClick={() => setChartMetric('calls')}
-              className={`p-2 rounded-xl cursor-pointer transition ${
-                chartMetric === 'calls'
-                  ? 'bg-blue-100 border border-blue-300 ring-2 ring-blue-400/30'
-                  : 'bg-blue-50/60 border border-blue-100 hover:bg-blue-50'
+              onClick={() => toggleMetric('calls')}
+              className={`p-2 rounded-xl cursor-pointer transition-all duration-150 ${
+                selectedMetrics.includes('calls')
+                  ? 'bg-blue-100 border-2 border-blue-400 ring-2 ring-blue-400/30 shadow-xs'
+                  : selectedMetrics.length > 0
+                  ? 'bg-slate-50/60 border border-slate-200/60 opacity-45 hover:opacity-100 hover:border-blue-200'
+                  : 'bg-blue-50/60 border border-blue-200/80 hover:bg-blue-100/70'
               }`}
+              title={selectedMetrics.includes('calls') ? 'Clic para desmarcar' : 'Clic para comparar'}
             >
-              <div className="text-[10px] text-blue-800 font-medium uppercase tracking-wider">Llamadas</div>
+              <div className="text-[10px] text-blue-800 font-semibold uppercase tracking-wider">Llamadas</div>
               <div className="text-sm sm:text-base font-bold text-[#0284c7]">{cutCalls.toLocaleString('es-CO')}</div>
             </div>
+
+            {/* Rutas Maps */}
             <div
-              onClick={() => setChartMetric('maps')}
-              className={`p-2 rounded-xl cursor-pointer transition ${
-                chartMetric === 'maps'
-                  ? 'bg-orange-100 border border-orange-300 ring-2 ring-orange-400/30'
-                  : 'bg-orange-50/60 border border-orange-100 hover:bg-orange-50'
+              onClick={() => toggleMetric('maps')}
+              className={`p-2 rounded-xl cursor-pointer transition-all duration-150 ${
+                selectedMetrics.includes('maps')
+                  ? 'bg-orange-100 border-2 border-orange-400 ring-2 ring-orange-400/30 shadow-xs'
+                  : selectedMetrics.length > 0
+                  ? 'bg-slate-50/60 border border-slate-200/60 opacity-45 hover:opacity-100 hover:border-orange-200'
+                  : 'bg-orange-50/60 border border-orange-200/80 hover:bg-orange-100/70'
               }`}
+              title={selectedMetrics.includes('maps') ? 'Clic para desmarcar' : 'Clic para comparar'}
             >
-              <div className="text-[10px] text-orange-800 font-medium uppercase tracking-wider">Rutas</div>
+              <div className="text-[10px] text-orange-800 font-semibold uppercase tracking-wider">Rutas</div>
               <div className="text-sm sm:text-base font-bold text-[#ff7700]">{cutMaps.toLocaleString('es-CO')}</div>
             </div>
+
+            {/* Compartidos */}
             <div
-              onClick={() => setChartMetric('shares')}
-              className={`p-2 rounded-xl cursor-pointer transition ${
-                chartMetric === 'shares'
-                  ? 'bg-indigo-100 border border-indigo-300 ring-2 ring-indigo-400/30'
-                  : 'bg-indigo-50/60 border border-indigo-100 hover:bg-indigo-50'
+              onClick={() => toggleMetric('shares')}
+              className={`p-2 rounded-xl cursor-pointer transition-all duration-150 ${
+                selectedMetrics.includes('shares')
+                  ? 'bg-indigo-100 border-2 border-indigo-400 ring-2 ring-indigo-400/30 shadow-xs'
+                  : selectedMetrics.length > 0
+                  ? 'bg-slate-50/60 border border-slate-200/60 opacity-45 hover:opacity-100 hover:border-indigo-200'
+                  : 'bg-indigo-50/60 border border-indigo-200/80 hover:bg-indigo-100/70'
               }`}
+              title={selectedMetrics.includes('shares') ? 'Clic para desmarcar' : 'Clic para comparar'}
             >
-              <div className="text-[10px] text-indigo-800 font-medium uppercase tracking-wider">Compartidos</div>
+              <div className="text-[10px] text-indigo-800 font-semibold uppercase tracking-wider">Compartidos</div>
               <div className="text-sm sm:text-base font-bold text-indigo-700">{cutShares.toLocaleString('es-CO')}</div>
             </div>
+
+            {/* Canjes QR */}
             <div
-              onClick={() => setChartMetric('qr')}
-              className={`p-2 rounded-xl cursor-pointer transition ${
-                chartMetric === 'qr'
-                  ? 'bg-purple-100 border border-purple-300 ring-2 ring-purple-400/30'
-                  : 'bg-purple-50/60 border border-purple-100 hover:bg-purple-50'
+              onClick={() => toggleMetric('qr')}
+              className={`p-2 rounded-xl cursor-pointer transition-all duration-150 ${
+                selectedMetrics.includes('qr')
+                  ? 'bg-purple-100 border-2 border-purple-400 ring-2 ring-purple-400/30 shadow-xs'
+                  : selectedMetrics.length > 0
+                  ? 'bg-slate-50/60 border border-slate-200/60 opacity-45 hover:opacity-100 hover:border-purple-200'
+                  : 'bg-purple-50/60 border border-purple-200/80 hover:bg-purple-100/70'
               }`}
+              title={selectedMetrics.includes('qr') ? 'Clic para desmarcar' : 'Clic para comparar'}
             >
-              <div className="text-[10px] text-purple-800 font-medium uppercase tracking-wider">Canjes QR</div>
+              <div className="text-[10px] text-purple-800 font-semibold uppercase tracking-wider">Canjes QR</div>
               <div className="text-sm sm:text-base font-bold text-purple-700">{cutQrRedemptions.toLocaleString('es-CO')}</div>
             </div>
           </div>
