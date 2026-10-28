@@ -93,14 +93,11 @@ export const OliWhatsAppModal: React.FC<OliWhatsAppModalProps> = ({ isOpen, onCl
               <WhatsAppIcon className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+              <h3 className="text-base font-bold text-white tracking-tight">
                 Chatear con OLI
-                <span className="text-[10px] bg-emerald-400/30 text-emerald-100 border border-emerald-300/40 px-2 py-0.5 rounded-full font-semibold">
-                  WhatsApp
-                </span>
               </h3>
               <p className="text-xs text-emerald-100 font-normal">
-                Asistente de OleVeci en la Sabana Centro
+                Asistente de OleVeci
               </p>
             </div>
           </div>
