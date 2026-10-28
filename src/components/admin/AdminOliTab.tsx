@@ -586,7 +586,7 @@ export const AdminOliTab: React.FC = () => {
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
                       selectedLlm === 'groq' ? 'bg-blue-100 text-[#007af7]' : 'bg-slate-100 text-slate-700'
                     }`}>
-                      <Zap className="w-4 h-4" />
+                      <Key className="w-4 h-4" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900 leading-tight">Groq Cloud</h4>
@@ -630,9 +630,9 @@ export const AdminOliTab: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
-                      selectedLlm === 'gemini' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-700'
+                      selectedLlm === 'gemini' ? 'bg-blue-100 text-[#007af7]' : 'bg-slate-100 text-slate-700'
                     }`}>
-                      <Bot className="w-4 h-4" />
+                      <Key className="w-4 h-4" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900 leading-tight">Google Gemini</h4>
@@ -676,9 +676,9 @@ export const AdminOliTab: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
-                      selectedLlm === 'local' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+                      selectedLlm === 'local' ? 'bg-blue-100 text-[#007af7]' : 'bg-slate-100 text-slate-700'
                     }`}>
-                      <ShieldCheck className="w-4 h-4" />
+                      <Key className="w-4 h-4" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-slate-900 leading-tight">Motor Semántico</h4>
@@ -715,13 +715,7 @@ export const AdminOliTab: React.FC = () => {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#007af7] flex items-center justify-center shrink-0">
-                  {selectedLlm === 'groq' ? (
-                    <Zap className="w-4 h-4" />
-                  ) : selectedLlm === 'gemini' ? (
-                    <Bot className="w-4 h-4" />
-                  ) : (
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  )}
+                  <Key className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
