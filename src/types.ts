@@ -422,3 +422,13 @@ export interface PriceScopeMaster {
   iconName?: string;
 }
 
+
+export interface OliCustomRule {
+  id: string;
+  title: string;
+  instruction: string;
+  active: boolean;
+  category: 'tone' | 'business' | 'itinerary' | 'budget' | 'custom';
+  createdAt?: string;
+  updatedAt?: string;
+}

@@ -1,3 +1,4 @@
+import { formatRulesForPrompt } from './oliRulesManager';
 import { GoogleGenAI, Type, ThinkingLevel } from '@google/genai';
 import { Post, Business } from '../src/types';
 import {
@@ -2453,8 +2454,10 @@ ${catalogSummaryText}`;
         required: ['understanding', 'exactMatchInRequestedCity', 'selectedBusinessIds', 'selectedPostIds', 'spokenText'],
       };
 
+      const dynamicRulesText = formatRulesForPrompt();
       const systemInstruction = `Eres Oli, la asistente de voz oficial de OleVeci en Colombia (Sabana Centro: Cajicá, Chía, Cota, Zipaquirá, etc.).
 Tu personalidad es cercana, cálida, alegre, honesta y servicial ("veci").
+${dynamicRulesText}
 
 Analiza con sentido común humano la consulta del usuario y compárala con el catálogo real de OleVeci:
 1. DISTINCIÓN SEMÁNTICA RIGUROSA:
@@ -3193,8 +3196,10 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
         return `* [${b.id}] ${b.name} (${b.city} | ${b.subCategory || b.categoryId}): ${postsList}`;
       }).join('\n');
 
+      const dynamicRulesText = formatRulesForPrompt();
       const systemInstruction = `Eres Oli, la asistente inteligente y de voz oficial de OleVeci en Colombia (Sabana Centro: Cajicá, Chía, Cota, Zipaquirá, Tabio, Tenjo, Sopó, Tocancipá, etc.).
 Tu personalidad es cercana, cálida, alegre, honesta y servicial ("veci").
+${dynamicRulesText}
 
 Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin limitaciones rígidas ni sesgos:
 

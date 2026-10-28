@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { OliCustomRule } from '../../types';
 import {
   Sparkles,
   Bot,
@@ -26,16 +27,16 @@ import {
   ChevronDown,
   ChevronUp,
   QrCode,
-  Wifi,
-  WifiOff,
   FileText,
-  UtensilsCrossed,
-  Tag,
-  Users,
-  Compass,
+  Plus,
+  Pencil,
+  Power,
+  RotateCcw,
+  X,
+  HelpCircle,
 } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
-import { OliPlanResponse } from '../../../server/oliAssistant';
+import type { OliPlanResponse } from '../../../server/oliAssistant';
 import { OliWhatsAppModal } from '../OliWhatsAppModal';
 
 interface OliLogEntry {
@@ -55,11 +56,11 @@ interface OliLogEntry {
 }
 
 export const AdminOliTab: React.FC = () => {
-  const { businesses, posts, municipalities } = useApp();
+  const { businesses, posts } = useApp();
 
-  // Active sub-tab inside Admin Oli section
+  // Active sub-tab inside Admin Oli section (Removed 'catalog')
   const [activeSubTab, setActiveSubTab] = useState<
-    'models' | 'logs' | 'whatsapp' | 'catalog' | 'settings'
+    'models' | 'logs' | 'whatsapp' | 'rules'
   >('models');
 
   // LLM Config & Key management
@@ -95,10 +96,19 @@ export const AdminOliTab: React.FC = () => {
   const [baileysLoading, setBaileysLoading] = useState(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
 
-  // Copy helper
-  const [copiedKey, setCopiedKey] = useState(false);
+  // Dynamic OLI Rules State
+  const [rules, setRules] = useState<OliCustomRule[]>([]);
+  const [isLoadingRules, setIsLoadingRules] = useState(false);
+  const [rulesSearchQuery, setRulesSearchQuery] = useState('');
+  const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<OliCustomRule | null>(null);
+  const [ruleModalTitle, setRuleModalTitle] = useState('');
+  const [ruleModalInstruction, setRuleModalInstruction] = useState('');
+  const [ruleModalCategory, setRuleModalCategory] = useState<'tone' | 'business' | 'itinerary' | 'budget' | 'custom'>('custom');
+  const [ruleModalActive, setRuleModalActive] = useState(true);
+  const [isSavingRule, setIsSavingRule] = useState(false);
 
-  // 1. Fetch initial configuration & status
+  // Fetch initial configuration & status
   const fetchConfig = () => {
     fetch('/api/oli/config')
       .then((res) => res.json())
@@ -137,10 +147,24 @@ export const AdminOliTab: React.FC = () => {
       .catch(() => {});
   };
 
+  const fetchRules = () => {
+    setIsLoadingRules(true);
+    fetch('/api/oli/rules')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.rules)) {
+          setRules(data.rules);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingRules(false));
+  };
+
   useEffect(() => {
     fetchConfig();
     fetchLogs();
     fetchBaileysStatus();
+    fetchRules();
   }, []);
 
   // Poll Baileys status when in whatsapp subtab
@@ -214,7 +238,7 @@ export const AdminOliTab: React.FC = () => {
         durationMs,
         providerUsed: planData.auditTrace?.provider || (hasApiKey ? 'groq / gemini' : 'motor_local_sabana'),
       });
-      fetchLogs(); // refresh logs after run
+      fetchLogs();
     } catch (err: any) {
       setTestError(err.message || 'Error ejecutando prueba');
     } finally {
@@ -304,6 +328,109 @@ export const AdminOliTab: React.FC = () => {
     }
   };
 
+  // Rules Handlers (CRUD)
+  const handleOpenCreateRule = () => {
+    setEditingRule(null);
+    setRuleModalTitle('');
+    setRuleModalInstruction('');
+    setRuleModalCategory('custom');
+    setRuleModalActive(true);
+    setIsRuleModalOpen(true);
+  };
+
+  const handleOpenEditRule = (rule: OliCustomRule) => {
+    setEditingRule(rule);
+    setRuleModalTitle(rule.title);
+    setRuleModalInstruction(rule.instruction);
+    setRuleModalCategory(rule.category || 'custom');
+    setRuleModalActive(rule.active);
+    setIsRuleModalOpen(true);
+  };
+
+  const handleSaveRule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ruleModalTitle.trim() || !ruleModalInstruction.trim()) return;
+
+    setIsSavingRule(true);
+    try {
+      const payload: Partial<OliCustomRule> = {
+        id: editingRule?.id,
+        title: ruleModalTitle.trim(),
+        instruction: ruleModalInstruction.trim(),
+        category: ruleModalCategory,
+        active: ruleModalActive,
+      };
+
+      const res = await fetch('/api/oli/rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rule: payload }),
+      });
+      const data = await res.json();
+      if (res.ok && data.rules) {
+        setRules(data.rules);
+        setIsRuleModalOpen(false);
+      } else {
+        alert(data.error || 'Error guardando regla');
+      }
+    } catch {
+      alert('Error al comunicarse con el servidor');
+    } finally {
+      setIsSavingRule(false);
+    }
+  };
+
+  const handleToggleRule = async (ruleId: string) => {
+    try {
+      const res = await fetch(`/api/oli/rules/${ruleId}/toggle`, { method: 'PATCH' });
+      const data = await res.json();
+      if (res.ok && data.rules) {
+        setRules(data.rules);
+      }
+    } catch {
+      alert('Error alternando estado de la regla');
+    }
+  };
+
+  const handleDeleteRule = async (ruleId: string, title: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar la regla "${title}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/oli/rules/${ruleId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && data.rules) {
+        setRules(data.rules);
+      }
+    } catch {
+      alert('Error eliminando regla');
+    }
+  };
+
+  const handleResetRules = async () => {
+    if (!window.confirm('¿Deseas restaurar todas las reglas a las directrices oficiales por defecto?')) return;
+
+    try {
+      const res = await fetch('/api/oli/rules/reset', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.rules) {
+        setRules(data.rules);
+      }
+    } catch {
+      alert('Error restableciendo reglas');
+    }
+  };
+
+  // Filtered Rules
+  const filteredRules = useMemo(() => {
+    if (!rulesSearchQuery.trim()) return rules;
+    const q = rulesSearchQuery.toLowerCase();
+    return rules.filter(
+      (r) => r.title.toLowerCase().includes(q) || r.instruction.toLowerCase().includes(q)
+    );
+  }, [rules, rulesSearchQuery]);
+
+  const activeRulesCount = useMemo(() => rules.filter((r) => r.active).length, [rules]);
+
   // Filtered Logs
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
@@ -320,56 +447,6 @@ export const AdminOliTab: React.FC = () => {
       return true;
     });
   }, [logs, logFilterCity, logSearchQuery]);
-
-  // Catalog Health Analytics for Oli
-  const catalogAnalytics = useMemo(() => {
-    const activeBusinesses = businesses.filter((b) => (!b.status || b.status === 'active') && !b.suspended);
-    const activePosts = posts.filter((p) => (!p.status || p.status === 'active') && !p.suspended);
-    const bizWithWa = activeBusinesses.filter((b) => (b.whatsapp || b.phone)?.replace(/\D/g, '').length >= 10);
-    const bizWithAddress = activeBusinesses.filter((b) => b.address && b.address.trim().length > 3);
-
-    // City breakdown
-    const cityMap: Record<string, { businesses: number; posts: number; withWa: number }> = {};
-    activeBusinesses.forEach((b) => {
-      const city = b.city || 'Otros';
-      if (!cityMap[city]) cityMap[city] = { businesses: 0, posts: 0, withWa: 0 };
-      cityMap[city].businesses += 1;
-      if ((b.whatsapp || b.phone)?.replace(/\D/g, '').length >= 10) {
-        cityMap[city].withWa += 1;
-      }
-    });
-
-    activePosts.forEach((p) => {
-      const city = p.businessCity || 'Otros';
-      if (!cityMap[city]) cityMap[city] = { businesses: 0, posts: 0, withWa: 0 };
-      cityMap[city].posts += 1;
-    });
-
-    // Plan roles breakdown
-    const rolesCount = {
-      main_course: 0,
-      dessert_coffee: 0,
-      breakfast_brunch: 0,
-      activity_other: 0,
-    };
-
-    activePosts.forEach((p) => {
-      const role = p.planRole;
-      if (role === 'main_course') rolesCount.main_course += 1;
-      else if (role === 'dessert_coffee' || role === 'dessert') rolesCount.dessert_coffee += 1;
-      else if (role === 'breakfast_brunch' || role === 'breakfast') rolesCount.breakfast_brunch += 1;
-      else rolesCount.activity_other += 1;
-    });
-
-    return {
-      activeBusinessesCount: activeBusinesses.length,
-      activePostsCount: activePosts.length,
-      bizWithWaCount: bizWithWa.length,
-      bizWithAddressCount: bizWithAddress.length,
-      cityMap,
-      rolesCount,
-    };
-  }, [businesses, posts]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-12">
@@ -394,7 +471,7 @@ export const AdminOliTab: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-blue-100 mt-1 max-w-xl font-normal leading-relaxed">
-                Supervisión de modelos LLM (Groq & Gemini), registro de auditoría conversacional, integración con WhatsApp y salud del catálogo local.
+                Supervisión de modelos LLM (Groq & Gemini), directrices y reglas activas para el agente, registro de auditoría conversacional e integración con WhatsApp.
               </p>
             </div>
           </div>
@@ -407,14 +484,14 @@ export const AdminOliTab: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold">
-              <WhatsAppIcon className="w-3.5 h-3.5 fill-emerald-300" />
-              <span>{baileysStatus === 'connected' ? `WA: +${baileysPhone}` : 'WA: Desconectado'}</span>
+              <Sliders className="w-3.5 h-3.5 text-cyan-300" />
+              <span>{activeRulesCount} Reglas Activas</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Sub-Tabs Navigation */}
+      {/* 2. Sub-Tabs Navigation (Removed 'catalog') */}
       <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar">
         <button
           type="button"
@@ -427,6 +504,19 @@ export const AdminOliTab: React.FC = () => {
         >
           <Zap className="w-4 h-4" />
           <span>Modelos & Diagnóstico</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('rules')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeSubTab === 'rules'
+              ? 'bg-[#0066FF] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>Reglas del Asistente ({activeRulesCount})</span>
         </button>
 
         <button
@@ -456,32 +546,6 @@ export const AdminOliTab: React.FC = () => {
           {baileysStatus === 'connected' && (
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
           )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('catalog')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeSubTab === 'catalog'
-              ? 'bg-[#0066FF] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Activity className="w-4 h-4" />
-          <span>Salud del Catálogo</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('settings')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeSubTab === 'settings'
-              ? 'bg-[#0066FF] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Sliders className="w-4 h-4" />
-          <span>Reglas & Prompts</span>
         </button>
       </div>
 
@@ -642,7 +706,7 @@ export const AdminOliTab: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Banco de Pruebas en Vivo (Playground)</h3>
                   <p className="text-xs text-slate-500">
-                    Envía cualquier consulta para medir latencia, verificar la respuesta hablada y comprobar la coherencia de paradas.
+                    Envía cualquier consulta para comprobar las reglas activas de Oli, medir latencia y ver la respuesta generada.
                   </p>
                 </div>
               </div>
@@ -759,34 +823,172 @@ export const AdminOliTab: React.FC = () => {
                     </div>
                   </div>
                 )}
-
-                {testResult.response.matchedPosts && testResult.response.matchedPosts.length > 0 && (
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1.5">
-                      Publicaciones / Promociones devueltas ({testResult.response.matchedPosts.length}):
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {testResult.response.matchedPosts.slice(0, 4).map((post) => (
-                        <div key={post.id} className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs flex items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="font-bold text-slate-800 truncate">{post.title}</p>
-                            <p className="text-[11px] text-slate-500 truncate">{post.businessName} · {post.businessCity}</p>
-                          </div>
-                          <span className="font-bold text-emerald-600 shrink-0 text-xs">
-                            $ {(post.promotionalPrice || post.originalPrice || 0).toLocaleString('es-CO')}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* 4. Sub-Tab: Auditoría & Logs */}
+      {/* 4. Sub-Tab: Reglas del Asistente (Dynamic, Editable & Active in LLM) */}
+      {activeSubTab === 'rules' && (
+        <div className="space-y-5">
+          {/* Header & Actions Bar */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-[#0066FF]" />
+                <h3 className="text-base font-bold text-slate-900">
+                  Reglas de Negocio & Directrices para OLI
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                Todas las reglas activas se inyectan en tiempo real a las instrucciones de los modelos LLM (Groq y Gemini). Puedes agregar nuevas reglas, editarlas o pausarlas con el switch.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+              <button
+                type="button"
+                onClick={handleOpenCreateRule}
+                className="px-4 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052cc] text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Nueva Regla</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetRules}
+                className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                title="Restablecer reglas por defecto"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                <span>Restablecer</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Search bar & summary */}
+          <div className="flex items-center justify-between gap-3 px-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={rulesSearchQuery}
+                onChange={(e) => setRulesSearchQuery(e.target.value)}
+                placeholder="Buscar entre las reglas configuradas..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-xs outline-none focus:border-[#0066FF]"
+              />
+            </div>
+
+            <span className="text-xs text-slate-500 font-medium">
+              {activeRulesCount} de {rules.length} activas
+            </span>
+          </div>
+
+          {/* Rules List Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredRules.map((rule, idx) => {
+              const categoryBadge = {
+                tone: { label: 'Tono Sabanero', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                business: { label: 'Comercio Local', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                itinerary: { label: 'Itinerario & Paradas', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+                budget: { label: 'Presupuesto', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+                custom: { label: 'Personalizada', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+              }[rule.category || 'custom'] || { label: 'General', color: 'bg-slate-100 text-slate-700 border-slate-200' };
+
+              return (
+                <div
+                  key={rule.id}
+                  className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 bg-white ${
+                    rule.active
+                      ? 'border-slate-200/90 shadow-2xs hover:border-blue-300'
+                      : 'border-slate-200 bg-slate-50/50 opacity-75'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-black text-slate-900">
+                          {idx + 1}. {rule.title}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${categoryBadge.color}`}>
+                          {categoryBadge.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Toggle Switch */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleRule(rule.id)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        rule.active ? 'bg-[#0066FF]' : 'bg-slate-200'
+                      }`}
+                      title={rule.active ? 'Pausar regla' : 'Activar regla'}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          rule.active ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-slate-600 leading-relaxed font-normal bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    "{rule.instruction}"
+                  </p>
+
+                  <div className="flex items-center justify-between pt-1 text-[11px] border-t border-slate-100">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${rule.active ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-slate-300'}`} />
+                      <span className={`font-semibold ${rule.active ? 'text-emerald-700' : 'text-slate-400'}`}>
+                        {rule.active ? 'Activa en LLM' : 'Pausada'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditRule(rule)}
+                        className="px-2.5 py-1 rounded-lg hover:bg-blue-50 text-[#0066FF] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Editar regla"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Editar</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRule(rule.id, rule.title)}
+                        className="px-2.5 py-1 rounded-lg hover:bg-rose-50 text-rose-600 font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Eliminar regla"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Eliminar</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filteredRules.length === 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <Sliders className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-slate-800">No hay reglas que coincidan</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Puedes agregar una nueva regla haciendo clic en el botón superior "Nueva Regla".
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 5. Sub-Tab: Auditoría & Logs */}
       {activeSubTab === 'logs' && (
         <div className="space-y-4">
           {/* Controls Bar */}
@@ -943,21 +1145,6 @@ export const AdminOliTab: React.FC = () => {
                           </div>
                         )}
 
-                        {log.matchedBusinesses && log.matchedBusinesses.length > 0 && (
-                          <div>
-                            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">
-                              Comercios recomendados:
-                            </span>
-                            <div className="flex flex-wrap gap-2">
-                              {log.matchedBusinesses.map((b: any) => (
-                                <span key={b.id} className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium">
-                                  📍 {b.name} ({b.city}) {b.phone ? `· 📞 ${b.phone}` : ''}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
                         <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400">
                           <span>ID: {log.id}</span>
                           <span>{new Date(log.timestamp).toLocaleString('es-CO')}</span>
@@ -972,7 +1159,7 @@ export const AdminOliTab: React.FC = () => {
         </div>
       )}
 
-      {/* 5. Sub-Tab: WhatsApp Bot */}
+      {/* 6. Sub-Tab: WhatsApp Bot */}
       {activeSubTab === 'whatsapp' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1120,139 +1307,104 @@ export const AdminOliTab: React.FC = () => {
         </div>
       )}
 
-      {/* 6. Sub-Tab: Salud del Catálogo */}
-      {activeSubTab === 'catalog' && (
-        <div className="space-y-6">
-          {/* Quick Metrics KPI cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Comercios Activos</span>
-              <p className="text-2xl font-black text-slate-900">{catalogAnalytics.activeBusinessesCount}</p>
-              <span className="text-[11px] text-emerald-600 font-semibold">Listos para sugerir en Oli</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Ofertas / Anuncios</span>
-              <p className="text-2xl font-black text-blue-600">{catalogAnalytics.activePostsCount}</p>
-              <span className="text-[11px] text-slate-500 font-medium">Precios y horarios cargados</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Con WhatsApp</span>
-              <p className="text-2xl font-black text-emerald-600">
-                {catalogAnalytics.activeBusinessesCount > 0
-                  ? `${Math.round((catalogAnalytics.bizWithWaCount / catalogAnalytics.activeBusinessesCount) * 100)}%`
-                  : '0%'}
-              </p>
-              <span className="text-[11px] text-slate-500 font-medium">{catalogAnalytics.bizWithWaCount} comercios</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Dirección Física</span>
-              <p className="text-2xl font-black text-indigo-600">{catalogAnalytics.bizWithAddressCount}</p>
-              <span className="text-[11px] text-slate-500 font-medium">Ubicación verificable</span>
-            </div>
-          </div>
-
-          {/* Municipality Breakdown Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+      {/* Modal: Crear / Editar Regla */}
+      {isRuleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden space-y-4">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#0066FF]" />
-                <h3 className="text-sm font-bold text-slate-900">Cobertura de Oli por Municipio</h3>
+                <Sliders className="w-5 h-5 text-[#0066FF]" />
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingRule ? 'Editar Regla de Oli' : 'Nueva Regla para Oli'}
+                </h3>
               </div>
-              <span className="text-xs text-slate-500">Sabana Centro, Cundinamarca</span>
+              <button
+                type="button"
+                onClick={() => setIsRuleModalOpen(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 uppercase font-bold text-[10px] tracking-wider">
-                    <th className="py-2.5 px-3">Municipio</th>
-                    <th className="py-2.5 px-3">Comercios Indexados</th>
-                    <th className="py-2.5 px-3">Ofertas Activas</th>
-                    <th className="py-2.5 px-3">Comercios con WhatsApp</th>
-                    <th className="py-2.5 px-3">Estado para Oli</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {Object.entries(catalogAnalytics.cityMap).map(([city, data]) => {
-                    const isOptimal = data.businesses >= 3 && data.posts >= 2;
-                    return (
-                      <tr key={city} className="hover:bg-slate-50/50">
-                        <td className="py-2.5 px-3 font-bold text-slate-900">{city}</td>
-                        <td className="py-2.5 px-3 font-semibold">{data.businesses}</td>
-                        <td className="py-2.5 px-3 font-semibold text-blue-600">{data.posts}</td>
-                        <td className="py-2.5 px-3 font-semibold text-emerald-600">{data.withWa}</td>
-                        <td className="py-2.5 px-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            isOptimal
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}>
-                            {isOptimal ? 'Óptimo para Itinerarios' : 'Cobertura Básica'}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+            <form onSubmit={handleSaveRule} className="p-5 pt-0 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Título de la Regla
+                </label>
+                <input
+                  type="text"
+                  value={ruleModalTitle}
+                  onChange={(e) => setRuleModalTitle(e.target.value)}
+                  placeholder="ej: Prioridad Mascotas Pet-Friendly"
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#0066FF] outline-none text-xs sm:text-sm text-slate-900"
+                />
+              </div>
 
-      {/* 7. Sub-Tab: Reglas & Prompts */}
-      {activeSubTab === 'settings' && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-6">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Reglas de Negocio y Tono Sabanero de Oli</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Políticas fijas aplicadas por el sistema al interactuar con usuarios en la app y WhatsApp.
-            </p>
-          </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Categoría
+                </label>
+                <select
+                  value={ruleModalCategory}
+                  onChange={(e) => setRuleModalCategory(e.target.value as any)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 bg-white"
+                >
+                  <option value="custom">Personalizada (General)</option>
+                  <option value="tone">Tono de Voz & Lenguaje Sabanero</option>
+                  <option value="business">Comercio Local & Validación</option>
+                  <option value="itinerary">Itinerarios & Paradas</option>
+                  <option value="budget">Control Presupuestario</option>
+                </select>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
-                1. Tono y Saludo Oficial
-              </h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Toda respuesta debe iniciar con <strong>"¡Listo veci!"</strong>, con calidez sabanera, naturalidad y sin formato técnico o markdown roto.
-              </p>
-            </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Instrucción Exacta para el LLM (Groq & Gemini)
+                </label>
+                <textarea
+                  value={ruleModalInstruction}
+                  onChange={(e) => setRuleModalInstruction(e.target.value)}
+                  placeholder="Escribe la instrucción directa para el asistente. Ej: Si el usuario menciona que va con perro o mascota, dale prioridad estricta a comercios con terraza o pet-friendly..."
+                  rows={4}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#0066FF] outline-none text-xs sm:text-sm text-slate-900 resize-none leading-relaxed"
+                />
+                <span className="text-[11px] text-slate-400 block mt-1">
+                  Esta instrucción será inyectada en el prompt del sistema y aplicada en cada respuesta.
+                </span>
+              </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
-                2. Regla de Cero Comercios Duplicados
-              </h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Un solo itinerario jamás debe repetir el mismo comercio en dos paradas distintas, garantizando variedad comercial y soporte a múltiples vecinos.
-              </p>
-            </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-xs font-bold text-slate-800">
+                  Activar regla inmediatamente
+                </span>
+                <input
+                  type="checkbox"
+                  checked={ruleModalActive}
+                  onChange={(e) => setRuleModalActive(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#0066FF] focus:ring-0 cursor-pointer"
+                />
+              </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
-                3. Una Sola Comida Fuerte
-              </h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Los itinerarios se estructuran cronológicamente (Actividad &gt; Almuerzo &gt; Café/Postre &gt; Cervezas/Relax). Nunca dos comidas pesadas continuas.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
-                4. Control Estricto de Presupuesto
-              </h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Si el usuario da un presupuesto, la suma de los precios oficiales no debe superarlo. Si lo supera, se le avisa explícitamente sin inventar cifras.
-              </p>
-            </div>
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsRuleModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingRule || !ruleModalTitle.trim() || !ruleModalInstruction.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052cc] text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  {isSavingRule ? 'Guardando...' : 'Guardar Regla'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "rule_tone",
+    "title": "Tono y Saludo Oficial",
+    "instruction": "Toda respuesta debe iniciar obligatoriamente con \"¡Listo veci!\", con calidez sabanera, naturalidad y sin formato técnico o markdown roto.",
+    "active": true,
+    "category": "tone",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "rule_no_duplicates",
+    "title": "Regla de Cero Comercios Duplicados",
+    "instruction": "Un solo itinerario jamás debe repetir el mismo comercio en dos paradas distintas, garantizando variedad comercial y soporte a múltiples vecinos.",
+    "active": true,
+    "category": "business",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "rule_single_main_meal",
+    "title": "Una Sola Comida Fuerte",
+    "instruction": "Los itinerarios se estructuran cronológicamente (Actividad > Almuerzo > Café/Postre > Cervezas/Relax). Nunca dos comidas pesadas continuas.",
+    "active": true,
+    "category": "itinerary",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "rule_strict_budget",
+    "title": "Control Estricto de Presupuesto",
+    "instruction": "Si el usuario da un presupuesto, la suma de los precios oficiales no debe superarlo. Si lo supera, se le avisa explícitamente sin inventar cifras.",
+    "active": true,
+    "category": "budget",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "rule_ultra_short",
+    "title": "Respuestas Ultra-Cortas y Ejecutivas",
+    "instruction": "En spokenText responde en máximo 1 o 2 oraciones cortas directas estilo WhatsApp. NO recites ni listes las paradas una por una porque ya se muestran visualmente abajo.",
+    "active": true,
+    "category": "tone",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  {
+    "id": "rule_no_dollar_sign",
+    "title": "Prohibición del Signo de Dólar ($)",
+    "instruction": "Nunca uses el carácter \"$\" en la respuesta hablada (spokenText). Expresa valores siempre con palabras o números acompañados de \"pesos\" o \"mil pesos\".",
+    "active": true,
+    "category": "tone",
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  }
+]

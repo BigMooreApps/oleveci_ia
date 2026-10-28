@@ -17,6 +17,14 @@ import {
   disconnectBaileys,
   getBaileysState,
 } from './server/oliBaileysService';
+import {
+  getOliRules,
+  saveOrUpdateRule,
+  deleteRule,
+  toggleRuleActive,
+  resetToDefaultRules,
+  saveOliRulesToDisk,
+} from './server/oliRulesManager';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -603,6 +611,59 @@ app.delete('/api/oli/conversation-logs', (_req, res) => {
   conversationLogs = [];
   saveConversationLogsToDisk();
   return res.json({ success: true, count: 0 });
+});
+
+// ==============================================================================
+// OLI Assistant Dynamic Rules Management (Business Rules & System Prompts)
+// ==============================================================================
+app.get('/api/oli/rules', (_req, res) => {
+  return res.json({ rules: getOliRules() });
+});
+
+app.post('/api/oli/rules', (req, res) => {
+  try {
+    const { rule, rules } = req.body;
+    if (Array.isArray(rules)) {
+      saveOliRulesToDisk(rules);
+      return res.json({ success: true, rules: getOliRules() });
+    }
+    if (rule && rule.title && rule.instruction) {
+      const updated = saveOrUpdateRule(rule);
+      return res.json({ success: true, rules: updated });
+    }
+    return res.status(400).json({ error: 'Datos de regla inválidos' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Error guardando regla' });
+  }
+});
+
+app.delete('/api/oli/rules/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const updated = deleteRule(id);
+    return res.json({ success: true, rules: updated });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Error eliminando regla' });
+  }
+});
+
+app.patch('/api/oli/rules/:id/toggle', (req, res) => {
+  try {
+    const { id } = req.params;
+    const updated = toggleRuleActive(id);
+    return res.json({ success: true, rules: updated });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Error alternando regla' });
+  }
+});
+
+app.post('/api/oli/rules/reset', (_req, res) => {
+  try {
+    const reset = resetToDefaultRules();
+    return res.json({ success: true, rules: reset });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Error restableciendo reglas' });
+  }
 });
 
 // ==============================================================================
