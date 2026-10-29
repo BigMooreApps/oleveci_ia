@@ -1022,7 +1022,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                       <span className="font-semibold text-slate-900 shrink-0 text-right tabular-nums">{activeSubscribers} com.</span>
                     </div>
                     <div className="flex items-center justify-between gap-1 text-slate-600">
-                      <span className="whitespace-nowrap">Ticket promedio:</span>
+                      <span className="whitespace-nowrap">Ticket promedio (ARPU):</span>
                       <span className="font-semibold text-slate-900 shrink-0 text-right tabular-nums">{formatCOP(arpuCOP)}/mes</span>
                     </div>
                     <div className="flex items-center justify-between gap-1 font-bold text-[#041f5e] pt-1.5 border-t border-sky-200/60">
@@ -1089,14 +1089,14 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
             </div>
           </div>
 
-          {/* Card 3: AHORRO PARA EL COMERCIO */}
+          {/* Card 3: AHORRO PARA COMERCIOS */}
           <div className="rounded-2xl sm:rounded-3xl border-2 border-[#00897b] bg-white shadow-xs overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
             <div className="bg-[#00897b] text-white py-2 sm:py-2.5 px-2 font-bold text-center text-xs uppercase tracking-wide">
-              AHORRO PARA EL COMERCIO
+              AHORRO PARA COMERCIOS
             </div>
             <div className="p-3.5 sm:p-4 flex flex-col justify-between flex-1">
               <div>
-                <div className="text-2xl sm:text-3xl font-black text-[#041f5e] tracking-tight">
+                <div className="text-2xl sm:text-3xl font-black text-[#047857] tracking-tight">
                   {formatCOP(estimatedMerchantSavings)}
                 </div>
                 <div className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
@@ -1118,7 +1118,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                       <span className="font-semibold shrink-0 text-right tabular-nums">-{formatCOP(cutProratedRevenueCOP)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-1 font-bold text-[#047857] pt-1.5 border-t border-emerald-200/60">
-                      <span className="whitespace-nowrap">Ahorro neto:</span>
+                      <span className="whitespace-nowrap">Ahorro neto entregado:</span>
                       <span className="shrink-0 text-right tabular-nums">{formatCOP(estimatedMerchantSavings)}</span>
                     </div>
                   </div>
@@ -1156,7 +1156,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                   </div>
                   <div className="space-y-1 text-[10.5px] sm:text-[11px]">
                     <div className="flex items-center justify-between gap-1 text-slate-600">
-                      <span className="whitespace-nowrap">Contactos vecinales:</span>
+                      <span className="whitespace-nowrap">Contactos generados:</span>
                       <span className="font-semibold text-slate-900 shrink-0 text-right tabular-nums">{cutTotalLeads.toLocaleString('es-CO')} leads</span>
                     </div>
                     <div className="flex items-center justify-between gap-1 text-slate-600">
@@ -1164,7 +1164,7 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
                       <span className="font-semibold text-slate-900 shrink-0 text-right tabular-nums">{cutViews.toLocaleString('es-CO')} vistas</span>
                     </div>
                     <div className="flex items-center justify-between gap-1 font-bold text-[#6d28d9] pt-1.5 border-t border-purple-200/60">
-                      <span className="whitespace-nowrap">Tasa efectividad:</span>
+                      <span className="whitespace-nowrap">Tasa de efectividad:</span>
                       <span className="shrink-0 text-right tabular-nums">{cutConversionRate}%</span>
                     </div>
                   </div>
@@ -1173,8 +1173,8 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({ onNavigateTa
 
               {/* Clean Footer without icon */}
               <div className="pt-2.5 border-t border-slate-100 flex flex-col justify-center mt-auto">
-                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Promedio por comercio:</div>
-                <div className="text-base sm:text-lg font-black text-[#041f5e] leading-snug">
+                <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Promedio por negocio activo:</div>
+                <div className="text-base sm:text-lg font-black text-purple-700 leading-snug">
                   ~{activeSubscribers > 0 ? Math.round(cutTotalLeads / activeSubscribers).toLocaleString('es-CO') : 0} leads
                 </div>
               </div>
