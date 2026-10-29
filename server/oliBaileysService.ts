@@ -39,6 +39,7 @@ const AUTH_DIR = path.join(process.cwd(), 'whatsapp_session');
 let sock: WASocket | null = null;
 let getBusinessesFn: () => Business[] = () => [];
 let getPostsFn: () => Post[] = () => [];
+let onLogConversationFn: ((entry: any) => void) | null = null;
 let isConnecting = false;
 let autoReconnect = true;
 let reconnectTimer: NodeJS.Timeout | null = null;
@@ -92,10 +93,12 @@ const silentLogger = {
 
 export function initBaileysService(
   getBusinesses: () => Business[],
-  getPosts: () => Post[]
+  getPosts: () => Post[],
+  onLogConversation?: (entry: any) => void
 ) {
   getBusinessesFn = getBusinesses;
   getPostsFn = getPosts;
+  if (onLogConversation) onLogConversationFn = onLogConversation;
 
   // Active session Watchdog: Checks every 25s if session files exist and reconnects automatically if dropped
   if (!watchdogInterval) {
@@ -326,6 +329,21 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
     await sock.sendPresenceUpdate('paused', remoteJid);
     await sock.sendMessage(remoteJid, { text: replyMarkdown });
     console.log(`[OLI WhatsApp Web] 🚀 Respuesta enviada exitosamente a +${senderPhone}`);
+
+    // Record session conversation log
+    if (onLogConversationFn) {
+      try {
+        onLogConversationFn({
+          sessionId: `wa_${senderPhone}`,
+          city: session.lastCity || 'Cajicá',
+          userPrompt: cleanText,
+          budget: 100000,
+          plan: oliResponse,
+        });
+      } catch (logErr) {
+        console.warn('Error recording WhatsApp conversation log:', logErr);
+      }
+    }
   } catch (sendErr) {
     console.error(`[OLI WhatsApp Web] Error enviando respuesta a +${senderPhone}:`, sendErr);
   }

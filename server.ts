@@ -189,6 +189,90 @@ function saveConversationLogsToDisk() {
   }
 }
 
+// Record full-chat conversation log grouped by session instead of isolated interactions
+function recordConversationLog(params: {
+  sessionId?: string;
+  channel?: 'web' | 'mobile' | 'whatsapp';
+  currentCity?: string;
+  userPrompt: string;
+  userBudget?: number;
+  plan: any;
+}) {
+  try {
+    const {
+      sessionId = `chat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      channel = 'web',
+      currentCity = 'Cajicá',
+      userPrompt,
+      userBudget = 0,
+      plan,
+    } = params;
+
+    const nowIso = new Date().toISOString();
+
+    const userMessage = {
+      id: `msg_u_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+      sender: 'user' as const,
+      text: userPrompt,
+      timestamp: nowIso,
+    };
+
+    const oliMessage = {
+      id: `msg_o_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+      sender: 'oli' as const,
+      text: plan.spokenText || '',
+      timestamp: nowIso,
+      responseType: plan.type || (plan.stops && plan.stops.length > 0 ? 'plan' : 'search'),
+      stopsCount: plan.stops?.length || 0,
+      stops: plan.stops || [],
+      matchedBusinesses: (plan.matchedBusinesses || []).map((b: any) => ({
+        id: b.id,
+        name: b.name,
+        city: b.city,
+        phone: b.phone,
+      })),
+    };
+
+    let chatLog = conversationLogs.find((c) => c.id === sessionId);
+
+    if (chatLog) {
+      chatLog.lastUpdatedAt = nowIso;
+      chatLog.currentCity = currentCity || chatLog.currentCity;
+      if (typeof userBudget === 'number' && userBudget > 0) chatLog.userBudget = userBudget;
+      chatLog.latestPrompt = userPrompt;
+      chatLog.latestResponse = plan.spokenText || '';
+      chatLog.latestResponseType = oliMessage.responseType;
+      chatLog.totalStops = plan.stops?.length || 0;
+      chatLog.matchedBusinessesCount = plan.matchedBusinesses?.length || 0;
+      if (!Array.isArray(chatLog.messages)) chatLog.messages = [];
+      chatLog.messages.push(userMessage, oliMessage);
+      chatLog.totalTurns = Math.ceil(chatLog.messages.length / 2);
+    } else {
+      chatLog = {
+        id: sessionId,
+        channel,
+        startedAt: nowIso,
+        lastUpdatedAt: nowIso,
+        currentCity: currentCity || 'Cajicá',
+        userBudget: typeof plan.userBudget === 'number' ? plan.userBudget : (typeof userBudget === 'number' ? userBudget : 0),
+        totalTurns: 1,
+        latestPrompt: userPrompt,
+        latestResponse: plan.spokenText || '',
+        latestResponseType: oliMessage.responseType,
+        totalStops: plan.stops?.length || 0,
+        matchedBusinessesCount: plan.matchedBusinesses?.length || 0,
+        messages: [userMessage, oliMessage],
+      };
+      conversationLogs.unshift(chatLog);
+      if (conversationLogs.length > 100) conversationLogs = conversationLogs.slice(0, 100);
+    }
+
+    saveConversationLogsToDisk();
+  } catch (logErr) {
+    console.warn('Non-fatal: Error recording conversation log:', logErr);
+  }
+}
+
 // Helper: Escape HTML special characters for meta tags
 function escapeHtml(str: string = ''): string {
   return str
@@ -534,34 +618,15 @@ app.post('/api/oli/plan', async (req, res) => {
       groqApiKey: req.body.groqApiKey || process.env.GROQ_API_KEY,
     });
 
-    // Record conversation log for diagnostic analysis
-    try {
-      const logEntry = {
-        id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        timestamp: new Date().toISOString(),
-        userPrompt,
-        currentCity,
-        userBudget: typeof plan.userBudget === 'number' ? plan.userBudget : (typeof userBudget === 'number' ? userBudget : (parseInt(userBudget, 10) || 0)),
-        messageHistoryCount: messageHistory.length,
-        responseType: plan.type || (plan.stops && plan.stops.length > 0 ? 'plan' : 'search'),
-        spokenText: plan.spokenText,
-        totalCost: plan.totalEstimatedCost,
-        stopsCount: plan.stops?.length || 0,
-        matchedBusinessesCount: plan.matchedBusinesses?.length || 0,
-        stops: plan.stops || [],
-        matchedBusinesses: (plan.matchedBusinesses || []).map((b: any) => ({
-          id: b.id,
-          name: b.name,
-          city: b.city,
-          phone: b.phone,
-        })),
-      };
-      conversationLogs.push(logEntry);
-      if (conversationLogs.length > 100) conversationLogs = conversationLogs.slice(-100);
-      saveConversationLogsToDisk();
-    } catch (logErr) {
-      console.warn('Non-fatal: Error recording conversation log:', logErr);
-    }
+    // Record full-chat conversation log grouped by session
+    recordConversationLog({
+      sessionId: req.body.sessionId,
+      channel: req.body.channel || 'web',
+      currentCity,
+      userPrompt,
+      userBudget: typeof plan.userBudget === 'number' ? plan.userBudget : (typeof userBudget === 'number' ? userBudget : (parseInt(userBudget, 10) || 0)),
+      plan,
+    });
 
     return res.json(plan);
   } catch (error) {
@@ -1833,10 +1898,20 @@ async function startServer() {
 
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`OleVeci Server running on http://0.0.0.0:${PORT}`);
-    // Initialize WhatsApp Web (Baileys) Bot Service
+    // Initialize WhatsApp Web (Baileys) Bot Service with full-chat logging
     initBaileysService(
       () => Array.from(businessStore.values()),
-      () => Array.from(postStore.values())
+      () => Array.from(postStore.values()),
+      (record: any) => {
+        recordConversationLog({
+          sessionId: record.sessionId,
+          channel: 'whatsapp',
+          currentCity: record.city,
+          userPrompt: record.userPrompt,
+          userBudget: record.budget,
+          plan: record.plan,
+        });
+      }
     );
     // Pre-warm database video posts in background after server is up
     setTimeout(warmUpDatabaseVideos, 1500);

@@ -141,6 +141,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sessionIdRef = useRef<string>(
+    `chat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+  );
   const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
 
   // Mobile virtual keyboard handling via VisualViewport API
@@ -258,6 +261,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
   // Reset conversation to fresh state
   const handleResetConversation = () => {
+    sessionIdRef.current = `chat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -362,6 +366,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          channel: 'web',
           userPrompt: prompt,
           currentCity: currentCity || 'Cajicá',
           userBudget: activePlan?.userBudget || 0,

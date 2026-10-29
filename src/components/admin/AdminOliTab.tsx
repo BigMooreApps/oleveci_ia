@@ -37,25 +37,44 @@ import {
   Eye,
   EyeOff,
   Copy,
+  User,
+  Globe,
+  MessageSquare,
 } from 'lucide-react';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
 import { OliWhatsAppModal } from '../OliWhatsAppModal';
 
-interface OliLogEntry {
-  id: string;
+export interface OliLogMessage {
+  id?: string;
+  sender: 'user' | 'oli';
+  text: string;
   timestamp: string;
-  userPrompt: string;
+  responseType?: string;
+  stopsCount?: number;
+  stops?: any[];
+  matchedBusinesses?: Array<{ id: string; name: string; city?: string; phone?: string }>;
+}
+
+export interface OliLogEntry {
+  id: string;
+  channel?: 'web' | 'mobile' | 'whatsapp';
+  startedAt?: string;
+  lastUpdatedAt?: string;
+  timestamp?: string; // backwards compatibility
   currentCity: string;
   userBudget?: number;
-  messageHistoryCount?: number;
-  responseType?: string;
-  spokenText?: string;
+  totalTurns?: number;
+  latestPrompt?: string;
+  latestResponse?: string;
+  userPrompt?: string; // backwards compatibility
+  spokenText?: string; // backwards compatibility
   totalCost?: number;
   stopsCount?: number;
   matchedBusinessesCount?: number;
   stops?: any[];
   matchedBusinesses?: Array<{ id: string; name: string; city: string; phone?: string }>;
+  messages?: OliLogMessage[];
 }
 
 export const AdminOliTab: React.FC = () => {
@@ -315,35 +334,57 @@ export const AdminOliTab: React.FC = () => {
 
     let md = `# REGISTRO DE AUDITORÍA Y CONVERSACIONES OLI (OLEVECI)\n\n`;
     md += `*Fecha de Exportación:* ${new Date().toLocaleString('es-CO')}\n`;
-    md += `*Total de Interacciones:* ${logs.length}\n`;
+    md += `*Total de Chats Completos:* ${logs.length}\n`;
     md += `*Proveedor Activo:* ${provider.toUpperCase()}\n\n---\n\n`;
 
     logs.forEach((log, idx) => {
-      md += `## Turno #${idx + 1} (${new Date(log.timestamp).toLocaleString('es-CO')})\n`;
+      const messagesList: OliLogMessage[] =
+        log.messages && Array.isArray(log.messages) && log.messages.length > 0
+          ? log.messages
+          : [
+              { sender: 'user', text: log.userPrompt || log.latestPrompt || '', timestamp: log.timestamp || log.startedAt || '' },
+              { sender: 'oli', text: log.spokenText || log.latestResponse || '', timestamp: log.timestamp || log.lastUpdatedAt || '', stops: log.stops, matchedBusinesses: log.matchedBusinesses },
+            ];
+
+      const turns = log.totalTurns || Math.ceil(messagesList.length / 2) || 1;
+      const started = new Date(log.startedAt || log.timestamp || Date.now()).toLocaleString('es-CO');
+      const updated = new Date(log.lastUpdatedAt || log.timestamp || Date.now()).toLocaleString('es-CO');
+
+      md += `## Chat #${idx + 1}: ${log.id} (${(log.channel || 'web').toUpperCase()})\n`;
       md += `- **Municipio:** ${log.currentCity}\n`;
-      md += `- **Presupuesto:** ${log.userBudget ? `$ ${log.userBudget.toLocaleString('es-CO')}` : 'Sin límite'}\n`;
-      md += `- **Consulta Usuario:** "${log.userPrompt}"\n`;
-      md += `- **Respuesta Oli:** "${log.spokenText || ''}"\n`;
-      if (log.stops && log.stops.length > 0) {
-        md += `\n### Paradas Generadas (${log.stops.length}):\n`;
-        log.stops.forEach((s: any, sIdx: number) => {
-          md += `  ${sIdx + 1}. **${s.businessName}** (${s.businessCity}) - ${s.activity} [$ ${s.cost ? s.cost.toLocaleString('es-CO') : 0}]\n`;
-        });
-      }
-      if (log.matchedBusinesses && log.matchedBusinesses.length > 0) {
-        md += `\n### Comercios Vinculados:\n`;
-        log.matchedBusinesses.forEach((b: any) => {
-          md += `  - ${b.name} (${b.city}) - Tel/WA: ${b.phone || 'N/A'}\n`;
-        });
-      }
-      md += `\n---\n\n`;
+      md += `- **Inicio:** ${started} | **Última actividad:** ${updated}\n`;
+      md += `- **Total de Interacciones en este Chat:** ${turns}\n`;
+      md += `\n### Transcripción Completa del Chat:\n\n`;
+
+      messagesList.forEach((m) => {
+        const who = m.sender === 'user' ? '👤 Usuario' : '🤖 Oli';
+        const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '';
+        md += `**[${who}]** ${timeStr ? `(${timeStr})` : ''}\n`;
+        md += `${m.text}\n\n`;
+
+        if (m.stops && m.stops.length > 0) {
+          md += `*Paradas del Itinerario (${m.stops.length}):*\n`;
+          m.stops.forEach((s: any, sIdx: number) => {
+            md += `  ${sIdx + 1}. **${s.businessName}** (${s.businessCity}) - ${s.activity} [$ ${s.cost ? s.cost.toLocaleString('es-CO') : 0}]\n`;
+          });
+          md += `\n`;
+        }
+        if (m.matchedBusinesses && m.matchedBusinesses.length > 0) {
+          md += `*Comercios recomendados:*\n`;
+          m.matchedBusinesses.forEach((b: any) => {
+            md += `  - ${b.name} (${b.city}) - Tel: ${b.phone || 'N/A'}\n`;
+          });
+          md += `\n`;
+        }
+      });
+      md += `---\n\n`;
     });
 
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `auditoria_oli_${new Date().toISOString().slice(0, 10)}.md`);
+    link.setAttribute('download', `conversaciones_completas_oli_${new Date().toISOString().slice(0, 10)}.md`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -481,15 +522,17 @@ export const AdminOliTab: React.FC = () => {
   // Filtered Logs
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
-      if (logFilterCity !== 'all' && log.currentCity.toLowerCase() !== logFilterCity.toLowerCase()) {
+      if (logFilterCity !== 'all' && log.currentCity?.toLowerCase() !== logFilterCity.toLowerCase()) {
         return false;
       }
       if (logSearchQuery.trim()) {
         const q = logSearchQuery.toLowerCase();
-        const inPrompt = log.userPrompt?.toLowerCase().includes(q);
-        const inResponse = log.spokenText?.toLowerCase().includes(q);
+        const inPrompt = (log.userPrompt || log.latestPrompt)?.toLowerCase().includes(q);
+        const inResponse = (log.spokenText || log.latestResponse)?.toLowerCase().includes(q);
         const inStops = log.stops?.some((s: any) => s.businessName?.toLowerCase().includes(q));
-        if (!inPrompt && !inResponse && !inStops) return false;
+        const inMessages = log.messages?.some((m) => m.text?.toLowerCase().includes(q));
+        const inBiz = log.matchedBusinesses?.some((b) => b.name?.toLowerCase().includes(q));
+        if (!inPrompt && !inResponse && !inStops && !inMessages && !inBiz) return false;
       }
       return true;
     });
@@ -1216,6 +1259,19 @@ export const AdminOliTab: React.FC = () => {
             <div className="space-y-3">
               {filteredLogs.map((log, idx) => {
                 const isExpanded = expandedLogId === log.id;
+                const messagesList: OliLogMessage[] =
+                  log.messages && Array.isArray(log.messages) && log.messages.length > 0
+                    ? log.messages
+                    : [
+                        { sender: 'user', text: log.userPrompt || log.latestPrompt || '', timestamp: log.timestamp || log.startedAt || '' },
+                        { sender: 'oli', text: log.spokenText || log.latestResponse || '', timestamp: log.timestamp || log.lastUpdatedAt || '', responseType: log.responseType, stopsCount: log.stopsCount, stops: log.stops, matchedBusinesses: log.matchedBusinesses }
+                      ];
+
+                const turnsCount = log.totalTurns || Math.ceil(messagesList.length / 2) || 1;
+                const firstUserMsg = messagesList.find((m) => m.sender === 'user')?.text || log.userPrompt || log.latestPrompt || 'Consulta a Oli';
+                const latestReply = log.latestResponse || log.spokenText || messagesList.filter((m) => m.sender === 'oli').pop()?.text || '';
+                const lastDate = log.lastUpdatedAt || log.timestamp || log.startedAt || new Date().toISOString();
+
                 return (
                   <div
                     key={log.id}
@@ -1226,33 +1282,49 @@ export const AdminOliTab: React.FC = () => {
                       className="p-4 flex items-center justify-between gap-3 cursor-pointer select-none hover:bg-slate-50/50"
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <span className="w-7 h-7 rounded-full bg-blue-100 text-[#0066FF] font-black text-xs flex items-center justify-center shrink-0">
+                        <span className="w-8 h-8 rounded-full bg-blue-100 text-[#0066FF] font-black text-xs flex items-center justify-center shrink-0">
                           #{filteredLogs.length - idx}
                         </span>
 
-                        <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="min-w-0 flex-1 space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-bold text-slate-900 truncate">
-                              "{log.userPrompt}"
+                            <span className="text-xs sm:text-sm font-bold text-slate-900 truncate max-w-md">
+                              "{firstUserMsg}"
                             </span>
-                            <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-slate-100 text-slate-600">
-                              {log.currentCity}
-                            </span>
-                            {log.stopsCount !== undefined && log.stopsCount > 0 && (
-                              <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                                {log.stopsCount} paradas
+
+                            {/* Channel Badge */}
+                            {log.channel === 'whatsapp' ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <WhatsAppIcon className="w-3 h-3 fill-emerald-600" />
+                                WhatsApp
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+                                <Globe className="w-3 h-3 text-sky-600" />
+                                Web / App
                               </span>
                             )}
+
+                            {/* Turns Count Badge */}
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              <MessageSquare className="w-2.5 h-2.5 text-indigo-600" />
+                              {turnsCount} {turnsCount === 1 ? 'interacción' : 'interacciones'}
+                            </span>
+
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                              {log.currentCity || 'Sabana Centro'}
+                            </span>
                           </div>
+
                           <p className="text-[11px] text-slate-500 line-clamp-1">
-                            {log.spokenText}
+                            {latestReply}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
-                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(lastDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {isExpanded ? (
                           <ChevronUp className="w-4 h-4 text-slate-400" />
@@ -1263,38 +1335,119 @@ export const AdminOliTab: React.FC = () => {
                     </div>
 
                     {isExpanded && (
-                      <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/50 space-y-3 text-xs">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">
-                            Respuesta completa de Oli:
+                      <div className="px-4 pb-4 pt-3 border-t border-slate-100 bg-slate-50/70 space-y-3.5 text-xs">
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 pb-1 border-b border-slate-200/60">
+                          <span className="font-bold uppercase tracking-wider text-slate-400">
+                            Transcripción Completa del Chat ({messagesList.length} turnos)
                           </span>
-                          <p className="p-3 bg-white rounded-xl border border-slate-200 text-slate-800 leading-relaxed">
-                            {log.spokenText}
-                          </p>
+                          <span>
+                            {log.startedAt ? `Iniciado: ${new Date(log.startedAt).toLocaleString('es-CO')}` : ''}
+                          </span>
                         </div>
 
-                        {log.stops && log.stops.length > 0 && (
-                          <div>
-                            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">
-                              Paradas del Itinerario:
-                            </span>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                              {log.stops.map((s: any, sIdx: number) => (
-                                <div key={sIdx} className="bg-white p-2.5 rounded-xl border border-slate-200 space-y-0.5">
-                                  <div className="flex items-center justify-between font-bold">
-                                    <span className="text-[#0066FF]">#{sIdx + 1} {s.businessName}</span>
-                                    <span className="text-emerald-600">$ {s.cost?.toLocaleString('es-CO')}</span>
-                                  </div>
-                                  <p className="text-[11px] text-slate-600">{s.activity}</p>
+                        {/* Conversational message thread in chronological order */}
+                        <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                          {messagesList.map((m, mIdx) => (
+                            <div
+                              key={mIdx}
+                              className={`flex gap-2.5 items-start ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                            >
+                              {m.sender === 'oli' && (
+                                <div className="w-7 h-7 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                  <Bot className="w-4 h-4 text-[#0066FF]" />
                                 </div>
-                              ))}
+                              )}
+
+                              <div
+                                className={`max-w-[85%] rounded-2xl p-3 sm:p-3.5 space-y-1.5 shadow-2xs ${
+                                  m.sender === 'user'
+                                    ? 'bg-[#0066FF] text-white rounded-br-xs'
+                                    : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-xs'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <span
+                                    className={`text-[10px] font-bold ${
+                                      m.sender === 'user' ? 'text-blue-100' : 'text-[#0066FF]'
+                                    }`}
+                                  >
+                                    {m.sender === 'user' ? 'Usuario' : 'Oli Asistente'}
+                                  </span>
+                                  {m.timestamp && (
+                                    <span
+                                      className={`text-[9px] ${
+                                        m.sender === 'user' ? 'text-blue-200' : 'text-slate-400'
+                                      }`}
+                                    >
+                                      {new Date(m.timestamp).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p className="text-xs leading-relaxed whitespace-pre-wrap break-words font-medium">
+                                  {m.text}
+                                </p>
+
+                                {/* Stops preview */}
+                                {m.stops && m.stops.length > 0 && (
+                                  <div className="pt-2 border-t border-slate-100 space-y-1">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                                      Paradas propuestas ({m.stops.length}):
+                                    </span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {m.stops.map((s: any, sIdx: number) => (
+                                        <span
+                                          key={sIdx}
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[10px] font-semibold"
+                                        >
+                                          #{sIdx + 1} {s.businessName}{' '}
+                                          {s.cost ? `($${s.cost.toLocaleString('es-CO')})` : ''}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Matched businesses preview */}
+                                {m.matchedBusinesses &&
+                                  m.matchedBusinesses.length > 0 &&
+                                  (!m.stops || m.stops.length === 0) && (
+                                    <div className="pt-2 border-t border-slate-100 space-y-1">
+                                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                                        Comercios vinculados:
+                                      </span>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {m.matchedBusinesses.map((b: any, bIdx: number) => (
+                                          <span
+                                            key={bIdx}
+                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-semibold"
+                                          >
+                                            <Store className="w-2.5 h-2.5 text-emerald-600" />
+                                            {b.name} ({b.city})
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                              </div>
+
+                              {m.sender === 'user' && (
+                                <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                  <User className="w-3.5 h-3.5" />
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        )}
+                          ))}
+                        </div>
 
                         <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400">
-                          <span>ID: {log.id}</span>
-                          <span>{new Date(log.timestamp).toLocaleString('es-CO')}</span>
+                          <span className="font-mono">ID Sesión: {log.id}</span>
+                          <span>
+                            Última actividad: {new Date(lastDate).toLocaleString('es-CO')}
+                          </span>
                         </div>
                       </div>
                     )}
