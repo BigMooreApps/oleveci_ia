@@ -1465,26 +1465,35 @@ export const AdminOliTab: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Panel 1: Baileys WhatsApp Web Pairing */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <WhatsAppIcon className="w-5 h-5 fill-emerald-600" />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">WhatsApp Web (Baileys)</h3>
-                    <p className="text-xs text-slate-500">Conexión directa escaneando código QR con cualquier celular</p>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-slate-900 truncate">WhatsApp Web (Baileys)</h3>
+                    <p className="text-xs text-slate-500 line-clamp-1">Conexión directa escaneando código QR con cualquier celular</p>
                   </div>
                 </div>
 
-                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                  baileysStatus === 'connected'
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                    : baileysStatus === 'connecting'
-                    ? 'bg-blue-50 border-blue-200 text-blue-700'
-                    : 'bg-slate-100 border-slate-200 text-slate-600'
-                }`}>
-                  {baileysStatus === 'connected' ? '● Conectado' : baileysStatus === 'connecting' ? '⌛ Esperando QR' : '○ Desconectado'}
-                </span>
+                <div className="shrink-0">
+                  {baileysStatus === 'connected' ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700 shadow-2xs whitespace-nowrap">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+                      <span>Conectado</span>
+                    </span>
+                  ) : baileysStatus === 'connecting' ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-700 shadow-2xs whitespace-nowrap">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span>Esperando QR</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 border border-slate-200 text-slate-600 shadow-2xs whitespace-nowrap">
+                      <span className="w-2 h-2 rounded-full bg-slate-400" />
+                      <span>Desconectado</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               {baileysStatus === 'connected' ? (
