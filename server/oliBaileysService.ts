@@ -41,6 +41,21 @@ let getBusinessesFn: () => Business[] = () => [];
 let getPostsFn: () => Post[] = () => [];
 let isConnecting = false;
 let autoReconnect = true;
+let reconnectTimer: NodeJS.Timeout | null = null;
+let watchdogInterval: NodeJS.Timeout | null = null;
+
+function scheduleReconnect(delayMs = 3000) {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  reconnectTimer = setTimeout(() => {
+    if (autoReconnect && state.status !== 'connected' && !isConnecting) {
+      console.log(`[OLI WhatsApp Web] Reintentando conexión automática tras ${delayMs / 1000}s...`);
+      connectBaileys().catch((e) => {
+        console.error('[OLI WhatsApp Web] Error en reintento automático:', e);
+        scheduleReconnect(Math.min(delayMs * 1.5, 30_000));
+      });
+    }
+  }, delayMs);
+}
 
 const state: BaileysState = {
   status: 'disconnected',
@@ -82,6 +97,18 @@ export function initBaileysService(
   getBusinessesFn = getBusinesses;
   getPostsFn = getPosts;
 
+  // Active session Watchdog: Checks every 25s if session files exist and reconnects automatically if dropped
+  if (!watchdogInterval) {
+    watchdogInterval = setInterval(() => {
+      if (autoReconnect && hasSavedSession() && state.status !== 'connected' && !isConnecting) {
+        console.log('[OLI WhatsApp Web 🐕 Watchdog] Detectada desconexión con sesión activa. Reconectando...');
+        connectBaileys().catch((err) => {
+          console.warn('[OLI WhatsApp Web 🐕 Watchdog] Intento de reconexión falló:', err?.message || err);
+        });
+      }
+    }, 25_000);
+  }
+
   // If there is already an existing session, auto-connect on server start
   if (hasSavedSession()) {
     console.log('[OLI WhatsApp Web] Sesión previa encontrada en disco. Reconectando...');
@@ -113,6 +140,16 @@ export async function connectBaileys(): Promise<BaileysState> {
       fs.mkdirSync(AUTH_DIR, { recursive: true });
     }
 
+    // Clean up previous socket if any before creating a new one
+    if (sock) {
+      try {
+        sock.ev.removeAllListeners('connection.update');
+        sock.ev.removeAllListeners('creds.update');
+        sock.ev.removeAllListeners('messages.upsert');
+      } catch {}
+      sock = null;
+    }
+
     const { state: authState, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
 
     const makeWASocket = getMakeWASocket();
@@ -121,6 +158,12 @@ export async function connectBaileys(): Promise<BaileysState> {
       printQRInTerminal: false,
       logger: silentLogger as any,
       browser: ['OleVeci Asistente IA', 'Chrome', '1.0.0'],
+      keepAliveIntervalMs: 25_000,
+      connectTimeoutMs: 60_000,
+      defaultQueryTimeoutMs: 60_000,
+      syncFullHistory: false,
+      markOnlineOnConnect: true,
+      generateHighQualityLinkPreview: false,
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -156,6 +199,10 @@ export async function connectBaileys(): Promise<BaileysState> {
         state.connectedName = sock?.user?.name || 'OleVeci Bot';
         state.lastError = null;
         isConnecting = false;
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
         console.log(`[OLI WhatsApp Web] ✅ Conectado exitosamente como +${phone}`);
       }
 
@@ -178,9 +225,8 @@ export async function connectBaileys(): Promise<BaileysState> {
           state.connectedPhone = null;
           state.connectedName = null;
         } else if (shouldReconnect) {
-          setTimeout(() => {
-            connectBaileys().catch((e) => console.error('[OLI WhatsApp Web] Reconnect error:', e));
-          }, 3000);
+          const delay = statusCode === DisconnectReason.restartRequired ? 1000 : 3000;
+          scheduleReconnect(delay);
         }
       }
     });
@@ -287,12 +333,21 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
 
 export async function disconnectBaileys(): Promise<BaileysState> {
   autoReconnect = false;
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
   if (sock) {
     try {
       await sock.logout();
     } catch {}
     try {
       sock.end(undefined);
+    } catch {}
+    try {
+      sock.ev.removeAllListeners('connection.update');
+      sock.ev.removeAllListeners('creds.update');
+      sock.ev.removeAllListeners('messages.upsert');
     } catch {}
     sock = null;
   }

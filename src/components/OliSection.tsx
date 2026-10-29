@@ -141,6 +141,39 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
+
+  // Mobile virtual keyboard handling via VisualViewport API
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+
+    const handleViewportChange = () => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setViewportBottomOffset(offset);
+      if (offset > 80) {
+        setTimeout(() => {
+          inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 150);
+      }
+    };
+
+    const vv = window.visualViewport;
+    vv.addEventListener('resize', handleViewportChange);
+    vv.addEventListener('scroll', handleViewportChange);
+
+    return () => {
+      vv.removeEventListener('resize', handleViewportChange);
+      vv.removeEventListener('scroll', handleViewportChange);
+    };
+  }, []);
+
+  const handleInputFocus = () => {
+    setTimeout(() => {
+      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 250);
+  };
 
   // Stop audio on unmount
   useEffect(() => {
@@ -498,7 +531,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const hasStarted = chatHistory.length > 0 || isLoading;
 
   return (
-    <div className="w-full flex-1 min-h-[calc(100vh-4rem)] bg-white text-slate-800 flex flex-col justify-between relative selection:bg-[#0066FF] selection:text-white">
+    <div className="w-full flex-1 min-h-[calc(100dvh-4rem)] bg-white text-slate-800 flex flex-col justify-between relative selection:bg-[#0066FF] selection:text-white">
       {/* Ambient background glows */}
       <div className="absolute top-0 inset-x-0 h-96 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/40 via-cyan-50/20 to-transparent pointer-events-none" />
 
@@ -870,7 +903,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                               return (
                                 <div
                                   key={sIdx}
-                                  className="relative flex gap-3.5 p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all group"
+                                  className="relative flex gap-3.5 p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all group overflow-hidden w-full max-w-full"
                                 >
                                   {/* Stop Order Badge */}
                                   <div className="w-7 h-7 rounded-full bg-[#0066FF] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
@@ -887,9 +920,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   </div>
 
                                   {/* Details */}
-                                  <div className="min-w-0 flex-1 space-y-1">
+                                  <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
                                     <div className="flex items-center justify-between gap-2">
-                                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
+                                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate break-words">
                                         {stop.businessName}
                                       </h4>
                                       <span className="text-xs font-black text-emerald-600 shrink-0">
@@ -897,19 +930,19 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                       </span>
                                     </div>
 
-                                    <p className="text-xs font-semibold text-[#0066FF] line-clamp-1">
+                                    <p className="text-xs font-semibold text-[#0066FF] line-clamp-2 break-words">
                                       {stop.activity}
                                     </p>
 
-                                    <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                                      {stop.time && <span>🕒 {stop.time}</span>}
+                                    <div className="flex items-center gap-2 text-[11px] text-slate-500 min-w-0">
+                                      {stop.time && <span className="shrink-0">🕒 {stop.time}</span>}
                                       {stop.businessAddress && (
                                         <span className="truncate">📍 {stop.businessAddress}</span>
                                       )}
                                     </div>
 
                                     {stop.whySelected && (
-                                      <p className="text-[11px] text-slate-600 italic line-clamp-1">
+                                      <p className="text-[11px] text-slate-600 italic line-clamp-2 break-words">
                                         "{stop.whySelected}"
                                       </p>
                                     )}
@@ -1074,10 +1107,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                 return (
                                   <div
                                     key={post.id}
-                                    className="w-full bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group cursor-pointer"
+                                    className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group cursor-pointer"
                                     onClick={() => onSelectPost?.(post)}
                                   >
-                                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                                    <div className="flex items-start gap-3 min-w-0 w-full flex-1 overflow-hidden">
                                       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative">
                                         <img
                                           src={post.imageUrl || '/Logo_OleVeci.png'}
@@ -1085,37 +1118,37 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />
                                         {(post.promotionalPrice || post.originalPrice) && (
-                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[10px] font-black text-emerald-400 text-center py-0.5">
+                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[10px] font-black text-emerald-400 text-center py-0.5 truncate px-1">
                                             ${(post.promotionalPrice || post.originalPrice || 0).toLocaleString('es-CO')}
                                           </div>
                                         )}
                                       </div>
 
-                                      <div className="min-w-0 flex-1 space-y-1">
+                                      <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug">
+                                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words line-clamp-2">
                                             {post.title}
                                           </h4>
-                                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                                             Anuncio Destacado
                                           </span>
                                         </div>
 
-                                        <p className="text-xs font-semibold text-slate-700 flex items-center gap-1">
-                                          <Store className="w-3 h-3 text-[#0066FF]" />
-                                          <span>{post.businessName}</span>
-                                          <span className="text-slate-400 font-normal">· {post.businessCity}</span>
+                                        <p className="text-xs font-semibold text-slate-700 flex items-center gap-1 min-w-0">
+                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                          <span className="truncate">{post.businessName}</span>
+                                          <span className="text-slate-400 font-normal shrink-0">· {post.businessCity}</span>
                                         </p>
 
                                         {post.businessAddress && (
-                                          <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                                          <p className="text-[11px] text-slate-500 flex items-center gap-1 min-w-0 truncate">
                                             <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                                             <span className="truncate">{post.businessAddress}</span>
                                           </p>
                                         )}
 
                                         {post.description && (
-                                          <p className="text-xs text-slate-600 line-clamp-1">
+                                          <p className="text-xs text-slate-600 line-clamp-2 break-words">
                                             {post.description}
                                           </p>
                                         )}
@@ -1124,7 +1157,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
                                     {/* Action Buttons */}
                                     <div
-                                      className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100"
+                                      className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 min-w-0"
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       {waUrl && (
@@ -1132,22 +1165,22 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           href={waUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95"
+                                          className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 min-w-0"
                                           title="Escribir al WhatsApp del negocio"
                                         >
-                                          <WhatsAppIcon className="w-4 h-4 fill-white" />
-                                          <span>WhatsApp</span>
+                                          <WhatsAppIcon className="w-4 h-4 fill-white shrink-0" />
+                                          <span className="truncate">WhatsApp</span>
                                         </a>
                                       )}
 
                                       <button
                                         type="button"
                                         onClick={() => onSelectPost?.(post)}
-                                        className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                                        className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 min-w-0"
                                         title="Ver anuncio completo"
                                       >
-                                        <span>Ver oferta</span>
-                                        <ArrowRight className="w-3.5 h-3.5" />
+                                        <span className="truncate">Ver oferta</span>
+                                        <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                                       </button>
                                     </div>
                                   </div>
@@ -1173,10 +1206,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                 return (
                                   <div
                                     key={biz.id}
-                                    className="w-full bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 p-3.5 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group"
+                                    className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group"
                                   >
-                                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+                                    <div className="flex items-start gap-3 min-w-0 w-full flex-1 overflow-hidden">
+                                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
                                         <img
                                           src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
                                           alt={biz.name}
@@ -1184,22 +1217,22 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                         />
                                       </div>
 
-                                      <div className="min-w-0 flex-1">
+                                      <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                          <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
+                                          <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors break-words line-clamp-2">
                                             {biz.name}
                                           </h3>
                                           {biz.verified && (
                                             <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                                           )}
                                           {biz.subCategory && (
-                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">
                                               {biz.subCategory}
                                             </span>
                                           )}
                                         </div>
 
-                                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
+                                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 min-w-0">
                                           <MapPin className="w-3 h-3 text-[#0066FF] shrink-0" />
                                           <span className="truncate">
                                             {biz.city} · {biz.address}
@@ -1207,7 +1240,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                         </div>
 
                                         {biz.description && (
-                                          <p className="text-xs text-slate-600 mt-1 line-clamp-1">
+                                          <p className="text-xs text-slate-600 line-clamp-2 break-words">
                                             {biz.description}
                                           </p>
                                         )}
@@ -1215,28 +1248,28 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                     </div>
 
                                     {/* Direct Actions */}
-                                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 min-w-0">
                                       {waUrl && (
                                         <a
                                           href={waUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95"
+                                          className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 min-w-0"
                                           title="Escribir al WhatsApp del negocio"
                                         >
-                                          <WhatsAppIcon className="w-4 h-4 fill-white" />
-                                          <span>WhatsApp</span>
+                                          <WhatsAppIcon className="w-4 h-4 fill-white shrink-0" />
+                                          <span className="truncate">WhatsApp</span>
                                         </a>
                                       )}
 
                                       <button
                                         type="button"
                                         onClick={() => onSelectBusiness?.(biz.id)}
-                                        className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                                        className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 min-w-0"
                                         title="Ver perfil completo del comercio en la app"
                                       >
-                                        <span>Ver en app</span>
-                                        <ArrowRight className="w-3.5 h-3.5" />
+                                        <span className="truncate">Ver en app</span>
+                                        <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                                       </button>
                                     </div>
                                   </div>
@@ -1302,7 +1335,13 @@ export const OliSection: React.FC<OliSectionProps> = ({
       </div>
 
       {/* Seamless Bottom Input Bar (ChatGPT / Gemini style - Integrated into the chat canvas) */}
-      <div className="sticky bottom-0 inset-x-0 bg-gradient-to-t from-white via-white/95 to-white/0 pt-2 pb-4 sm:pb-5 px-4 z-20 pointer-events-auto">
+      <div
+        className="sticky inset-x-0 bg-gradient-to-t from-white via-white/95 to-white/0 pt-2 px-4 z-20 pointer-events-auto transition-[bottom] duration-150"
+        style={{
+          bottom: viewportBottomOffset > 0 ? `${viewportBottomOffset}px` : 0,
+          paddingBottom: viewportBottomOffset > 0 ? '0.75rem' : 'max(1rem, env(safe-area-inset-bottom, 1rem))',
+        }}
+      >
         <div className="max-w-3xl mx-auto w-full">
           <form
             onSubmit={(e) => {
@@ -1317,13 +1356,14 @@ export const OliSection: React.FC<OliSectionProps> = ({
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
+              onFocus={handleInputFocus}
               placeholder={
                 hasStarted
-                  ? 'Pregúntale a Oli: buscar un taller, una papelería, o ajustar el plan...'
-                  : 'Pregúntale a Oli: "buscar una papelería", "un taller de autos", o un plan...'
+                  ? 'Pregúntale a Oli: buscar un taller, una papelería, hacer mercado o un plan...'
+                  : 'Pregúntale a Oli: "buscar una papelería", "donde hacer mercado", "un taller"...'
               }
               disabled={isLoading}
-              className="flex-1 bg-transparent border-0 outline-none text-slate-800 placeholder:text-slate-400 text-xs sm:text-sm px-3 sm:px-4 font-medium"
+              className="flex-1 min-w-0 bg-transparent border-0 outline-none text-slate-800 placeholder:text-slate-400 text-xs sm:text-sm px-3 sm:px-4 font-medium"
             />
 
             {/* Send Button */}

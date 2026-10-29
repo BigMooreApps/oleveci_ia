@@ -2125,8 +2125,25 @@ export const TOPIC_DEFINITIONS: Record<string, TopicDefinition> = {
     allowedPlanCategoryIds: ['plan_cuidado_personal', 'plan_otros'],
   },
   mercado: {
-    words: ['mercado', 'supermercado', 'frutas', 'verduras', 'huerta', 'campo', 'fresco', 'fruver'],
-    allowedCategoryIds: ['cat_otros', 'cat_compras_servicios'],
+    words: [
+      'mercado',
+      'hacer mercado',
+      'mercar',
+      'supermercado',
+      'supermercados',
+      'frutas',
+      'verduras',
+      'huerta',
+      'campo',
+      'fresco',
+      'fruver',
+      'viveres',
+      'abarrotes',
+      'plaza de mercado',
+      'canasta familiar',
+      'lacteos',
+    ],
+    allowedCategoryIds: ['cat_otros', 'cat_compras_servicios', 'cat_servicios', 'cat_restaurantes'],
     excludedCategoryIds: ['cat_automoviles', 'cat_planes_eventos'],
     allowedPlanCategoryIds: ['plan_comprar_algo', 'plan_otros'],
   },
@@ -2269,9 +2286,9 @@ export function searchBusinessesAndPosts(
     return { business: b, score, inTargetCity };
   });
 
-  // Filter valid matches with minimum score threshold (>= 20)
+  // Filter valid matches with minimum score threshold (>= 12)
   const validMatches = scoredBusinesses
-    .filter((sb) => sb.score >= 20)
+    .filter((sb) => sb.score >= 12)
     .sort((a, b) => b.score - a.score);
 
   const isNeighborSearch =
@@ -2281,7 +2298,8 @@ export function searchBusinessesAndPosts(
     normPrompt.includes('municipios cercanos');
 
   // STRICT MUNICIPALITY RULE FOR BUSINESSES:
-  // If there are valid businesses in the requested municipality, NEVER leak businesses from other towns, unless user specifically asks for another municipality!
+  // If there are valid businesses in the requested municipality, prioritize them.
+  // If none exist in the requested city, offer the best match in neighboring towns of Sabana Centro!
   const matchesInTargetCity = validMatches.filter((sb) => sb.inTargetCity);
   const matchesInOtherCities = validMatches.filter((sb) => !sb.inTargetCity);
   const exactMatchInMunicipality = !isNeighborSearch && matchesInTargetCity.length > 0;
@@ -2415,7 +2433,7 @@ export function searchBusinessesAndPosts(
 export async function generateOliSearchResponse(
   input: GenerateOliPlanInput
 ): Promise<OliPlanResponse> {
-  const { userPrompt, catalogBusinesses, catalogPosts, currentCity = 'Cajicá' } = input;
+  const { userPrompt, catalogBusinesses, catalogPosts, currentCity = 'Cajicá', messageHistory = [] } = input;
   const targetMunicipality = extractMunicipality(userPrompt, currentCity);
 
   // 1. Prioritize autonomous LLM semantic search via Groq / Gemini cascade
@@ -2434,11 +2452,21 @@ export async function generateOliSearchResponse(
           .filter((p) => p.businessId === b.id && (!p.status || p.status === 'active') && !p.suspended)
           .map((p) => `[${p.id}] ${p.title} (${p.promotionalPrice || p.originalPrice || p.approximatePrice || 0} COP)`)
           .join(' | ');
-        return `* [${b.id}] ${b.name} (${b.city} | ${b.subCategory || b.categoryId}): ${postsList}`;
+        const descSnippet = b.description ? ` - Info: ${b.description.slice(0, 110)}` : '';
+        return `* [${b.id}] ${b.name} (${b.city} | ${b.subCategory || b.categoryId}${descSnippet}): ${postsList || 'Sin anuncios activos (Directorio comercial)'}`;
+      }).join('\n');
+
+      const formattedHistory = messageHistory.slice(-20).map((m: any) => {
+        const role = m.sender === 'user' ? 'Usuario' : 'Oli';
+        const clean = typeof m.text === 'string' ? m.text.slice(0, 300) : '';
+        return `- ${role}: "${clean}"`;
       }).join('\n');
 
       const searchAiPrompt = `Consulta del usuario: "${userPrompt}"
 Municipio solicitado: "${targetMunicipality}"
+Historial reciente de la conversación:
+${formattedHistory || 'Inicio de conversación'}
+
 Catálogo de comercios y ofertas disponibles en OleVeci:
 ${catalogSummaryText}`;
 
@@ -2790,8 +2818,10 @@ async function callGroqWithFallback(
 
   const candidateModels = [
     'openai/gpt-oss-120b',
-    'qwen/qwen3.8-27b',
     'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
   ];
 
   for (const model of candidateModels) {
@@ -2819,7 +2849,7 @@ async function callGroqWithFallback(
           ],
           response_format: { type: 'json_object' },
           temperature: 0.1,
-          max_tokens: 700,
+          max_tokens: 2048,
         }),
         signal: controller.signal,
       });
@@ -3212,7 +3242,8 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
           .filter((p) => p.businessId === b.id && (!p.status || p.status === 'active') && !p.suspended)
           .map((p) => `[${p.id}] ${p.title} (${p.promotionalPrice || p.originalPrice || p.approximatePrice || 0} COP)`)
           .join(' | ');
-        return `* [${b.id}] ${b.name} (${b.city} | ${b.subCategory || b.categoryId}): ${postsList}`;
+        const descSnippet = b.description ? ` - Info: ${b.description.slice(0, 110)}` : '';
+        return `* [${b.id}] ${b.name} (${b.city} | ${b.subCategory || b.categoryId}${descSnippet}): ${postsList || 'Sin anuncios activos (Directorio comercial)'}`;
       }).join('\n');
 
       const dynamicRulesText = formatRulesForPrompt();
@@ -3283,6 +3314,12 @@ Tu respuesta DEBE ser un único objeto JSON válido con los siguientes campos:
   "selectedPostIds": ["post1"]
 }`;
 
+      const formattedHistory = messageHistory.slice(-20).map((m: any) => {
+        const role = m.sender === 'user' ? 'Usuario' : 'Oli';
+        const clean = typeof m.text === 'string' ? m.text.slice(0, 300) : '';
+        return `- ${role}: "${clean}"`;
+      }).join('\n');
+
       const userPromptContent = `Consulta del usuario: "${userPrompt}"
 Municipio actual del usuario: "${targetCity}"
 Día inferido: "${dateInfo.dayName}" (día de la semana ${dateInfo.dayOfWeek})
@@ -3301,7 +3338,8 @@ Plan previo (si existe): ${previousPlan ? JSON.stringify({
           cost: s.cost
         }))
       }) : 'Ninguno'}
-Historial de conversación: ${JSON.stringify(messageHistory.slice(-6))}
+Historial reciente de la conversación:
+${formattedHistory || 'Inicio de conversación'}
 
 Catálogo de comercios y ofertas disponibles en OleVeci:
 ${catalogSummaryText}`;
