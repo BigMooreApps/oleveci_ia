@@ -14,7 +14,6 @@ import {
   Sun,
   X,
   Check,
-  Clock,
   RotateCcw,
   Sparkles,
   ArrowRight,
@@ -459,11 +458,6 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                 </span>
                 <span>¿En dónde te gustaría vivirlo?</span>
               </label>
-              {draftCity !== 'all' && (
-                <span className="text-[11px] text-[#007af7] font-semibold bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
-                  📍 {draftCity}
-                </span>
-              )}
             </div>
 
             {/* Municipalities Pills con Flechitas de Desplazamiento Web */}
@@ -628,35 +622,6 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                   Quitar límite
                 </button>
               )}
-            </div>
-          </div>
-
-          {/* Orden de resultados */}
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
-            <span className="text-slate-500 font-medium flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>Preferencia:</span>
-            </span>
-
-            <div className="inline-flex bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-              {[
-                { id: 'recent', label: 'Lo nuevo' },
-                { id: 'distance', label: 'Cercanos' },
-                { id: 'price_low', label: 'Mejor precio' },
-              ].map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setDraftSort(opt.id as any)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
-                    draftSort === opt.id
-                      ? 'bg-white text-[#041f5e] shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
             </div>
           </div>
         </div>
