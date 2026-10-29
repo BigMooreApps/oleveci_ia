@@ -8,7 +8,6 @@ import {
   Trash2,
   X,
   Check,
-  RotateCcw,
   AlertTriangle,
   Search,
 } from 'lucide-react';
@@ -16,7 +15,7 @@ import { MasterTableIconPicker } from './MasterTableIconPicker';
 import { PostTypeIconDisplay, isEmoji } from '../../utils/postTypeIcons';
 
 export const AdminPlanRolesTab: React.FC = () => {
-  const { planRoles, addPlanRole, updatePlanRole, deletePlanRole, resetPlanRolesToDefault } = useApp();
+  const { planRoles, addPlanRole, updatePlanRole, deletePlanRole } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,15 +104,6 @@ export const AdminPlanRolesTab: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto">
-          <button
-            type="button"
-            onClick={resetPlanRolesToDefault}
-            className="p-2 sm:px-3 sm:py-2 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-            title="Restablecer valores predeterminados"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Restablecer</span>
-          </button>
           <button
             type="button"
             onClick={handleOpenCreate}
