@@ -342,9 +342,8 @@ export const AdminBusinessesTab: React.FC<AdminBusinessesTabProps> = ({
       <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Store className="w-5 h-5 text-[#007af7]" />
-              <span>Gestión de Negocios y Usuarios</span>
+            <h3 className="text-base font-bold text-slate-900">
+              Gestión de Negocios y Usuarios
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               Administra claves de acceso y estados de facturación

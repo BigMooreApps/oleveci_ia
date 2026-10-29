@@ -206,9 +206,8 @@ export const AdminMunicipalitiesTab: React.FC = () => {
       {/* Header Bar */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-[#007af7]" />
-            <span>Gestión Territorial: Municipios y Sectores</span>
+          <h3 className="text-base font-bold text-slate-900">
+            Gestión Territorial: Municipios y Sectores
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
             Configura las coberturas geográficas de OleVeci. Las adiciones o modificaciones actualizan al instante el selector de ciudad, filtros de feed y buscador.

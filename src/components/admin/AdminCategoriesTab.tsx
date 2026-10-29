@@ -100,7 +100,6 @@ export const AdminCategoriesTab: React.FC = () => {
         <div className="flex items-center justify-between gap-2.5 flex-wrap">
           <div className="min-w-0">
             <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-              <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-[#007af7] shrink-0" />
               <span className="truncate">Categorías en Explorar</span>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#007af7] border border-blue-200/60 shrink-0">
                 {categories.length}
