@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { OliCustomRule, OliPlanResponse } from '../../types';
 import {
@@ -24,6 +24,8 @@ import {
   Layers,
   Search,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
   QrCode,
@@ -84,6 +86,35 @@ export const AdminOliTab: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<
     'models' | 'logs' | 'whatsapp' | 'rules'
   >('models');
+
+  const oliSubTabsRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    const el = oliSubTabsRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, []);
+
+  const handleScrollLeft = () => {
+    if (oliSubTabsRef.current) {
+      oliSubTabsRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollRight = () => {
+    if (oliSubTabsRef.current) {
+      oliSubTabsRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
 
   // LLM Config & Key management
   const [hasApiKey, setHasApiKey] = useState(false);
@@ -540,58 +571,88 @@ export const AdminOliTab: React.FC = () => {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150 pb-12">
-      {/* 1. Sub-Tabs Navigation */}
-      <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('models')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeSubTab === 'models'
-              ? 'bg-[#007af7] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <span>Modelos & Diagnóstico</span>
-        </button>
+      {/* 1. Sub-Tabs Navigation (Unified Bar Design) */}
+      <div className="relative group">
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={handleScrollLeft}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 shadow-md border border-slate-200 text-slate-700 hover:text-[#007af7] flex items-center justify-center transition active:scale-95 cursor-pointer -ml-1 sm:-ml-2"
+            title="Desplazar a la izquierda"
+            aria-label="Desplazar menú a la izquierda"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('rules')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeSubTab === 'rules'
-              ? 'bg-[#007af7] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <span>Reglas del Asistente</span>
-        </button>
+        {canScrollRight && (
+          <button
+            type="button"
+            onClick={handleScrollRight}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 shadow-md border border-slate-200 text-slate-700 hover:text-[#007af7] flex items-center justify-center transition active:scale-95 cursor-pointer -mr-1 sm:-mr-2"
+            title="Desplazar a la derecha"
+            aria-label="Desplazar menú a la derecha"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('logs')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeSubTab === 'logs'
-              ? 'bg-[#007af7] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
+        <div
+          ref={oliSubTabsRef}
+          onScroll={checkScroll}
+          className="flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar scroll-smooth"
         >
-          <span>Auditoría & Logs</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('models')}
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'models'
+                ? 'bg-[#007af7] text-white shadow-xs font-black'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <span>Modelos & Diagnóstico</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('whatsapp')}
-          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeSubTab === 'whatsapp'
-              ? 'bg-[#007af7] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <span>WhatsApp Bot</span>
-          {baileysStatus === 'connected' && (
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('rules')}
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'rules'
+                ? 'bg-[#007af7] text-white shadow-xs font-black'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <span>Reglas del Asistente</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('logs')}
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'logs'
+                ? 'bg-[#007af7] text-white shadow-xs font-black'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <span>Auditoría & Logs</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('whatsapp')}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeSubTab === 'whatsapp'
+                ? 'bg-[#007af7] text-white shadow-xs font-black'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <span>WhatsApp Bot</span>
+            {baileysStatus === 'connected' && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* 2. Header Banner matching Admin tabs (Itinerarios, Publicaciones, etc.) */}

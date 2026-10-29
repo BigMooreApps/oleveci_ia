@@ -987,18 +987,18 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
       )}
 
       {/* 4 Sub-sections Navigation Bar */}
-      <div className="flex items-center p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar">
         <button
           type="button"
           id="tab-business-posts"
           onClick={() => setActiveTab('posts')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-1.5 px-2 sm:px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'posts'
               ? 'bg-[#007af7] text-white shadow-xs font-black'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <FileText className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">Publicaciones</span>
           <span className="sm:hidden">Posts</span>
           <span
@@ -1016,13 +1016,13 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
           type="button"
           id="tab-business-dashboard"
           onClick={() => setActiveTab('dashboard')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-1.5 px-2 sm:px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'dashboard'
               ? 'bg-[#007af7] text-white shadow-xs font-black'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">Dashboard &amp; Métricas</span>
           <span className="sm:hidden">Métricas</span>
         </button>
@@ -1031,13 +1031,13 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
           type="button"
           id="tab-business-info"
           onClick={() => setActiveTab('info')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-1.5 px-2 sm:px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'info'
               ? 'bg-[#007af7] text-white shadow-xs font-black'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <Building2 className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden md:inline">Información del Negocio</span>
           <span className="hidden sm:inline md:hidden">Información</span>
           <span className="sm:hidden">Perfil</span>
@@ -1047,13 +1047,13 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
           type="button"
           id="tab-business-subscription"
           onClick={() => setActiveTab('subscription')}
-          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 px-1.5 sm:px-3 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-1.5 px-2 sm:px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'subscription'
               ? 'bg-[#007af7] text-white shadow-xs font-black'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <CreditCard className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">Suscripción</span>
           <span className="sm:hidden">Plan</span>
         </button>
@@ -1117,7 +1117,7 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                     : 'text-slate-500 hover:text-slate-900 hover:bg-white/60'
                 }`}
               >
-                <Layers className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${postFilter === 'all' ? 'text-[#007af7]' : 'text-slate-400'}`} />
+                <Layers className={`w-3.5 h-3.5 shrink-0 ${postFilter === 'all' ? 'text-[#007af7]' : 'text-slate-400'}`} />
                 <span className="text-[11px] sm:text-xs font-bold">{businessPosts.length}</span>
                 <span className="hidden sm:inline">Todas</span>
               </button>
@@ -1134,7 +1134,7 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                 }`}
               >
                 <span className="relative flex items-center justify-center">
-                  <CheckCircle2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${postFilter === 'active' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${postFilter === 'active' ? 'text-emerald-600' : 'text-slate-400'}`} />
                   {postFilter === 'active' && (
                     <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   )}
@@ -1153,7 +1153,7 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                     : 'text-slate-500 hover:text-red-600 hover:bg-white/60'
                 }`}
               >
-                <History className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${postFilter === 'expired' ? 'text-red-600' : 'text-slate-400'}`} />
+                <History className={`w-3.5 h-3.5 shrink-0 ${postFilter === 'expired' ? 'text-red-600' : 'text-slate-400'}`} />
                 <span className="hidden sm:inline">Vencidas</span>
               </button>
 
@@ -1169,7 +1169,7 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                       : 'text-amber-800 bg-amber-100/90 hover:bg-amber-200'
                   }`}
                 >
-                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 animate-pulse" />
+                  <Clock className="w-3.5 h-3.5 shrink-0 animate-pulse" />
                   <span className="hidden sm:inline text-[11px] sm:text-xs font-bold">En Revisión ({pendingReviewPostsForBiz.length})</span>
                 </button>
               )}
@@ -1186,7 +1186,7 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
                       : 'text-red-700 bg-red-100/80 hover:bg-red-200'
                   }`}
                 >
-                  <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  <Ban className="w-3.5 h-3.5 shrink-0" />
                   <span className="hidden sm:inline text-[11px] sm:text-xs font-bold">Suspendidas</span>
                 </button>
               )}

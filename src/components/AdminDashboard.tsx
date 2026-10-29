@@ -437,13 +437,13 @@ export const AdminDashboard: React.FC = () => {
                   id={`admin-tab-${tab.id}`}
                   type="button"
                   onClick={() => handleTabSelect(tab.id as AdminTab)}
-                  className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                     isSelected
                       ? 'bg-[#007af7] text-white shadow-xs font-black'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span>{tab.label}</span>
                   {badgeCount > 0 && (
                     <span

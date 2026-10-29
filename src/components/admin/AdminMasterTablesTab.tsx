@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { AdminMunicipalitiesTab } from './AdminMunicipalitiesTab';
 import { AdminCategoriesTab } from './AdminCategoriesTab';
@@ -26,6 +26,8 @@ export const AdminMasterTablesTab: React.FC<AdminMasterTablesTabProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<MasterTableKey>(initialSubTab);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const subTabs = [
     { id: 'municipalities' as MasterTableKey, label: 'Municipios' },
@@ -37,37 +39,66 @@ export const AdminMasterTablesTab: React.FC<AdminMasterTablesTabProps> = ({
     { id: 'price_scopes' as MasterTableKey, label: 'Modalidad de Precio' },
   ];
 
+  const checkScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, []);
+
   const handleScrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -240, behavior: 'smooth' });
+      scrollContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
     }
   };
 
   const handleScrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 240, behavior: 'smooth' });
+      scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
     }
   };
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
-      {/* Sub-Tabs Selector with left & right navigation arrows */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-        {/* Left Arrow Button */}
-        <button
-          type="button"
-          onClick={handleScrollLeft}
-          aria-label="Desplazar opciones a la izquierda"
-          title="Ver opciones anteriores"
-          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-[#007af7] border border-slate-200 hover:border-blue-200 flex items-center justify-center shrink-0 transition active:scale-95 cursor-pointer shadow-2xs"
-        >
-          <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
-        </button>
+      {/* Sub-Tabs Selector with left & right floating navigation arrows (Matching AdminDashboard) */}
+      <div className="relative group">
+        {/* Left Arrow Scroll Button */}
+        {canScrollLeft && (
+          <button
+            type="button"
+            onClick={handleScrollLeft}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 shadow-md border border-slate-200 text-slate-700 hover:text-[#007af7] flex items-center justify-center transition active:scale-95 cursor-pointer -ml-1 sm:-ml-2"
+            title="Desplazar a la izquierda"
+            aria-label="Desplazar menú a la izquierda"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Right Arrow Scroll Button */}
+        {canScrollRight && (
+          <button
+            type="button"
+            onClick={handleScrollRight}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 shadow-md border border-slate-200 text-slate-700 hover:text-[#007af7] flex items-center justify-center transition active:scale-95 cursor-pointer -mr-1 sm:-mr-2"
+            title="Desplazar a la derecha"
+            aria-label="Desplazar menú a la derecha"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Scrollable Sub-Tabs List */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5"
+          onScroll={checkScroll}
+          className="flex items-center gap-1 p-1 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar scroll-smooth"
         >
           {subTabs.map((tab) => {
             const isSelected = activeSubTab === tab.id;
@@ -79,10 +110,10 @@ export const AdminMasterTablesTab: React.FC<AdminMasterTablesTabProps> = ({
                   setActiveSubTab(tab.id);
                   e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 }}
-                className={`py-2 px-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 select-none ${
+                className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 select-none ${
                   isSelected
-                    ? 'bg-[#007af7] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                    ? 'bg-[#007af7] text-white shadow-xs font-black'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 {tab.label}
@@ -90,17 +121,6 @@ export const AdminMasterTablesTab: React.FC<AdminMasterTablesTabProps> = ({
             );
           })}
         </div>
-
-        {/* Right Arrow Button */}
-        <button
-          type="button"
-          onClick={handleScrollRight}
-          aria-label="Desplazar opciones a la derecha"
-          title="Ver más opciones"
-          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-[#007af7] border border-slate-200 hover:border-blue-200 flex items-center justify-center shrink-0 transition active:scale-95 cursor-pointer shadow-2xs"
-        >
-          <ChevronRight className="w-4 h-4 stroke-[2.5]" />
-        </button>
       </div>
 
       {/* Active Master Table Content */}
