@@ -1079,14 +1079,6 @@ export const AdminOliTab: React.FC = () => {
           {/* Rules List Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredRules.map((rule, idx) => {
-              const categoryBadge = {
-                tone: { label: 'Tono Sabanero', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-                business: { label: 'Comercio Local', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-                itinerary: { label: 'Itinerario & Paradas', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-                budget: { label: 'Presupuesto', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-                custom: { label: 'Personalizada', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-              }[rule.category || 'custom'] || { label: 'General', color: 'bg-slate-100 text-slate-700 border-slate-200' };
-
               return (
                 <div
                   key={rule.id}
@@ -1097,15 +1089,10 @@ export const AdminOliTab: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-slate-900">
-                          {idx + 1}. {rule.title}
-                        </span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${categoryBadge.color}`}>
-                          {categoryBadge.label}
-                        </span>
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs font-black text-slate-900 leading-snug">
+                        {idx + 1}. {rule.title}
+                      </h4>
                     </div>
 
                     {/* Toggle Switch */}
@@ -1129,14 +1116,7 @@ export const AdminOliTab: React.FC = () => {
                     "{rule.instruction}"
                   </p>
 
-                  <div className="flex items-center justify-between pt-1 text-[11px] border-t border-slate-100">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-2 h-2 rounded-full ${rule.active ? 'bg-emerald-500 shadow-[0_0_6px_#10b981]' : 'bg-slate-300'}`} />
-                      <span className={`font-semibold ${rule.active ? 'text-emerald-700' : 'text-slate-400'}`}>
-                        {rule.active ? 'Activa en LLM' : 'Pausada'}
-                      </span>
-                    </div>
-
+                  <div className="flex items-center justify-end pt-1 text-[11px] border-t border-slate-100">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
