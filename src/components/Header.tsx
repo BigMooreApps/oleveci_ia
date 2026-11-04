@@ -70,8 +70,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   const roleConfig = {
     home: {
-      label: 'Home',
-      icon: Home,
+      label: 'Reels',
+      icon: Film,
       iconColor: 'text-[#007af7]',
     },
     explorer: {
@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="flex items-center text-left focus:outline-hidden group cursor-pointer"
-              title="OleVeci - Ir a Home"
+              title="OleVeci - Ir a Reels"
               aria-label="OleVeci Inicio"
             >
               <OleVeciLogo
@@ -174,20 +174,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#0066FF] ring-2 ring-white"></span>
               </span>
-            </button>
-
-            {/* Push Notifications trigger */}
-            <button
-              id="btn-header-notifications"
-              onClick={onOpenNotifications}
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center bg-white border border-slate-200/90 text-slate-700 hover:text-[#007af7] hover:border-blue-300 hover:bg-blue-50/60 shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer active:scale-95 group shrink-0"
-              title="Configurar Notificaciones Push"
-              aria-label="Notificaciones"
-            >
-              <Bell className="w-4 h-4 text-slate-600 group-hover:text-[#007af7] transition-all duration-200 group-hover:scale-110" />
-              {notificationPrefs.enabled && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00d8a5] ring-2 ring-white shadow-2xs animate-pulse" />
-              )}
             </button>
 
             {/* Role Switcher in Dropdown Menu */}
@@ -241,7 +227,7 @@ export const Header: React.FC<HeaderProps> = ({
                       Navegación
                     </div>
 
-                    {/* Opción 1: Home */}
+                    {/* Opción 1: Reels */}
                     <button
                       id="tab-role-home"
                       role="menuitem"
@@ -265,14 +251,14 @@ export const Header: React.FC<HeaderProps> = ({
                               : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
                           }`}
                         >
-                          <Home className="w-4 h-4" />
+                          <Film className="w-4 h-4" />
                         </div>
                         <div className="truncate">
                           <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Home
+                            Reels
                           </div>
                           <div className="text-[10px] text-slate-500 font-normal">
-                            Página principal
+                            Videos y promociones
                           </div>
                         </div>
                       </div>
@@ -522,6 +508,40 @@ export const Header: React.FC<HeaderProps> = ({
                       {currentRole === 'business' && (
                         <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
                       )}
+                    </button>
+
+                    {/* Opción: Notificaciones */}
+                    <button
+                      id="tab-role-notifications"
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        onOpenNotifications();
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group text-slate-700 hover:bg-slate-50"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="relative w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-blue-50 text-[#007af7] group-hover:bg-blue-100">
+                          <Bell className="w-4 h-4" />
+                          {notificationPrefs.enabled && (
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00d8a5] ring-2 ring-white shadow-2xs animate-pulse" />
+                          )}
+                        </div>
+                        <div className="truncate">
+                          <div className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                            <span>Notificaciones</span>
+                            {notificationPrefs.enabled && (
+                              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                                Activas
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-normal">
+                            Alertas y novedades
+                          </div>
+                        </div>
+                      </div>
                     </button>
 
                     {/* Opción 5: Admin (si está autenticado como admin) */}
