@@ -624,39 +624,18 @@ const ReelItem = React.memo<ReelItemProps>(({
         {/* Top-Right Badges: Video Controls and Location */}
         <div className="absolute top-3.5 sm:top-4 right-3.5 z-20 flex items-center gap-2 pointer-events-auto">
           {hasVideo && isCurrentActive && (
-            <>
-              {/* Play / Pause Toggle Button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTogglePlay();
-                }}
-                className="w-7 h-7 rounded-full bg-black/80 border border-white/25 text-white flex items-center justify-center hover:bg-black active:scale-95 transition cursor-pointer shadow-lg"
-                title={isPlaying ? 'Pausar video' : 'Reproducir video'}
-                aria-label="Pausar o reproducir video"
-              >
-                {isPlaying ? (
-                  <Pause className="w-3.5 h-3.5 fill-white text-white" />
-                ) : (
-                  <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />
-                )}
-              </button>
-
-              {/* Sound Toggle */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleMute();
-                }}
-                className="w-7 h-7 rounded-full bg-black/80 border border-white/25 text-white flex items-center justify-center hover:bg-black active:scale-95 transition cursor-pointer shadow-lg"
-                title={isMuted ? 'Activar sonido' : 'Desactivar sonido'}
-                aria-label="Alternar sonido"
-              >
-                {isMuted ? <VolumeX className="w-3.5 h-3.5 text-white/80" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-300" />}
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleMute();
+              }}
+              className="w-7 h-7 rounded-full bg-black/80 border border-white/25 text-white flex items-center justify-center hover:bg-black active:scale-95 transition cursor-pointer shadow-lg"
+              title={isMuted ? 'Activar sonido' : 'Desactivar sonido'}
+              aria-label="Alternar sonido"
+            >
+              {isMuted ? <VolumeX className="w-3.5 h-3.5 text-white/80" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-300" />}
+            </button>
           )}
 
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/80 border border-white/20 text-white text-xs font-bold shadow-lg shadow-black/40 pointer-events-none">
