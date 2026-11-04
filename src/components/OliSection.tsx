@@ -595,10 +595,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
       <div className="w-full flex-1 flex flex-col relative z-10">
         {/* INITIAL STATE: Hero presentation & Quick starter options */}
         {!hasStarted && (
-          <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col items-center justify-center px-4 py-8 sm:py-12">
+          <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-10">
             {/* Full Oli Mascot Character (Complete, unclipped, not inside a circle) */}
-            <div className="relative mb-3 flex flex-col items-center">
-              <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center transition-transform hover:scale-105 duration-300">
+            <div className="relative mb-2 sm:mb-3 flex flex-col items-center">
+              <div className="relative w-24 h-24 sm:w-44 sm:h-44 flex items-center justify-center transition-transform hover:scale-105 duration-300">
                 {/* Soft ambient aura in background */}
                 <div className="absolute inset-4 bg-gradient-to-tr from-blue-400/20 via-cyan-400/25 to-amber-300/20 rounded-full blur-2xl pointer-events-none" />
 
@@ -611,11 +611,11 @@ export const OliSection: React.FC<OliSectionProps> = ({
             </div>
 
             {/* Action Pills: WhatsApp */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-2 sm:mb-3">
               <button
                 type="button"
                 onClick={() => setIsWhatsAppOpen(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold text-emerald-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[11px] sm:text-xs font-semibold text-emerald-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
               >
                 <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Chatear en WhatsApp</span>
@@ -623,7 +623,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 text-center tracking-tight mb-3">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 text-center tracking-tight mb-1.5 sm:mb-3">
               ¡Hola,{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#FB8500]">
                 soy Oli!
@@ -631,19 +631,19 @@ export const OliSection: React.FC<OliSectionProps> = ({
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-600 text-sm sm:text-base text-center max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed font-normal px-2">
+            <p className="text-slate-600 text-xs sm:text-base text-center max-w-xl mx-auto mb-4 sm:mb-8 leading-relaxed font-normal px-2">
               Puedo armarte un plan, buscar cualquier negocio o alguna promoción, en tu municipio.
             </p>
 
             {/* Section title */}
-            <div className="w-full max-w-2xl mb-3 flex items-center justify-between">
-              <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+            <div className="w-full max-w-2xl mb-2 sm:mb-3 flex items-center justify-between">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                 OPCIONES RÁPIDAS PARA EMPEZAR:
               </span>
             </div>
 
-            {/* Quick Prompt Cards Grid (Spacious 2 columns so full text is completely visible) */}
-            <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Quick Prompt Cards Grid (Compact 2 columns on mobile & desktop so it takes minimal space) */}
+            <div className="w-full max-w-2xl grid grid-cols-2 gap-2 sm:gap-3">
               {QUICK_OPTIONS.map((opt) => {
                 const Icon = opt.icon;
                 return (
@@ -655,16 +655,16 @@ export const OliSection: React.FC<OliSectionProps> = ({
                       handleSendMessage(opt.prompt);
                     }}
                     disabled={isLoading}
-                    className="w-full p-3.5 sm:p-4 rounded-2xl bg-white hover:bg-blue-50/50 border border-slate-200/90 hover:border-blue-400 transition-all duration-200 cursor-pointer flex items-center gap-3.5 text-left group shadow-xs hover:shadow-md active:scale-98 disabled:opacity-50"
+                    className="w-full p-2 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white hover:bg-blue-50/50 border border-slate-200/90 hover:border-blue-400 transition-all duration-200 cursor-pointer flex items-center gap-2 sm:gap-3 text-left group shadow-2xs hover:shadow-md active:scale-98 disabled:opacity-50"
                   >
                     <div
-                      className={`w-10 h-10 rounded-full ${opt.iconBg} text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform`}
+                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl ${opt.iconBg} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm font-bold text-slate-800 group-hover:text-[#0056d6] transition-colors leading-snug block">
-                        {opt.emojiPrefix} {opt.title}
+                      <span className="text-[11px] sm:text-sm font-bold text-slate-800 group-hover:text-[#0056d6] transition-colors leading-tight line-clamp-2 block">
+                        {opt.title}
                       </span>
                     </div>
                   </button>
