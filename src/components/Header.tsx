@@ -9,6 +9,7 @@ import {
   Compass,
   BookOpen,
   Home,
+  Film,
   ChevronDown,
   Check,
   Bot,
