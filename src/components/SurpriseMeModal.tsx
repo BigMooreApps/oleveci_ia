@@ -19,6 +19,11 @@ import {
   ArrowRight,
   ChevronDown,
   Globe,
+  Crown,
+  Coins,
+  Banknote,
+  Gem,
+  Wallet,
 } from 'lucide-react';
 
 import {
@@ -38,101 +43,68 @@ const PLAN_EXPERIENCES = [
   {
     id: 'all',
     label: '¡Cualquier plan!',
-    subtitle: 'Explorar todas las categorías disponibles',
+    subtitle: 'Explorar todas las opciones disponibles',
     icon: Sparkles,
-    color: 'from-amber-400 to-[#ff7700]',
-    textColor: 'text-amber-800',
-    borderColor: 'border-amber-300',
   },
   {
     id: 'plan_comer_algo',
     label: 'Comer y Antojarse',
-    subtitle: 'Restaurantes, comida rápida, delicias locales',
+    subtitle: 'Restaurantes y delicias locales',
     icon: Utensils,
-    color: 'from-orange-500 to-amber-500',
-    textColor: 'text-orange-800',
-    borderColor: 'border-orange-300',
   },
   {
     id: 'plan_tomar_algo',
     label: 'Café, Helado o Postre',
-    subtitle: 'Cafeterías de especialidad, postres y meriendas',
+    subtitle: 'Cafeterías de especialidad y meriendas',
     icon: Coffee,
-    color: 'from-amber-600 to-yellow-500',
-    textColor: 'text-amber-900',
-    borderColor: 'border-amber-300',
   },
   {
     id: 'plan_cita_romantica',
     label: 'Cita Romántica',
-    subtitle: 'Ambientes íntimos, cenas en pareja y velas',
+    subtitle: 'Ambientes íntimos y en pareja',
     icon: Heart,
-    color: 'from-rose-500 to-pink-500',
-    textColor: 'text-rose-800',
-    borderColor: 'border-rose-300',
   },
   {
     id: 'plan_con_amigos',
     label: 'Parche con Amigos',
-    subtitle: 'Tarde de risas, juegos, picnic o charlas',
+    subtitle: 'Tarde de risas, picnic o juegos',
     icon: Smile,
-    color: 'from-sky-500 to-blue-600',
-    textColor: 'text-sky-800',
-    borderColor: 'border-sky-300',
   },
   {
     id: 'plan_noche_rumba',
     label: 'Noche, Cocteles o Rumba',
-    subtitle: 'Bares, música en vivo y coctelería de autor',
+    subtitle: 'Bares y coctelería de autor',
     icon: Wine,
-    color: 'from-purple-600 to-indigo-600',
-    textColor: 'text-purple-800',
-    borderColor: 'border-purple-300',
   },
   {
     id: 'plan_dia_con_ninos',
     label: 'En Familia o con Niños',
-    subtitle: 'Espacios verdes, juegos infantiles y planes familiares',
+    subtitle: 'Espacios verdes y planes familiares',
     icon: Sun,
-    color: 'from-emerald-500 to-teal-600',
-    textColor: 'text-emerald-800',
-    borderColor: 'border-emerald-300',
   },
   {
     id: 'plan_consentir_mascotas',
     label: 'Plan con Mascotas',
-    subtitle: 'Pet friendly, paseos campestres y mimos',
+    subtitle: 'Pet friendly y salidas campestres',
     icon: PawPrint,
-    color: 'from-teal-500 to-cyan-600',
-    textColor: 'text-teal-800',
-    borderColor: 'border-teal-300',
   },
   {
     id: 'plan_cuidado_personal',
     label: 'Belleza y Autocuidado',
-    subtitle: 'Spas, barberías, peluquerías y bienestar',
+    subtitle: 'Spas, barberías y bienestar',
     icon: Sparkles,
-    color: 'from-fuchsia-500 to-pink-600',
-    textColor: 'text-fuchsia-800',
-    borderColor: 'border-fuchsia-300',
   },
   {
     id: 'plan_comprar_algo',
     label: 'Compras y Vitrineo',
-    subtitle: 'Moda, tecnología, artesanías y tiendas locales',
+    subtitle: 'Moda, tecnología y tiendas locales',
     icon: ShoppingBag,
-    color: 'from-blue-600 to-cyan-500',
-    textColor: 'text-blue-800',
-    borderColor: 'border-blue-300',
   },
   {
     id: 'plan_cuidar_la_nave',
     label: 'Cuidado de mi Vehículo',
-    subtitle: 'Lavaderos, talleres, detailing y accesorios',
+    subtitle: 'Lavaderos, talleres y accesorios',
     icon: Car,
-    color: 'from-slate-600 to-slate-800',
-    textColor: 'text-slate-800',
-    borderColor: 'border-slate-300',
   },
 ];
 
@@ -140,31 +112,31 @@ const PLAN_EXPERIENCES = [
 const BUDGET_OPTIONS = [
   {
     value: null,
-    label: 'Sin límite',
+    label: 'Cualquiera',
     shortLabel: 'Cualquiera',
-    subtitle: 'Ver publicaciones con cualquier rango de precio',
-    icon: '👑',
+    subtitle: 'Sin límite de presupuesto',
+    icon: Crown,
   },
   {
     value: 30000,
     label: 'Económico',
     shortLabel: 'Hasta $30.000',
     subtitle: 'Planes y promociones accesibles',
-    icon: '🪙',
+    icon: Coins,
   },
   {
     value: 50000,
     label: 'Moderado',
     shortLabel: 'Hasta $50.000',
-    subtitle: 'Ideal para salidas cotidianas y almuerzos',
-    icon: '💵',
+    subtitle: 'Salidas cotidianas y almuerzos',
+    icon: Banknote,
   },
   {
     value: 100000,
     label: 'Especial',
     shortLabel: 'Hasta $100.000',
-    subtitle: 'Para ocasiones especiales y planes completos',
-    icon: '💎',
+    subtitle: 'Ocasiones especiales y planes completos',
+    icon: Gem,
   },
 ];
 
@@ -255,7 +227,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
       return {
         label: 'Cualquiera',
         subtitle: 'Sin límite de presupuesto',
-        icon: '👑',
+        icon: Crown,
       };
     }
     const predefined = BUDGET_OPTIONS.find((b) => b.value === draftBudget);
@@ -269,9 +241,11 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
     return {
       label: `Hasta $${draftBudget.toLocaleString('es-CO')}`,
       subtitle: `Presupuesto personalizado ($${draftBudget.toLocaleString('es-CO')} COP)`,
-      icon: '💵',
+      icon: Wallet,
     };
   }, [draftBudget]);
+
+  const SelectedBudgetIcon = selectedBudgetInfo.icon;
 
   // Calculate live matching count with current draft choices (matching combined reels feed)
   const matchingReelsCount = useMemo(() => {
@@ -337,11 +311,9 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
     setRandomAnimation(true);
     setOpenDropdown(null);
     setTimeout(() => {
-      // Pick random experience (excluding 'all')
       const planOptions = PLAN_EXPERIENCES.filter((p) => p.id !== 'all');
       const randomPlan = planOptions[Math.floor(Math.random() * planOptions.length)];
 
-      // Pick random budget
       const budgetOptions = [null, 30000, 50000, 100000];
       const randomBudget = budgetOptions[Math.floor(Math.random() * budgetOptions.length)];
 
@@ -394,11 +366,11 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                 <Dices className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-extrabold text-base sm:text-lg text-[#041f5e] leading-snug flex items-center gap-1.5">
-                  <span>¿Qué quieres hacer hoy?</span>
+                <h3 className="font-bold text-base sm:text-lg text-slate-800 leading-snug">
+                  ¿Qué quieres hacer hoy?
                 </h3>
-                <p className="text-[11px] text-slate-500">
-                  Filtra tu plan perfecto en 3 simples pasos
+                <p className="text-xs text-slate-500 font-normal">
+                  Filtra tu plan en 3 sencillos pasos
                 </p>
               </div>
             </div>
@@ -408,12 +380,12 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
               <button
                 type="button"
                 onClick={handleRandomizePlan}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs ${
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200/80 text-xs font-medium transition active:scale-95 cursor-pointer shadow-2xs ${
                   randomAnimation ? 'animate-spin' : ''
                 }`}
                 title="Elegir una combinación al azar"
               >
-                <Dices className="w-4 h-4 text-[#ff7700]" />
+                <Dices className="w-3.5 h-3.5 text-[#ff7700]" />
                 <span className="hidden xs:inline">Al azar</span>
               </button>
 
@@ -429,84 +401,56 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           </div>
         </div>
 
-        {/* Scrollable Content Body with 3 Elegant Custom Dropdowns */}
+        {/* Scrollable Content Body with 3 Clean Dropdowns */}
         <div
           ref={modalBodyRef}
           className="p-4 sm:p-5 space-y-4 overflow-y-auto overscroll-contain"
         >
           {/* PASO 1: ¿Qué tipo de plan tienes en mente? */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[#041f5e] uppercase tracking-wider flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-black flex items-center justify-center shrink-0 shadow-xs">
-                  1
-                </span>
-                <span>¿Qué tipo de plan tienes en mente?</span>
-              </label>
-              {draftPlanType !== 'all' && (
-                <button
-                  type="button"
-                  onClick={() => setDraftPlanType('all')}
-                  className="text-[11px] text-[#ff7700] font-bold hover:underline cursor-pointer"
-                >
-                  Restablecer
-                </button>
-              )}
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                1
+              </span>
+              <span>¿Qué tipo de plan tienes en mente?</span>
+            </label>
 
-            {/* Selector Desplegable Elegante Paso 1 */}
+            {/* Selector Desplegable Paso 1 */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setOpenDropdown((prev) => (prev === 'plan' ? null : 'plan'))}
                 className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
                   openDropdown === 'plan'
-                    ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/25 shadow-md'
-                    : 'bg-slate-50/80 hover:bg-white hover:border-slate-300 border-slate-200/90 shadow-2xs'
+                    ? 'bg-white border-[#007af7] ring-2 ring-[#007af7]/20 shadow-sm'
+                    : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'plan'}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform ${
-                      draftPlanType !== 'all'
-                        ? `bg-gradient-to-tr ${selectedPlan.color} text-white shadow-xs`
-                        : 'bg-gradient-to-tr from-amber-400 to-[#ff7700] text-white shadow-xs'
-                    }`}
-                  >
-                    <SelectedPlanIcon className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-xs">
+                    <SelectedPlanIcon className="w-4 h-4 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs sm:text-sm font-extrabold text-[#041f5e] truncate">
+                    <div className="text-sm font-semibold text-slate-800 truncate">
                       {selectedPlan.label}
                     </div>
-                    <div className="text-[11px] text-slate-500 font-medium truncate">
+                    <div className="text-xs text-slate-500 font-normal truncate">
                       {selectedPlan.subtitle}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[11px] font-bold text-[#ff7700] bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200 hidden xs:inline-block">
-                    {draftPlanType === 'all' ? '11 opciones' : 'Seleccionado'}
-                  </span>
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                      openDropdown === 'plan' ? 'bg-orange-100 text-[#ff7700]' : 'text-slate-400'
-                    }`}
-                  >
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform duration-200 ${
-                        openDropdown === 'plan' ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </div>
-                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                    openDropdown === 'plan' ? 'rotate-180 text-[#007af7]' : ''
+                  }`}
+                />
               </button>
 
               {/* Lista Desplegable Abierta Paso 1 */}
               {openDropdown === 'plan' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl p-2 max-h-60 overflow-y-auto overscroll-contain space-y-1 animate-in fade-in zoom-in-98 duration-150">
+                <div className="mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-1.5 max-h-60 overflow-y-auto overscroll-contain space-y-0.5 animate-in fade-in zoom-in-98 duration-150">
                   {PLAN_EXPERIENCES.map((plan) => {
                     const IconComponent = plan.icon;
                     const isSelected = draftPlanType === plan.id;
@@ -520,7 +464,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                         }}
                         className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                           isSelected
-                            ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                            ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
                             : 'hover:bg-slate-50 border border-transparent text-slate-700'
                         }`}
                       >
@@ -528,27 +472,27 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           <div
                             className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                               isSelected
-                                ? `bg-gradient-to-tr ${plan.color} text-white shadow-2xs`
-                                : 'bg-slate-100 text-slate-600'
+                                ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
+                                : 'bg-sky-50 text-[#007af7]'
                             }`}
                           >
                             <IconComponent className="w-3.5 h-3.5" />
                           </div>
                           <div className="min-w-0">
                             <span
-                              className={`text-xs font-bold block truncate ${
-                                isSelected ? 'text-[#041f5e]' : 'text-slate-800'
+                              className={`text-xs block truncate ${
+                                isSelected ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
                               }`}
                             >
                               {plan.label}
                             </span>
-                            <span className="text-[10px] text-slate-500 block truncate">
+                            <span className="text-[11px] text-slate-400 font-normal block truncate">
                               {plan.subtitle}
                             </span>
                           </div>
                         </div>
                         {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
                             <Check className="w-2.5 h-2.5 stroke-[3]" />
                           </span>
                         )}
@@ -561,45 +505,28 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           </div>
 
           {/* PASO 2: ¿En dónde te gustaría vivirlo? */}
-          <div className="space-y-2 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[#041f5e] uppercase tracking-wider flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-black flex items-center justify-center shrink-0 shadow-xs">
-                  2
-                </span>
-                <span>¿En dónde te gustaría vivirlo?</span>
-              </label>
-              {draftCity !== 'all' && (
-                <button
-                  type="button"
-                  onClick={() => setDraftCity('all')}
-                  className="text-[11px] text-[#ff7700] font-bold hover:underline cursor-pointer"
-                >
-                  Ver toda la región
-                </button>
-              )}
-            </div>
+          <div className="space-y-1.5 pt-3 border-t border-slate-100">
+            <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                2
+              </span>
+              <span>¿En dónde te gustaría vivirlo?</span>
+            </label>
 
-            {/* Selector Desplegable Elegante Paso 2 */}
+            {/* Selector Desplegable Paso 2 */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setOpenDropdown((prev) => (prev === 'city' ? null : 'city'))}
                 className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
                   openDropdown === 'city'
-                    ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/25 shadow-md'
-                    : 'bg-slate-50/80 hover:bg-white hover:border-slate-300 border-slate-200/90 shadow-2xs'
+                    ? 'bg-white border-[#007af7] ring-2 ring-[#007af7]/20 shadow-sm'
+                    : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'city'}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform ${
-                      draftCity !== 'all'
-                        ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-xs'
-                        : 'bg-gradient-to-tr from-[#041f5e] to-blue-900 text-white shadow-xs'
-                    }`}
-                  >
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-xs">
                     {draftCity === 'all' ? (
                       <Globe className="w-4 h-4 text-white" />
                     ) : (
@@ -607,38 +534,25 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                     )}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs sm:text-sm font-extrabold text-[#041f5e] truncate">
+                    <div className="text-sm font-semibold text-slate-800 truncate">
                       {draftCity === 'all' ? 'Todos los municipios' : draftCity}
                     </div>
-                    <div className="text-[11px] text-slate-500 font-medium truncate">
-                      {draftCity === 'all'
-                        ? 'Explorando toda Sabana Centro'
-                        : `Municipio seleccionado: ${draftCity}`}
+                    <div className="text-xs text-slate-500 font-normal truncate">
+                      {draftCity === 'all' ? 'Sabana Centro y alrededores' : 'Sabana Centro'}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[11px] font-bold text-[#007af7] bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200 hidden xs:inline-block">
-                    {draftCity === 'all' ? `${cities.length} municipios` : 'Filtro activo'}
-                  </span>
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                      openDropdown === 'city' ? 'bg-orange-100 text-[#ff7700]' : 'text-slate-400'
-                    }`}
-                  >
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform duration-200 ${
-                        openDropdown === 'city' ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </div>
-                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                    openDropdown === 'city' ? 'rotate-180 text-[#007af7]' : ''
+                  }`}
+                />
               </button>
 
               {/* Lista Desplegable Abierta Paso 2 */}
               {openDropdown === 'city' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl p-2 max-h-60 overflow-y-auto overscroll-contain space-y-1 animate-in fade-in zoom-in-98 duration-150">
+                <div className="mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-1.5 max-h-60 overflow-y-auto overscroll-contain space-y-0.5 animate-in fade-in zoom-in-98 duration-150">
                   {/* Opción 1: Todos los municipios */}
                   <button
                     type="button"
@@ -648,7 +562,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                     }}
                     className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                       draftCity === 'all'
-                        ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                        ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
                         : 'hover:bg-slate-50 border border-transparent text-slate-700'
                     }`}
                   >
@@ -656,27 +570,27 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                       <div
                         className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                           draftCity === 'all'
-                            ? 'bg-[#041f5e] text-white shadow-2xs'
-                            : 'bg-slate-100 text-slate-600'
+                            ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
+                            : 'bg-sky-50 text-[#007af7]'
                         }`}
                       >
                         <Globe className="w-3.5 h-3.5" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <span
-                          className={`text-xs font-bold block ${
-                            draftCity === 'all' ? 'text-[#041f5e]' : 'text-slate-800'
+                          className={`text-xs block truncate ${
+                            draftCity === 'all' ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
                           }`}
                         >
                           Todos los municipios
                         </span>
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[11px] text-slate-400 font-normal block truncate">
                           Toda la cobertura en Sabana Centro
                         </span>
                       </div>
                     </div>
                     {draftCity === 'all' && (
-                      <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
                         <Check className="w-2.5 h-2.5 stroke-[3]" />
                       </span>
                     )}
@@ -697,7 +611,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                         }}
                         className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                           isSelected
-                            ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                            ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
                             : 'hover:bg-slate-50 border border-transparent text-slate-700'
                         }`}
                       >
@@ -706,21 +620,21 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                             className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                               isSelected
                                 ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
-                                : 'bg-slate-100 text-[#007af7]'
+                                : 'bg-sky-50 text-[#007af7]'
                             }`}
                           >
                             <MapPin className="w-3.5 h-3.5" />
                           </div>
                           <span
-                            className={`text-xs font-bold truncate ${
-                              isSelected ? 'text-[#041f5e]' : 'text-slate-800'
+                            className={`text-xs truncate ${
+                              isSelected ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
                             }`}
                           >
                             {city}
                           </span>
                         </div>
                         {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
                             <Check className="w-2.5 h-2.5 stroke-[3]" />
                           </span>
                         )}
@@ -733,80 +647,54 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           </div>
 
           {/* PASO 3: ¿Cuál es tu presupuesto aproximado? */}
-          <div className="space-y-2 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[#041f5e] uppercase tracking-wider flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-black flex items-center justify-center shrink-0 shadow-xs">
-                  3
-                </span>
-                <span>¿Cuál es tu presupuesto aproximado?</span>
-              </label>
-              {draftBudget !== null && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDraftBudget(null);
-                    setCustomBudgetInput('');
-                  }}
-                  className="text-[11px] text-[#ff7700] font-bold hover:underline cursor-pointer"
-                >
-                  Sin límite
-                </button>
-              )}
-            </div>
+          <div className="space-y-1.5 pt-3 border-t border-slate-100">
+            <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                3
+              </span>
+              <span>¿Cuál es tu presupuesto aproximado?</span>
+            </label>
 
-            {/* Selector Desplegable Elegante Paso 3 */}
+            {/* Selector Desplegable Paso 3 */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setOpenDropdown((prev) => (prev === 'budget' ? null : 'budget'))}
                 className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
                   openDropdown === 'budget'
-                    ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/25 shadow-md'
-                    : 'bg-slate-50/80 hover:bg-white hover:border-slate-300 border-slate-200/90 shadow-2xs'
+                    ? 'bg-white border-[#007af7] ring-2 ring-[#007af7]/20 shadow-sm'
+                    : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'budget'}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-xs text-base">
-                    {selectedBudgetInfo.icon}
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-xs">
+                    <SelectedBudgetIcon className="w-4 h-4 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs sm:text-sm font-extrabold text-[#041f5e] truncate">
+                    <div className="text-sm font-semibold text-slate-800 truncate">
                       {selectedBudgetInfo.label}
                     </div>
-                    <div className="text-[11px] text-slate-500 font-medium truncate">
+                    <div className="text-xs text-slate-500 font-normal truncate">
                       {selectedBudgetInfo.subtitle}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  {draftBudget !== null && (
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 hidden xs:inline-block">
-                      Hasta ${draftBudget.toLocaleString('es-CO')}
-                    </span>
-                  )}
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                      openDropdown === 'budget' ? 'bg-orange-100 text-[#ff7700]' : 'text-slate-400'
-                    }`}
-                  >
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform duration-200 ${
-                        openDropdown === 'budget' ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </div>
-                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                    openDropdown === 'budget' ? 'rotate-180 text-[#007af7]' : ''
+                  }`}
+                />
               </button>
 
               {/* Lista Desplegable Abierta Paso 3 */}
               {openDropdown === 'budget' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl p-2.5 max-h-64 overflow-y-auto overscroll-contain space-y-2 animate-in fade-in zoom-in-98 duration-150">
-                  {/* Opciones rápidas predeterminadas */}
-                  <div className="space-y-1">
+                <div className="mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 max-h-64 overflow-y-auto overscroll-contain space-y-2 animate-in fade-in zoom-in-98 duration-150">
+                  {/* Opciones rápidas */}
+                  <div className="space-y-0.5">
                     {BUDGET_OPTIONS.map((b) => {
+                      const IconComponent = b.icon;
                       const isSelected = draftBudget === b.value;
                       return (
                         <button
@@ -821,27 +709,35 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           }}
                           className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                             isSelected
-                              ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                              ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
                               : 'hover:bg-slate-50 border border-transparent text-slate-700'
                           }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="text-lg shrink-0">{b.icon}</span>
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
+                                  : 'bg-sky-50 text-[#007af7]'
+                              }`}
+                            >
+                              <IconComponent className="w-3.5 h-3.5" />
+                            </div>
                             <div className="min-w-0">
                               <span
-                                className={`text-xs font-bold block truncate ${
-                                  isSelected ? 'text-[#041f5e]' : 'text-slate-800'
+                                className={`text-xs block truncate ${
+                                  isSelected ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
                                 }`}
                               >
                                 {b.shortLabel}
                               </span>
-                              <span className="text-[10px] text-slate-500 block truncate">
+                              <span className="text-[11px] text-slate-400 font-normal block truncate">
                                 {b.subtitle}
                               </span>
                             </div>
                           </div>
                           {isSelected && (
-                            <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
                               <Check className="w-2.5 h-2.5 stroke-[3]" />
                             </span>
                           )}
@@ -852,8 +748,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
                   {/* Campo interactivo para digitar presupuesto exacto */}
                   <div className="pt-2 border-t border-slate-100">
-                    <div className="text-[11px] font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                      <span>O escribe tu presupuesto exacto:</span>
+                    <div className="text-xs font-medium text-slate-600 mb-1.5 flex items-center justify-between">
+                      <span>O escribe un presupuesto exacto:</span>
                       {draftBudget !== null && (
                         <button
                           type="button"
@@ -861,14 +757,14 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                             setCustomBudgetInput('');
                             setDraftBudget(null);
                           }}
-                          className="text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
+                          className="text-[11px] text-slate-400 hover:text-rose-600 font-normal cursor-pointer transition"
                         >
                           Quitar límite
                         </button>
                       )}
                     </div>
                     <div className="relative flex items-center">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-medium text-xs">
                         $
                       </div>
                       <input
@@ -887,7 +783,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           }
                         }}
                         placeholder="Ej: 40.000 COP"
-                        className="w-full pl-7 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-white focus:bg-white text-xs font-semibold text-slate-800 border border-slate-200 focus:border-[#ff7700] focus:ring-2 focus:ring-[#ff7700]/20 outline-none transition"
+                        className="w-full pl-7 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-white focus:bg-white text-xs font-normal text-slate-800 border border-slate-200 focus:border-[#007af7] focus:ring-2 focus:ring-[#007af7]/20 outline-none transition"
                       />
                       {customBudgetInput && (
                         <button
@@ -910,18 +806,18 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           </div>
         </div>
 
-        {/* Footer with Dynamic Result Counter and Big Vibrant Surprise CTA with Dices */}
+        {/* Footer with Dynamic Result Counter and Clean Surprise CTA */}
         <div className="p-4 bg-slate-50/90 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
           <div className="flex items-center justify-between sm:justify-start gap-2">
             <div className="text-xs">
-              <span className="font-bold text-[#041f5e] block">
+              <span className="font-semibold text-slate-800 block">
                 {matchingReelsCount > 0
                   ? `🎲 ${matchingReelsCount} ${
                       matchingReelsCount === 1 ? 'publicación lista' : 'publicaciones listas'
                     }`
                   : '🔍 Sin coincidencias directas'}
               </span>
-              <span className="text-[10px] text-slate-500 font-normal">
+              <span className="text-[11px] text-slate-400 font-normal">
                 {draftCity !== 'all' ? `En ${draftCity}` : 'En toda la región'}
               </span>
             </div>
@@ -929,7 +825,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              className="text-xs text-slate-500 hover:text-rose-600 font-medium flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-slate-200/60 cursor-pointer"
+              className="text-xs text-slate-400 hover:text-slate-600 font-normal flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-slate-100 cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" />
               <span>Restablecer</span>
@@ -939,14 +835,14 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           <button
             type="button"
             onClick={handleApplySurprise}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-2xl text-white font-bold text-xs sm:text-sm transition-all duration-300 cursor-pointer active:scale-98 hover:brightness-110 flex items-center justify-center gap-2 shadow-lg"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-2xl text-white font-semibold text-xs sm:text-sm transition-all duration-300 cursor-pointer active:scale-98 hover:brightness-110 flex items-center justify-center gap-2 shadow-lg"
             style={{
               background: 'linear-gradient(135deg, #ff7700 0%, #ff5500 50%, #d9480f 100%)',
               boxShadow:
                 '0 4px 16px -2px rgba(255, 119, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
             }}
           >
-            <Dices className="w-5 h-5 text-amber-100" />
+            <Dices className="w-4 h-4 text-amber-100" />
             <span>¡Sorpréndeme con este plan!</span>
             <ArrowRight className="w-4 h-4" />
           </button>
