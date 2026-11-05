@@ -21,6 +21,7 @@ import {
   Wrench,
   BookOpen,
   ArrowRight,
+  Navigation,
   Store,
   Compass,
   Phone,
@@ -1073,10 +1074,29 @@ export const OliSection: React.FC<OliSectionProps> = ({
                           </div>
                         </div>
 
-                        {/* Stops List */}
-                        <div className="p-4 sm:p-5 space-y-4">
+                        {/* Stops List with Timeline Style identical to Itinerary Builder */}
+                        <div className="p-3.5 sm:p-5 space-y-3.5">
+                          {/* Punto de Inicio en el Timeline */}
+                          <div className="relative pl-7 pb-2">
+                            {/* Línea vertical conectora hacia abajo */}
+                            <div className="absolute left-3 top-2.5 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
+
+                            <div className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#007af7]" />
+                            </div>
+
+                            <div className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                              <span className="text-slate-400">Inicio:</span>
+                              <span className="text-[#0056d6] font-extrabold truncate">
+                                {plan.stops[0]?.businessName || `Centro de ${currentCity || 'Cajicá'}`}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Lista secuencial de paradas con estilo Timeline */}
                           <div className="space-y-3">
                             {plan.stops.map((stop, sIdx) => {
+                              const isLast = sIdx === plan.stops.length - 1;
                               const waClean = (stop.businessWhatsapp || stop.businessPhone || '').replace(/\D/g, '');
                               const waUrl = waClean
                                 ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
@@ -1084,90 +1104,117 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   )}`
                                 : null;
 
+                              const fullAddress = `${stop.businessAddress || 'Dirección registrada'}${
+                                stop.businessCity ? `, ${stop.businessCity}` : ''
+                              }`;
+
                               return (
-                                <div
-                                  key={sIdx}
-                                  className="relative flex gap-3.5 p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all group overflow-hidden w-full max-w-full"
-                                >
-                                  {/* Stop Order Badge */}
-                                  <div className="w-7 h-7 rounded-full bg-[#0066FF] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                <div key={sIdx} className="relative pl-7 sm:pl-8">
+                                  {/* Línea vertical conectora entre paradas */}
+                                  {!isLast && (
+                                    <div className="absolute left-3 top-8 bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
+                                  )}
+
+                                  {/* Badge numérico circular del paso en el timeline */}
+                                  <div className="absolute left-0 top-3 w-6 h-6 rounded-full bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-xs font-black shadow-sm ring-2 ring-white">
                                     {sIdx + 1}
                                   </div>
 
-                                  {/* Thumbnail */}
-                                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-200 shrink-0 border border-slate-200">
-                                    <img
-                                      src={stop.imageUrl || '/Logo_OleVeci.png'}
-                                      alt={stop.businessName}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                    />
-                                  </div>
+                                  {/* Tarjeta de la parada con estilo idéntico al de la sección de itinerarios */}
+                                  <div
+                                    onClick={() => {
+                                      if (stop.businessId) {
+                                        onSelectBusiness?.(stop.businessId);
+                                      }
+                                    }}
+                                    className="rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3 sm:p-3.5 space-y-2.5 cursor-pointer group active:scale-[0.99] select-none"
+                                    title={`Ver detalles de ${stop.businessName}`}
+                                  >
+                                    {/* Encabezado: Comercio e Imagen */}
+                                    <div className="flex items-start justify-between gap-2.5">
+                                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <img
+                                          src={stop.imageUrl || '/Logo_OleVeci.png'}
+                                          alt=""
+                                          className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:border-blue-300 transition-colors shadow-2xs bg-white"
+                                        />
 
-                                  {/* Details */}
-                                  <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate break-words">
-                                        {stop.businessName}
-                                      </h4>
-                                      <span className="text-xs font-black text-emerald-600 shrink-0">
-                                        {formatPriceCOP(stop.cost)}
-                                      </span>
-                                    </div>
+                                        <div className="min-w-0 flex-1">
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-[10px] font-black text-[#007af7] uppercase tracking-wider">
+                                              {sIdx === 0 ? '1ª PARADA' : isLast ? 'DESTINO FINAL' : `PARADA ${sIdx + 1}`}
+                                            </span>
+                                          </div>
+                                          <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
+                                            {stop.businessName}
+                                          </h5>
+                                          <p className="text-[11px] text-slate-500 font-medium truncate">
+                                            {stop.activity || stop.whySelected}
+                                          </p>
+                                        </div>
+                                      </div>
 
-                                    <p className="text-xs font-semibold text-[#0066FF] line-clamp-2 break-words">
-                                      {stop.activity}
-                                    </p>
+                                      {/* Botones de acción rápida: WhatsApp y Cómo Llegar */}
+                                      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        {waUrl && (
+                                          <a
+                                            href={waUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs"
+                                            title="Contactar por WhatsApp"
+                                            aria-label="WhatsApp"
+                                          >
+                                            <WhatsAppIcon className="w-3.5 h-3.5" />
+                                          </a>
+                                        )}
 
-                                    <div className="flex items-center gap-2 text-[11px] text-slate-500 min-w-0">
-                                      {stop.time && <span className="shrink-0">🕒 {stop.time}</span>}
-                                      {stop.businessAddress && (
-                                        <span className="truncate">📍 {stop.businessAddress}</span>
-                                      )}
-                                    </div>
-
-                                    {stop.whySelected && (
-                                      <p className="text-[11px] text-slate-600 italic line-clamp-2 break-words">
-                                        "{stop.whySelected}"
-                                      </p>
-                                    )}
-
-                                    {/* Action Links */}
-                                    <div className="flex items-center gap-2 pt-1.5 flex-wrap">
-                                      {waUrl && (
-                                        <a
-                                          href={waUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-2xs"
-                                        >
-                                          <WhatsAppIcon className="w-3 h-3 fill-white" />
-                                          <span>WhatsApp</span>
-                                        </a>
-                                      )}
-
-                                      {stop.businessId && (
                                         <button
                                           type="button"
-                                          onClick={() => onSelectBusiness?.(stop.businessId)}
-                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold transition-all cursor-pointer"
+                                          onClick={() => {
+                                            const encodedQuery = encodeURIComponent(
+                                              `${stop.businessName}, ${stop.businessAddress || ''}, ${stop.businessCity || currentCity || 'Cajicá'}`
+                                            );
+                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodedQuery}`, '_blank');
+                                          }}
+                                          className="w-8 h-8 rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs cursor-pointer"
+                                          title="Ver cómo llegar en Google Maps"
+                                          aria-label="Cómo llegar"
                                         >
-                                          <span>Ver comercio</span>
-                                          <ArrowRight className="w-3 h-3 text-slate-400" />
+                                          <Navigation className="w-3.5 h-3.5 fill-current" />
                                         </button>
-                                      )}
 
-                                      {/* Remove stop button */}
-                                      {plan.stops && plan.stops.length > 1 && (
-                                        <button
-                                          type="button"
-                                          onClick={() => handleRemoveStop(index, sIdx)}
-                                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-[11px] transition-all cursor-pointer ml-auto"
-                                          title="Quitar esta parada del plan"
-                                        >
-                                          <X className="w-3 h-3" />
-                                          <span className="hidden sm:inline">Quitar</span>
-                                        </button>
-                                      )}
+                                        {/* Remove stop button */}
+                                        {plan.stops && plan.stops.length > 1 && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveStop(index, sIdx)}
+                                            className="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer"
+                                            title="Quitar esta parada del plan"
+                                          >
+                                            <X className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Dirección y Distancia / Costo de la parada */}
+                                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 text-[11px] text-slate-500">
+                                      <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+                                        <MapPin className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />
+                                        <span className="truncate">{fullAddress}</span>
+                                      </div>
+
+                                      <div className="flex items-center gap-1.5 shrink-0">
+                                        <span className="font-bold text-slate-700 text-[10px] bg-white px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
+                                          {sIdx === 0 ? '~Inicio • ~0m' : `~${sIdx * 800}m • ~${sIdx * 2}m`}
+                                        </span>
+                                        {stop.cost ? (
+                                          <span className="font-black text-emerald-600 text-[11px]">
+                                            {formatPriceCOP(stop.cost)}
+                                          </span>
+                                        ) : null}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
