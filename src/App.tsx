@@ -68,6 +68,8 @@ const MainApp: React.FC = () => {
   // Business Auth Flow state
   const [showBusinessAuthScreen, setShowBusinessAuthScreen] = useState(false);
   const [businessAuthTab, setBusinessAuthTab] = useState<'login' | 'register'>('login');
+  const initialUrlParsedRef = useRef(false);
+  const prevRoleRef = useRef(currentRole);
 
   // Shared reel ID state from URL deep link (/reel/:id or ?reel=:id)
   const [sharedReelId, setSharedReelId] = useState<string | null>(() => {
@@ -83,7 +85,7 @@ const MainApp: React.FC = () => {
     return null;
   });
 
-  const handleWelcomeSplashFinish = React.useCallback(() => {
+    const handleWelcomeSplashFinish = React.useCallback(() => {
     // Al terminar la bienvenida con el logo oficial de OleVeci, respetar deep link o pasar a home
     const searchParams = new URLSearchParams(window.location.search);
     const roleParam = searchParams.get('tab') || searchParams.get('seccion') || searchParams.get('role');
@@ -149,24 +151,27 @@ const MainApp: React.FC = () => {
       targetBizId = pathname.replace('/comercio/', '').split('/')[0];
     }
 
-    const roleParam = searchParams.get('tab') || searchParams.get('seccion') || searchParams.get('role');
-    if (targetReelId) {
-      setSharedReelId(targetReelId);
-      setCurrentRole('home');
-    } else if (targetPlanId) {
-      setCurrentRole('plans');
-    } else if (targetPostId) {
-      setCurrentRole('explorer');
-    } else if (roleParam === 'descubrir' || roleParam === 'explorer' || pathname === '/descubrir') {
-      setCurrentRole('explorer');
-    } else if (roleParam === 'business' || roleParam === 'negocio' || roleParam === 'miespacio' || pathname === '/negocio') {
-      setCurrentRole('business');
-    } else if (roleParam === 'admin' || pathname === '/admin') {
-      setCurrentRole('admin');
-    } else if (roleParam === 'planes' || roleParam === 'plans' || pathname === '/planes') {
-      setCurrentRole('plans');
-    } else if (roleParam === 'oli' || roleParam === 'asistente' || pathname === '/oli') {
-      setCurrentRole('oli');
+    if (!initialUrlParsedRef.current) {
+      initialUrlParsedRef.current = true;
+      const roleParam = searchParams.get('tab') || searchParams.get('seccion') || searchParams.get('role');
+      if (targetReelId) {
+        setSharedReelId(targetReelId);
+        setCurrentRole('home');
+      } else if (targetPlanId) {
+        setCurrentRole('plans');
+      } else if (targetPostId) {
+        setCurrentRole('explorer');
+      } else if (roleParam === 'descubrir' || roleParam === 'explorer' || pathname === '/descubrir') {
+        setCurrentRole('explorer');
+      } else if (roleParam === 'business' || roleParam === 'negocio' || roleParam === 'miespacio' || pathname === '/negocio') {
+        setCurrentRole('business');
+      } else if (roleParam === 'admin' || pathname === '/admin') {
+        setCurrentRole('admin');
+      } else if (roleParam === 'planes' || roleParam === 'plans' || pathname === '/planes') {
+        setCurrentRole('plans');
+      } else if (roleParam === 'oli' || roleParam === 'asistente' || pathname === '/oli') {
+        setCurrentRole('oli');
+      }
     }
 
     // Resolve target shared itinerary
@@ -216,6 +221,22 @@ const MainApp: React.FC = () => {
     }
   }, [posts, businesses, readyPlans, addReadyPlan, setCurrentRole]);
 
+  
+  // When changing section/role, close all open modals automatically (including notifications)
+  useEffect(() => {
+    if (prevRoleRef.current !== currentRole) {
+      prevRoleRef.current = currentRole;
+      setIsNotificationModalOpen(false);
+      setIsLocationPickerOpen(false);
+      setIsCreatePostOpen(false);
+      setIsGlobalItineraryOpen(false);
+      setSelectedPost(null);
+      setSelectedBusinessId(null);
+      setSelectedPlan(null);
+      setShowBusinessAuthScreen(false);
+    }
+  }, [currentRole]);
+
   const previouslyOpenModalRef = useRef(false);
 
   // Keep browser URL cleanly synchronized when viewing an announcement, business or itinerary
@@ -229,11 +250,12 @@ const MainApp: React.FC = () => {
     } else if (selectedPlan) {
       previouslyOpenModalRef.current = true;
       window.history.replaceState({}, '', `/plan/${selectedPlan.id}`);
-    } else if (previouslyOpenModalRef.current) {
-      // User closed the modal
+    } else {
       previouslyOpenModalRef.current = false;
       const base = currentRole === 'home' ? '/' : `/${currentRole}`;
-      window.history.replaceState({}, '', base);
+      if (window.location.pathname !== base) {
+        window.history.replaceState({}, '', base);
+      }
     }
   }, [selectedPost, selectedBusinessId, selectedPlan, currentRole]);
 
@@ -317,14 +339,20 @@ const MainApp: React.FC = () => {
       {/* Header */}
       <Header
         onOpenLocationPicker={() => setIsLocationPickerOpen(true)}
-        onOpenNotifications={() => setIsNotificationModalOpen(true)}
+        onOpenNotifications={() => setIsNotificationModalOpen((prev) => !prev)}
+        onCloseNotifications={() => setIsNotificationModalOpen(false)}
+        isNotificationModalOpen={isNotificationModalOpen}
         onOpenBusinessAuth={(tab = 'login') => {
           setBusinessAuthTab(tab);
           setShowBusinessAuthScreen(true);
           setCurrentRole('business');
         }}
         onOpenOliAssistant={() => {
-          setCurrentRole('oli');
+          if (currentRole === 'oli') {
+            setCurrentRole('home');
+          } else {
+            setCurrentRole('oli');
+          }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
       />

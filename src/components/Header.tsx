@@ -22,6 +22,8 @@ import {
 interface HeaderProps {
   onOpenLocationPicker: () => void;
   onOpenNotifications: () => void;
+  onCloseNotifications?: () => void;
+  isNotificationModalOpen?: boolean;
   onOpenBusinessAuth?: (tab?: 'login' | 'register') => void;
   onOpenOliAssistant?: () => void;
 }
@@ -29,6 +31,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onOpenLocationPicker,
   onOpenNotifications,
+  onCloseNotifications,
+  isNotificationModalOpen,
   onOpenBusinessAuth,
   onOpenOliAssistant,
 }) => {
@@ -112,6 +116,12 @@ export const Header: React.FC<HeaderProps> = ({
     },
   };
 
+    const handleSelectRole = (role: RoleMode) => {
+    setCurrentRole(role);
+    onCloseNotifications?.();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsMenuOpen(false);
+  };
   const activeItem = roleConfig[currentRole] || roleConfig.home;
   const ActiveIcon = activeItem.icon;
 
@@ -124,8 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center shrink-0">
             <button
               onClick={() => {
-                setCurrentRole('home');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                handleSelectRole('home');
               }}
               className="flex items-center text-left focus:outline-hidden group cursor-pointer"
               title="OleVeci - Ir a Home"
@@ -149,7 +158,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="btn-header-oli-assistant"
               onClick={() => {
-                if (onOpenOliAssistant) {
+                onCloseNotifications?.();
+                if (currentRole === 'oli') {
+                  setCurrentRole('home');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else if (onOpenOliAssistant) {
                   onOpenOliAssistant();
                 } else {
                   setCurrentRole('oli');
@@ -233,11 +246,7 @@ export const Header: React.FC<HeaderProps> = ({
                       id="tab-role-home"
                       role="menuitem"
                       type="button"
-                      onClick={() => {
-                        setCurrentRole('home');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => handleSelectRole('home')}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
                         currentRole === 'home'
                           ? 'bg-blue-50/80 text-[#0056d6] font-bold'
@@ -273,11 +282,7 @@ export const Header: React.FC<HeaderProps> = ({
                       id="tab-role-explorer"
                       role="menuitem"
                       type="button"
-                      onClick={() => {
-                        setCurrentRole('explorer');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => handleSelectRole('explorer')}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
                         currentRole === 'explorer'
                           ? 'bg-blue-50/80 text-[#0056d6] font-bold'
@@ -313,11 +318,7 @@ export const Header: React.FC<HeaderProps> = ({
                       id="tab-role-plans"
                       role="menuitem"
                       type="button"
-                      onClick={() => {
-                        setCurrentRole('plans');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => handleSelectRole('plans')}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
                         currentRole === 'plans'
                           ? 'bg-blue-50/80 text-[#0056d6] font-bold'
@@ -353,11 +354,7 @@ export const Header: React.FC<HeaderProps> = ({
                       id="tab-role-directory"
                       role="menuitem"
                       type="button"
-                      onClick={() => {
-                        setCurrentRole('directory');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => handleSelectRole('directory')}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
                         currentRole === 'directory'
                           ? 'bg-blue-50/80 text-[#0056d6] font-bold'
@@ -393,11 +390,7 @@ export const Header: React.FC<HeaderProps> = ({
                       id="tab-role-maps"
                       role="menuitem"
                       type="button"
-                      onClick={() => {
-                        setCurrentRole('maps');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => handleSelectRole('maps')}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
                         currentRole === 'maps'
                           ? 'bg-blue-50/80 text-[#0056d6] font-bold'
@@ -433,11 +426,7 @@ export const Header: React.FC<HeaderProps> = ({
                       id="tab-role-oli"
                       role="menuitem"
                       type="button"
-                      onClick={() => {
-                        setCurrentRole('oli');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={() => handleSelectRole('oli')}
                       className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
                         currentRole === 'oli'
                           ? 'bg-blue-50/80 text-[#0056d6] font-bold'
@@ -511,6 +500,7 @@ export const Header: React.FC<HeaderProps> = ({
                       role="menuitem"
                       type="button"
                       onClick={() => {
+                        onCloseNotifications?.();
                         if (onOpenBusinessAuth && !authenticatedBusinessId) {
                           onOpenBusinessAuth('login');
                         } else {
@@ -555,6 +545,7 @@ export const Header: React.FC<HeaderProps> = ({
                         role="menuitem"
                         type="button"
                         onClick={() => {
+                          onCloseNotifications?.();
                           setCurrentRole('admin');
                           setIsMenuOpen(false);
                         }}
