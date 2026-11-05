@@ -35,7 +35,6 @@ import {
   Crown,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
 } from 'lucide-react';
 
 type AdminTab =
@@ -355,40 +354,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Sub-sections Navigation Bar */}
-      <div className="space-y-2">
-        {/* Mobile dropdown selector (visible on small screens for instant 1-tap full menu access) */}
-        <div className="sm:hidden flex items-center justify-between gap-2 p-2 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
-              Sección:
-            </span>
-            <div className="relative flex-1 min-w-0">
-              <select
-                value={activeTab}
-                onChange={(e) => handleTabSelect(e.target.value as AdminTab)}
-                aria-label="Seleccionar sección de administración"
-                className="w-full pl-2.5 pr-8 py-1.5 text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#007af7] cursor-pointer appearance-none truncate"
-              >
-                {navTabs.map((tab) => {
-                  const badgeCount =
-                    tab.id === 'businesses'
-                      ? pendingBusinessReviews.length
-                      : tab.id === 'posts'
-                      ? pendingPostReviews.length
-                      : 0;
-                  return (
-                    <option key={tab.id} value={tab.id}>
-                      {tab.label} {badgeCount > 0 ? `(${badgeCount})` : ''}
-                    </option>
-                  );
-                })}
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        {/* Scrollable Tab bar with left/right navigation arrow buttons */}
+      {/* Scrollable Tab bar with left/right navigation arrow buttons */}
         <div className="relative group">
           {/* Left Arrow Scroll Button */}
           {canScrollLeft && (
@@ -459,8 +425,6 @@ export const AdminDashboard: React.FC = () => {
             })}
           </div>
         </div>
-      </div>
-
       {/* Tab Contents */}
       <div className="transition-all duration-150">
         {activeTab === 'overview' && (
