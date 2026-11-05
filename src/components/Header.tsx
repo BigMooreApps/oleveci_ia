@@ -71,8 +71,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   const roleConfig = {
     home: {
-      label: 'Reels',
-      icon: Film,
+      label: 'Home',
+      icon: Home,
       iconColor: 'text-[#007af7]',
     },
     explorer: {
@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="flex items-center text-left focus:outline-hidden group cursor-pointer"
-              title="OleVeci - Ir a Reels"
+              title="OleVeci - Ir a Home"
               aria-label="OleVeci Inicio"
             >
               <OleVeciLogo
@@ -228,7 +228,7 @@ export const Header: React.FC<HeaderProps> = ({
                       Navegación
                     </div>
 
-                    {/* Opción 1: Reels */}
+                    {/* Opción 1: Home */}
                     <button
                       id="tab-role-home"
                       role="menuitem"
@@ -252,14 +252,14 @@ export const Header: React.FC<HeaderProps> = ({
                               : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
                           }`}
                         >
-                          <Film className="w-4 h-4" />
+                          <Home className="w-4 h-4" />
                         </div>
                         <div className="truncate">
                           <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Reels
+                            Home
                           </div>
                           <div className="text-[10px] text-slate-500 font-normal">
-                            Videos y promociones
+                            Página principal
                           </div>
                         </div>
                       </div>
