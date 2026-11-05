@@ -1905,6 +1905,8 @@
       ]
     },
     "categoryId": "cat_planes_eventos",
+    "planCategoryId": "plan_comer_algo",
+    "planCategoryName": "Comer algo",
     "featured": false,
     "tags": [],
     "id": "post_1791221143310_zvu6i",
@@ -2284,9 +2286,7 @@
     "planRoles": [],
     "targetAudience": [],
     "isPlan": false,
-    "suspensionHistory": [],
-    "planCategoryId": "plan_comer_algo",
-    "planCategoryName": "Comer algo"
+    "suspensionHistory": []
   },
   {
     "businessId": "biz_oleveci",
@@ -2845,6 +2845,8 @@
       ]
     },
     "categoryId": "cat_planes_eventos",
+    "planCategoryId": "plan_tramites",
+    "planCategoryName": "Trámites",
     "featured": false,
     "tags": [],
     "id": "post_1791231179361_xngwj",
@@ -3224,9 +3226,7 @@
     "planRoles": [],
     "targetAudience": [],
     "isPlan": false,
-    "suspensionHistory": [],
-    "planCategoryId": "plan_tramites",
-    "planCategoryName": "Trámites"
+    "suspensionHistory": []
   },
   {
     "businessId": "biz_oleveci",
@@ -3314,6 +3314,8 @@
       ]
     },
     "categoryId": "cat_planes_eventos",
+    "planCategoryId": "plan_consentir_mascotas",
+    "planCategoryName": "Consentir mis mascotas",
     "featured": false,
     "tags": [],
     "id": "post_1791236006956_ih5xg",
@@ -3693,9 +3695,7 @@
     "planRoles": [],
     "targetAudience": [],
     "isPlan": false,
-    "suspensionHistory": [],
-    "planCategoryId": "plan_consentir_mascotas",
-    "planCategoryName": "Consentir mis mascotas"
+    "suspensionHistory": []
   },
   {
     "businessId": "biz_oleveci",

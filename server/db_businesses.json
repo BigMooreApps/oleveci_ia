@@ -537,7 +537,9 @@
     "whatsapp": "573145678901",
     "phone": "3145678901",
     "email": "pedidos@fogonsabanero.com",
-    "socialLinks": {},
+    "username": "OLE0109",
+    "password": "Veci2026",
+    "instagram": "@fogonsabanero_chia",
     "rating": 4.7,
     "verified": true,
     "featured": false,
@@ -550,10 +552,6 @@
       "expiresAt": "2027-10-20T19:43:04.021Z",
       "billingCycle": "monthly"
     },
-    "paymentHistory": [],
-    "username": "OLE0109",
-    "password": "Veci2026",
-    "accessEmail": "pedidos@fogonsabanero.com",
     "metrics": {
       "views": 1922,
       "whatsappClicks": 325,
@@ -894,11 +892,14 @@
     },
     "createdAt": "2026-10-20T21:41:27.077896+00:00",
     "suspensionHistory": [],
-    "accessPassword": "Veci2026",
-    "reviewStatus": "none",
+    "accessEmail": "pedidos@fogonsabanero.com",
     "accessPin": "1234",
+    "accessPassword": "Veci2026",
     "ownerName": "Propietario / Gerente",
-    "ownerPhone": "3145678901"
+    "ownerPhone": "3145678901",
+    "socialLinks": {},
+    "paymentHistory": [],
+    "reviewStatus": "none"
   },
   {
     "id": "biz_hotel_sabana",
