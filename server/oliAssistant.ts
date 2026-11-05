@@ -2444,7 +2444,7 @@ export async function generateOliSearchResponse(
     try {
       const targetNorm = normalizeText(targetMunicipality);
       const catalogToUse = catalogBusinesses.filter(
-        (b) => (!b.status || b.status === 'active') && !b.suspended && b.id !== 'biz_oleveci' && b.name !== 'OleVeci'
+        (b) => (!b.status || b.status === 'active') && b.status !== 'suspended' && b.id !== 'biz_oleveci' && b.name !== 'OleVeci'
       );
 
       const catalogSummaryText = catalogToUse.map((b) => {
@@ -3234,7 +3234,7 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
 
       const targetNorm = normalizeText(targetCity);
       const catalogToUse = catalogBusinesses.filter(
-        (b) => (!b.status || b.status === 'active') && !b.suspended && b.id !== 'biz_oleveci' && b.name !== 'OleVeci'
+        (b) => (!b.status || b.status === 'active') && b.status !== 'suspended' && b.id !== 'biz_oleveci' && b.name !== 'OleVeci'
       );
 
       const catalogSummaryText = catalogToUse.map((b) => {

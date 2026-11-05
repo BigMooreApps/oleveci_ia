@@ -464,6 +464,7 @@ export interface OliAuditTrace {
   rawPrompt: string;
   timestamp: string;
   executionMode: 'llm' | 'deterministic_fallback';
+  provider?: string;
   modelUsed?: string;
   apiKeyPresent: boolean;
   intentDetected: 'search' | 'plan_creation' | 'plan_refinement';
