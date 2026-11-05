@@ -468,6 +468,43 @@ export const Header: React.FC<HeaderProps> = ({
                       )}
                     </button>
 
+                    {/* Opción: Notificaciones */}
+                    <button
+                      id="tab-role-notifications"
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        onOpenNotifications();
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group text-slate-700 hover:bg-slate-50"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="relative w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-blue-50 text-[#007af7] group-hover:bg-blue-100">
+                          <Bell className="w-4 h-4" />
+                          {notificationPrefs.enabled && (
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00d8a5] ring-2 ring-white shadow-2xs animate-pulse" />
+                          )}
+                        </div>
+                        <div className="truncate">
+                          <div className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                            <span>Notificaciones</span>
+                            {notificationPrefs.enabled && (
+                              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                                Activas
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-normal">
+                            Alertas y novedades
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Separador hacia el área de gestión y administración */}
+                    <div className="my-1 border-t border-slate-100" />
+
                     {/* Opción 4: Mi Espacio */}
                     <button
                       id="tab-role-business"
@@ -511,82 +548,45 @@ export const Header: React.FC<HeaderProps> = ({
                       )}
                     </button>
 
-                    {/* Opción: Notificaciones */}
-                    <button
-                      id="tab-role-notifications"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => {
-                        onOpenNotifications();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group text-slate-700 hover:bg-slate-50"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="relative w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-blue-50 text-[#007af7] group-hover:bg-blue-100">
-                          <Bell className="w-4 h-4" />
-                          {notificationPrefs.enabled && (
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00d8a5] ring-2 ring-white shadow-2xs animate-pulse" />
-                          )}
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                            <span>Notificaciones</span>
-                            {notificationPrefs.enabled && (
-                              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
-                                Activas
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Alertas y novedades
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-
                     {/* Opción 5: Admin (si está autenticado como admin) */}
                     {isAdminAuthenticated && (
-                      <>
-                        <div className="my-1 border-t border-slate-100" />
-                        <button
-                          id="tab-role-admin"
-                          role="menuitem"
-                          type="button"
-                          onClick={() => {
-                            setCurrentRole('admin');
-                            setIsMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                            currentRole === 'admin'
-                              ? 'bg-indigo-50 text-indigo-900 font-bold'
-                              : 'text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                currentRole === 'admin'
-                                  ? 'bg-indigo-600 text-white shadow-2xs'
-                                  : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
-                              }`}
-                            >
-                              <UserCog className="w-4 h-4" />
+                      <button
+                        id="tab-role-admin"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => {
+                          setCurrentRole('admin');
+                          setIsMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'admin'
+                            ? 'bg-indigo-50 text-indigo-900 font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'admin'
+                                ? 'bg-indigo-600 text-white shadow-2xs'
+                                : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
+                            }`}
+                          >
+                            <UserCog className="w-4 h-4" />
+                          </div>
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Panel Admin
                             </div>
-                            <div className="truncate">
-                              <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                                Panel Admin
-                              </div>
-                              <div className="text-[10px] text-slate-500 font-normal">
-                                Configuración y control
-                              </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Configuración y control
                             </div>
                           </div>
-                          {currentRole === 'admin' && (
-                            <Check className="w-4 h-4 text-indigo-600 shrink-0 ml-2" />
-                          )}
-                        </button>
-                      </>
+                        </div>
+                        {currentRole === 'admin' && (
+                          <Check className="w-4 h-4 text-indigo-600 shrink-0 ml-2" />
+                        )}
+                      </button>
                     )}
                   </div>
                 </>

@@ -1143,13 +1143,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       lastLoginAt: new Date().toISOString(),
     }));
+    lastActivityRef.current = Date.now();
+    try {
+      localStorage.setItem('oleveci_last_activity_ts', Date.now().toString());
+    } catch {}
     return true;
   };
 
   const logoutAdmin = () => {
     setIsAdminAuthenticated(false);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+      if (!authenticatedBusinessId) {
+        localStorage.removeItem('oleveci_last_activity_ts');
+      }
+    } catch {}
     if (currentRole === 'admin') {
-      setCurrentRole('explorer');
+      setCurrentRole('home');
     }
   };
 
@@ -1211,6 +1221,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // In-app Push Simulation Toast
   const [activeToast, setActiveToast] = useState<{ title: string; body: string; time: string } | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
 
   // Sync to localStorage
   useEffect(() => {
@@ -2683,15 +2694,155 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveToast(null);
   };
 
+  // Cierre de sesión automático por inactividad (5 minutos = 300.000 ms) en Mi Espacio y Admin
+  useEffect(() => {
+    const hasActiveSession = Boolean(isAdminAuthenticated || authenticatedBusinessId);
+    if (!hasActiveSession) return;
+
+    const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+    const STORAGE_KEY_LAST_ACTIVITY = 'oleveci_last_activity_ts';
+    const initNow = Date.now();
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_LAST_ACTIVITY);
+      if (!stored) {
+        localStorage.setItem(STORAGE_KEY_LAST_ACTIVITY, initNow.toString());
+        lastActivityRef.current = initNow;
+      } else {
+        const parsed = parseInt(stored, 10);
+        if (!isNaN(parsed)) {
+          if (initNow - parsed >= INACTIVITY_TIMEOUT_MS) {
+            handleSessionTimeout();
+            return;
+          }
+          lastActivityRef.current = parsed;
+        } else {
+          lastActivityRef.current = initNow;
+        }
+      }
+    } catch {
+      lastActivityRef.current = initNow;
+    }
+
+    function recordActivity() {
+      const now = Date.now();
+      // Throttle: registrar cada 2 segundos máximo para óptimo rendimiento
+      if (now - lastActivityRef.current > 2000) {
+        lastActivityRef.current = now;
+        try {
+          localStorage.setItem(STORAGE_KEY_LAST_ACTIVITY, now.toString());
+        } catch {}
+      }
+    }
+
+    function handleSessionTimeout() {
+      let closedAdmin = false;
+      let closedBusiness = false;
+
+      if (isAdminAuthenticated) {
+        setIsAdminAuthenticated(false);
+        try {
+          localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+        } catch {}
+        closedAdmin = true;
+      }
+
+      if (authenticatedBusinessId) {
+        setAuthenticatedBusinessId(null);
+        try {
+          localStorage.removeItem('oleveci_auth_biz_id');
+        } catch {}
+        closedBusiness = true;
+      }
+
+      try {
+        localStorage.removeItem(STORAGE_KEY_LAST_ACTIVITY);
+      } catch {}
+
+      setCurrentRole((prev) => (prev === 'admin' || prev === 'business' ? 'home' : prev));
+
+      const sessionName =
+        closedAdmin && closedBusiness
+          ? 'Mi Espacio y Panel Admin'
+          : closedAdmin
+          ? 'Panel Admin'
+          : 'Mi Espacio';
+
+      simulatePushNotification(
+        '🔒 Sesión cerrada por inactividad',
+        `Tu sesión en ${sessionName} se cerró automáticamente tras 5 minutos sin actividad por tu seguridad.`
+      );
+    }
+
+    function checkInactivity() {
+      let lastTime = lastActivityRef.current;
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY_LAST_ACTIVITY);
+        if (stored) {
+          const parsed = parseInt(stored, 10);
+          if (!isNaN(parsed) && parsed > lastTime) {
+            lastTime = parsed;
+            lastActivityRef.current = parsed;
+          }
+        }
+      } catch {}
+
+      const elapsed = Date.now() - lastTime;
+      if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+        handleSessionTimeout();
+      }
+    }
+
+    // Escuchar interacciones del usuario: mouse, teclado, scroll, toques en pantalla
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach((evt) => {
+      window.addEventListener(evt, recordActivity, { passive: true });
+    });
+
+    // Revisión periódica cada 10 segundos
+    const timerInterval = setInterval(checkInactivity, 10000);
+
+    // Revisar al cambiar de pestaña o volver a pantalla activa
+    const onVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        checkInactivity();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityOrFocus);
+    window.addEventListener('focus', onVisibilityOrFocus);
+
+    return () => {
+      activityEvents.forEach((evt) => {
+        window.removeEventListener(evt, recordActivity);
+      });
+      clearInterval(timerInterval);
+      document.removeEventListener('visibilitychange', onVisibilityOrFocus);
+      window.removeEventListener('focus', onVisibilityOrFocus);
+    };
+  }, [isAdminAuthenticated, authenticatedBusinessId]);
+
   const loginAsBusiness = (businessId: string) => {
     setAuthenticatedBusinessId(businessId);
     setCurrentBusinessId(businessId);
     setCurrentRole('business');
+    lastActivityRef.current = Date.now();
+    try {
+      localStorage.setItem('oleveci_last_activity_ts', Date.now().toString());
+    } catch {}
   };
 
   const logoutBusiness = () => {
     setAuthenticatedBusinessId(null);
-    setCurrentRole('explorer');
+    try {
+      localStorage.removeItem('oleveci_auth_biz_id');
+      if (!isAdminAuthenticated) {
+        localStorage.removeItem('oleveci_last_activity_ts');
+      }
+    } catch {}
+    if (currentRole === 'business') {
+      setCurrentRole('home');
+    }
   };
 
   const addBusinessPaymentRecord = (businessId: string, record: BusinessPaymentRecord) => {
