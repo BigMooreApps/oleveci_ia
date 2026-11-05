@@ -156,45 +156,9 @@ export function normalizeText(text: string): string {
  * 3. Mentions ALL stops in order without skipping any
  * 4. Clear communication of alternatives or missing catalog items
  */
-export function sanitizeSpokenText(
-  text: string,
-  stops: OliPlanStop[] = [],
-  isRefinement = false,
-  isSearch = false,
-  isAlternative = false
-): string {
-  let cleaned = sanitizeCurrencyText(text || '').trim();
+import { sanitizeSpokenText } from './oliCatalogEngine';
+export { sanitizeSpokenText };
 
-  // If empty, supply minimal friendly fallback
-  if (!cleaned) {
-    if (isSearch) {
-      cleaned = '¡Listo veci! Aquí tienes las opciones que encontré para ti.';
-    } else if (isRefinement) {
-      cleaned = '¡Listo veci! Tu plan fue actualizado. Abajo puedes ver los cambios.';
-    } else {
-      cleaned = `¡Listo veci! Tu plan ya quedó armado con ${stops.length} paradas. Abajo tienes todos los detalles.`;
-    }
-  }
-
-  // Clean extra linebreaks and spaces
-  cleaned = cleaned.replace(/\s+/g, ' ').trim();
-
-  // 1. Mandatory Greeting: Must start with "¡Listo veci!"
-  const lowerTrimmed = cleaned.toLowerCase();
-  if (!lowerTrimmed.startsWith('¡listo veci!') && !lowerTrimmed.startsWith('¡listo veci,') && !lowerTrimmed.startsWith('listo veci')) {
-    cleaned = `¡Listo veci! ${cleaned}`;
-  } else if (lowerTrimmed.startsWith('listo veci!') || lowerTrimmed.startsWith('listo veci,')) {
-    cleaned = cleaned.replace(/^listo veci[!,.]?/i, '¡Listo veci!');
-  }
-
-  // Guarantee ZERO residual dollar signs
-  cleaned = cleaned.replace(/\$/g, '');
-  return cleaned;
-}
-
-/**
- * Municipality extraction with Cajicá as default when none specified and no active selector
- */
 export const SUPPORTED_MUNICIPALITIES = [
   'Cajicá',
   'Chía',
@@ -2614,7 +2578,7 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
     if (ai) {
       try {
         const noMatchRes = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
+          model: 'gemini-2.0-flash',
           contents: `El usuario preguntó en OleVeci: "${userPrompt}" para el municipio "${targetMunicipality}".
 No hay comercios registrados exactamente para esa búsqueda.
 Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
@@ -2684,7 +2648,7 @@ Genera la respuesta hablada de Oli:
 5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
 6. Máximo 2 o 3 oraciones directas.`;
 
-      for (const modelName of ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest']) {
+      for (const modelName of ['gemini-2.0-flash', 'gemini-1.5-flash']) {
         try {
           const aiResponse = await ai.models.generateContent({
             model: modelName,
@@ -2817,9 +2781,6 @@ async function callGroqWithFallback(
   if (!key || key.trim().length === 0) return null;
 
   const candidateModels = [
-    'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
-    'qwen/qwen3.8-27b',
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
   ];
@@ -2891,10 +2852,9 @@ async function callGeminiWithModelFallback(
 ): Promise<{ text: string; modelUsed: string }> {
   // Candidate models: cascade from fastest active models to resilient fallbacks
   const candidateModels = [
-    'gemini-flash-latest',
-    'gemini-2.5-flash',
-    'gemini-3.5-flash',
-    'gemini-3-flash-preview',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
   ];
   let lastError: any = null;
 
@@ -3698,7 +3658,7 @@ export async function generateOliSpeechAudio(spokenText: string): Promise<Buffer
     const cleanText = sanitizeCurrencyText(spokenText).trim();
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash-lite-tts',
+      model: 'gemini-2.0-flash',
       contents: [
         {
           role: 'user',

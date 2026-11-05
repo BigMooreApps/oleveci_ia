@@ -119,7 +119,7 @@ export function sanitizeSpokenText(
       'campestre', 'tradicional', 'del', 'los', 'las', 'para', 'por', 'con', 'and', 'mas'
     ]);
     const tokens = normBiz.split(' ').filter((w) => w.length > 3 && !genericWords.has(w));
-    if (tokens.length > 0 && tokens.some((tok) => normCleaned.includes(tok))) {
+    if (tokens.length > 0 && tokens.every((tok) => normCleaned.includes(tok))) {
       return true;
     }
     return false;
