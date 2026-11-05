@@ -803,45 +803,50 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           </div>
         </div>
 
-        {/* Footer with Dynamic Result Counter and Clean Surprise CTA */}
-        <div className="p-4 bg-slate-50/90 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center justify-between sm:justify-start gap-2">
-            <div className="text-xs">
-              <span className="font-semibold text-slate-800 block">
+        {/* Footer with Modern Balanced Layout */}
+        <div className="p-4 sm:p-5 bg-white border-t border-slate-100 space-y-3 shrink-0">
+          {/* Top Status Bar: Live count on the left, subtle Restablecer on the right */}
+          <div className="flex items-center justify-between text-xs px-0.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  matchingReelsCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
+                }`}
+              />
+              <span className="font-semibold text-slate-700 truncate">
                 {matchingReelsCount > 0
-                  ? `🎲 ${matchingReelsCount} ${
+                  ? `${matchingReelsCount} ${
                       matchingReelsCount === 1 ? 'publicación lista' : 'publicaciones listas'
                     }`
-                  : '🔍 Sin coincidencias directas'}
+                  : 'Sin coincidencias directas'}
               </span>
-              <span className="text-[11px] text-slate-400 font-normal">
-                {draftCity !== 'all' ? `En ${draftCity}` : 'En toda la región'}
+              <span className="text-slate-400 text-[11px] font-normal truncate">
+                · {draftCity !== 'all' ? draftCity : 'Toda la región'}
               </span>
             </div>
 
             <button
               type="button"
               onClick={handleReset}
-              className="text-xs text-slate-400 hover:text-slate-600 font-normal flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-slate-100 cursor-pointer"
+              className="text-xs text-slate-400 hover:text-[#ff7700] font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 py-0.5 px-2 rounded-lg hover:bg-orange-50/60"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="w-3.5 h-3.5" />
               <span>Restablecer</span>
             </button>
           </div>
 
+          {/* Primary Action CTA: Full-width modern button */}
           <button
             type="button"
             onClick={handleApplySurprise}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-2xl text-white font-semibold text-xs sm:text-sm transition-all duration-300 cursor-pointer active:scale-98 hover:brightness-110 flex items-center justify-center gap-2 shadow-lg"
+            className="w-full py-3 px-5 rounded-2xl text-white font-semibold text-sm transition-all duration-200 cursor-pointer active:scale-[0.99] hover:brightness-105 flex items-center justify-center gap-2 shadow-md shadow-orange-500/20"
             style={{
               background: 'linear-gradient(135deg, #ff7700 0%, #ff5500 50%, #d9480f 100%)',
-              boxShadow:
-                '0 4px 16px -2px rgba(255, 119, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
             }}
           >
-            <Dices className="w-4 h-4 text-amber-100" />
+            <Dices className="w-4 h-4 text-white" />
             <span>¡Sorpréndeme con este plan!</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 text-white" />
           </button>
         </div>
       </div>
