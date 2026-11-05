@@ -477,19 +477,33 @@ export const BusinessLocationMapModal: React.FC<BusinessLocationMapModalProps> =
             </div>
           </div>
 
-          {/* Secondary contact option if available */}
+          {/* Tarjeta de Asistencia / WhatsApp */}
           {business.whatsapp && (
-            <div className="pt-1 flex items-center justify-between text-xs text-slate-500">
-              <span className="text-[11px]">¿Tienes dudas sobre cómo llegar?</span>
-              <button
-                type="button"
-                onClick={handleWhatsApp}
-                className="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800 font-bold hover:underline cursor-pointer"
-              >
-                <WhatsAppIcon className="w-3.5 h-3.5 fill-emerald-600" />
-                <span>Preguntar al comercio por WhatsApp</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleWhatsApp}
+              className="w-full flex items-center justify-between gap-2.5 p-2.5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200/80 hover:border-emerald-200/90 transition-all active:scale-[0.99] cursor-pointer group shadow-2xs"
+              title="Preguntar cómo llegar al comercio por WhatsApp"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                  <WhatsAppIcon className="w-4 h-4 fill-white" />
+                </div>
+                <div className="text-left min-w-0">
+                  <div className="text-xs font-bold text-slate-800 group-hover:text-emerald-950 truncate">
+                    ¿Dudas sobre cómo llegar?
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium truncate">
+                    Pregúntale al comercio por WhatsApp
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white group-hover:bg-emerald-600 text-emerald-700 group-hover:text-white border border-emerald-200 group-hover:border-emerald-600 text-xs font-extrabold shadow-2xs transition-colors shrink-0">
+                <span>Escribir</span>
+                <ExternalLink className="w-3 h-3" />
+              </div>
+            </button>
           )}
         </div>
       </div>
