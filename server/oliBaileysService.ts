@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import path from 'path';
 import fs from 'fs';
 import { generateOliPlan } from './oliAssistant';
-import { formatOliResponseForWhatsApp, getOrCreateSession } from './oliWhatsAppService';
+import { formatOliResponseForWhatsApp, getOrCreateSession, extractAndApplyUserPreferences } from './oliWhatsAppService';
 import { Business, Post } from '../src/types';
 
 type WASocket = Baileys.WASocket;
@@ -257,6 +257,42 @@ export async function connectBaileys(): Promise<BaileysState> {
   }
 }
 
+async function transcribeVoiceNoteWithGroq(
+  audioBuffer: Buffer,
+  mimetype = 'audio/ogg'
+): Promise<string | null> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey || !apiKey.trim()) return null;
+
+  try {
+    const formData = new FormData();
+    const blob = new Blob([audioBuffer], { type: mimetype });
+    formData.append('file', blob, 'audio.ogg');
+    formData.append('model', 'whisper-large-v3');
+    formData.append('language', 'es');
+    formData.append('response_format', 'text');
+
+    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey.trim()}`,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      console.warn('[OLI Baileys] Groq Whisper retornó HTTP', res.status, await res.text());
+      return null;
+    }
+
+    const transcribed = (await res.text()).trim();
+    return transcribed || null;
+  } catch (err: any) {
+    console.warn('[OLI Baileys] Error llamando a Groq Whisper:', err?.message || err);
+    return null;
+  }
+}
+
 async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
   if (!sock) return;
 
@@ -269,19 +305,48 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
   // Ignore status updates and system broadcasts
   if (remoteJid.endsWith('@broadcast') || remoteJid === 'status@broadcast') return;
 
+  // Extract phone number from JID
+  const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/:\d+/, '');
+
   // Extract text from regular conversation or extended text
-  const text =
+  let text =
     msg.message?.conversation ||
     msg.message?.extendedTextMessage?.text ||
     msg.message?.imageMessage?.caption ||
     '';
 
+  let isVoiceNote = false;
+
+  // Check if incoming message is an audio / voice note
+  if (!text.trim() && (msg.message?.audioMessage || (msg.message as any)?.voiceMessage)) {
+    try {
+      const downloadMedia =
+        (Baileys as any).downloadMediaMessage || (Baileys as any).default?.downloadMediaMessage;
+      if (typeof downloadMedia === 'function') {
+        const audioMsg = msg.message?.audioMessage || (msg.message as any)?.voiceMessage;
+        console.log(`[OLI WhatsApp Web] 🎙️ Nota de voz recibida de +${senderPhone}. Descargando y transcribiendo con Whisper...`);
+        const buffer = await downloadMedia(msg, 'buffer', {});
+        if (buffer && buffer.length > 0) {
+          const transcribed = await transcribeVoiceNoteWithGroq(
+            buffer,
+            audioMsg?.mimetype || 'audio/ogg'
+          );
+          if (transcribed) {
+            text = transcribed;
+            isVoiceNote = true;
+            console.log(`[OLI WhatsApp Web] 🎙️ Nota de voz transcrita con éxito: "${transcribed}"`);
+          }
+        }
+      }
+    } catch (audioErr: any) {
+      console.warn('[OLI WhatsApp Web] Error transcribiendo nota de voz:', audioErr?.message || audioErr);
+    }
+  }
+
   const cleanText = text.trim();
   if (!cleanText) return;
 
-  // Extract phone number from JID
-  const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/:\d+/, '');
-  console.log(`[OLI WhatsApp Web] 📩 Mensaje de +${senderPhone}: "${cleanText}"`);
+  console.log(`[OLI WhatsApp Web] 📩 Mensaje de +${senderPhone}${isVoiceNote ? ' (Nota de voz)' : ''}: "${cleanText}"`);
 
   // Simulate typing indicator in WhatsApp
   try {
@@ -291,6 +356,7 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
 
   // Get or initialize conversational session
   const session = getOrCreateSession(senderPhone);
+  extractAndApplyUserPreferences(session, cleanText);
 
   const businesses = getBusinessesFn();
   const posts = getPostsFn();
@@ -315,7 +381,10 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
   }
 
   // Format into WhatsApp markdown
-  const replyMarkdown = formatOliResponseForWhatsApp(oliResponse);
+  let replyMarkdown = formatOliResponseForWhatsApp(oliResponse);
+  if (isVoiceNote) {
+    replyMarkdown = `🎙️ _(Escuché tu nota de voz: "${cleanText}")_\n\n${replyMarkdown}`;
+  }
 
   // Update conversation history
   session.messageHistory.push({ sender: 'user', text: cleanText });

@@ -4,6 +4,7 @@ import {
   MicOff,
   Send,
   Volume2,
+  VolumeX,
   Sparkles,
   MapPin,
   Users,
@@ -136,6 +137,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
   // Audio / Speech State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [currentPlayingText, setCurrentPlayingText] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -198,17 +200,121 @@ export const OliSection: React.FC<OliSectionProps> = ({
     }
   }, [chatHistory, isLoading]);
 
-  // Modo de voz deshabilitado temporalmente a solicitud
-  const speakWithBrowserTTS = (_text: string) => {
-    return;
+  // Web Speech Synthesis Fallback
+  const speakWithBrowserTTS = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/\$/g, '').trim();
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'es-CO';
+      utterance.rate = 1.05;
+      utterance.pitch = 1.15;
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice =
+        voices.find((v) => v.lang.includes('es-CO') || v.lang.includes('es-419')) ||
+        voices.find((v) => v.lang.includes('es') && (v.name.includes('Female') || v.name.includes('Sofia') || v.name.includes('Paulina') || v.name.includes('Helena') || v.name.includes('Lucia'))) ||
+        voices.find((v) => v.lang.includes('es'));
+
+      if (preferredVoice) utterance.voice = preferredVoice;
+
+      utterance.onstart = () => setIsPlayingAudio(true);
+      utterance.onend = () => {
+        setIsPlayingAudio(false);
+        setCurrentPlayingText(null);
+      };
+      utterance.onerror = () => {
+        setIsPlayingAudio(false);
+        setCurrentPlayingText(null);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      setIsPlayingAudio(false);
+      setCurrentPlayingText(null);
+    }
   };
 
-  const playOliSpokenText = async (_spokenText: string) => {
-    return;
+  const playOliSpokenText = async (spokenText: string) => {
+    if (!spokenText) return;
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    setIsAudioLoading(true);
+    setIsPlayingAudio(true);
+    setCurrentPlayingText(spokenText);
+
+    try {
+      const response = await fetch('/api/oli/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ spokenText }),
+      });
+
+      if (!response.ok) {
+        throw new Error('TTS fetch failed');
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const json = await response.json();
+        if (json.fallback) {
+          setIsAudioLoading(false);
+          speakWithBrowserTTS(json.spokenText || spokenText);
+          return;
+        }
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        setIsAudioLoading(false);
+        setCurrentPlayingText(null);
+      };
+
+      audio.onerror = () => {
+        setIsAudioLoading(false);
+        speakWithBrowserTTS(spokenText);
+      };
+
+      await audio.play();
+      setIsAudioLoading(false);
+    } catch {
+      setIsAudioLoading(false);
+      speakWithBrowserTTS(spokenText);
+    }
   };
 
-  const handleToggleAudio = (_textToPlay?: string) => {
-    return;
+  const handleToggleAudio = (textToPlay?: string) => {
+    if (isPlayingAudio) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      setIsPlayingAudio(false);
+      setIsAudioLoading(false);
+      setCurrentPlayingText(null);
+      return;
+    }
+
+    if (textToPlay) {
+      playOliSpokenText(textToPlay);
+    }
   };
 
   // Speech Recognition
@@ -830,13 +936,91 @@ export const OliSection: React.FC<OliSectionProps> = ({
                           </span>
                         </div>
 
-                        {/* Modo de voz deshabilitado temporalmente */}
+                        {/* Botón interactivo de voz de Oli */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAudio(msg.text)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                            isPlayingAudio && currentPlayingText === msg.text
+                              ? 'bg-blue-100 text-[#0066FF] border border-blue-300 shadow-xs animate-pulse'
+                              : 'text-slate-500 hover:text-[#0066FF] hover:bg-blue-50/70 border border-slate-200/80 bg-slate-50'
+                          }`}
+                          title={isPlayingAudio && currentPlayingText === msg.text ? 'Detener voz' : 'Escuchar a Oli'}
+                        >
+                          {isPlayingAudio && currentPlayingText === msg.text ? (
+                            <>
+                              <VolumeX className="w-3.5 h-3.5 text-blue-600" />
+                              <span className="text-[11px] font-bold">Detener</span>
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3.5 h-3.5 text-slate-500 hover:text-blue-600" />
+                              <span className="text-[11px] font-medium hidden sm:inline">Escuchar</span>
+                            </>
+                          )}
+                        </button>
                       </div>
 
                       {/* Conversational Spoken Text */}
                       <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal whitespace-pre-wrap">
                         {msg.text}
                       </p>
+
+                      {/* Chips de Respuestas Rápidas Inteligentes */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-100">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mr-1 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-500" /> Opciones rápidas:
+                        </span>
+                        {plan && plan.stops && plan.stops.length > 0 ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleSendMessage('Quiero agregar una parada para tomar café')}
+                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
+                            >
+                              ☕ Agregar café
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSendMessage('Haz el plan con un presupuesto más económico')}
+                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
+                            >
+                              💰 Más económico
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSendMessage('Mejor armemos un plan similar pero en Chía')}
+                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
+                            >
+                              📍 Cambiar a Chía
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleSendMessage(`Ármame un plan completo que incluya este lugar en ${currentCity || 'Cajicá'}`)}
+                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
+                            >
+                              🗺️ Armar plan con esto
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSendMessage(`¿Qué otros comercios similares hay en ${currentCity || 'Cajicá'}?`)}
+                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
+                            >
+                              🔍 Ver más opciones
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSendMessage('Buscar también en Chía y Zipaquirá')}
+                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
+                            >
+                              🏙️ Otros municipios
+                            </button>
+                          </>
+                        )}
+                      </div>
 
                       {msg.timestamp && (
                         <div className="flex justify-end pt-0.5">

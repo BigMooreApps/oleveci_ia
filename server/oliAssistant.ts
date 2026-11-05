@@ -3153,6 +3153,34 @@ function fillMissingPromptStops(
 }
 
 /**
+ * Fast in-memory semantic query cache with TTL (15 min) for instant repeated searches
+ */
+interface CachedQuery {
+  response: OliPlanResponse;
+  timestamp: number;
+}
+const semanticQueryCache = new Map<string, CachedQuery>();
+const CACHE_TTL_MS = 15 * 60 * 1000;
+
+export function getCachedPlan(key: string): OliPlanResponse | null {
+  const entry = semanticQueryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    semanticQueryCache.delete(key);
+    return null;
+  }
+  return entry.response;
+}
+
+export function setCachedPlan(key: string, response: OliPlanResponse): void {
+  if (semanticQueryCache.size > 200) {
+    const oldestKey = semanticQueryCache.keys().next().value;
+    if (oldestKey) semanticQueryCache.delete(oldestKey);
+  }
+  semanticQueryCache.set(key, { response, timestamp: Date.now() });
+}
+
+/**
  * Main entry point for Oli Assistant
  */
 export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliPlanResponse> {
@@ -3180,6 +3208,23 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
   const isRefinement = isPlanRefinementIntent(userPrompt, previousPlan);
   const ai = getGenAI(input.apiKey);
   const hasGroq = Boolean((input.groqApiKey || process.env.GROQ_API_KEY)?.trim());
+
+  const cacheKey = `${normalizeText(userPrompt)}_${normalizeText(currentCity)}_${resolvedBudget}_${catalogPosts.length}_${catalogBusinesses.length}`;
+  const isInitial = !previousPlan && (!messageHistory || messageHistory.length === 0);
+
+  if (isInitial) {
+    const cached = getCachedPlan(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  const returnAndCache = (res: OliPlanResponse): OliPlanResponse => {
+    if (isInitial && res) {
+      setCachedPlan(cacheKey, res);
+    }
+    return res;
+  };
 
   // If any LLM provider is available (Groq or Gemini) and not set to local, run unified autonomous LLM interpretation on the full catalog
   if ((hasGroq || ai) && process.env.OLI_PROVIDER !== 'local') {
@@ -3391,7 +3436,7 @@ ${catalogSummaryText}`;
 
           const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
 
-          return {
+          return returnAndCache({
             type: 'search',
             spokenText: spokenClean,
             searchQuery: userPrompt,
@@ -3445,7 +3490,7 @@ ${catalogSummaryText}`;
                 correctedEntities: [],
               },
             },
-          };
+          });
         }
 
         // CASE 2: Multi-Stop Itinerary Plan or Plan Refinement
@@ -3575,7 +3620,7 @@ ${catalogSummaryText}`;
             (b) => normalizeText(b.city) === normalizeText(targetCity)
           ).length;
 
-          return {
+          return returnAndCache({
             type: 'plan',
             spokenText: spokenClean,
             planTitle: parsed.planTitle || `Plan OleVeci en ${targetCity}`,
@@ -3632,7 +3677,7 @@ ${catalogSummaryText}`;
                 correctedEntities: [],
               },
             },
-          };
+          });
         }
       }
     } catch (llmUnifiedErr) {
@@ -3642,9 +3687,9 @@ ${catalogSummaryText}`;
 
   // Fallback determinista si Gemini está desconectado o sin cuota
   if (!isRefinement && detectSearchIntent(userPrompt)) {
-    return generateOliSearchResponse(input);
+    return returnAndCache(generateOliSearchResponse(input));
   }
-  return generateFallbackOliPlan(input);
+  return returnAndCache(generateFallbackOliPlan(input));
 }
 
 /**

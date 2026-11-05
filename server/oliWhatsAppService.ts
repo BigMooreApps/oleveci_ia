@@ -1,28 +1,98 @@
+import path from 'path';
+import fs from 'fs';
 import { OliPlanResponse, GenerateOliPlanInput } from './oliTypes';
 import { generateOliPlan } from './oliAssistant';
 import { Post, Business } from '../src/types';
 import { formatPriceCOP } from './oliValidator';
 
-// In-memory conversation session per phone number for conversational continuity
-interface WhatsAppUserSession {
+export interface UserPreferences {
+  petFriendly?: boolean;
+  vegetarian?: boolean;
+  familyWithKids?: boolean;
+  budgetPreference?: 'economico' | 'medio' | 'premium';
+}
+
+// Conversation session per phone number for conversational continuity with disk persistence
+export interface WhatsAppUserSession {
   phoneNumber: string;
   previousPlan?: OliPlanResponse | null;
   lastCity: string;
   lastInteraction: number;
   messageHistory: Array<{ sender: 'user' | 'oli'; text: string }>;
+  preferences?: UserPreferences;
 }
 
-const userSessions = new Map<string, WhatsAppUserSession>();
+const DB_SESSIONS_FILE = path.join(process.cwd(), 'server', 'db_oli_sessions.json');
+
+// Load persisted sessions from disk on server launch
+function loadPersistedSessions(): Map<string, WhatsAppUserSession> {
+  const map = new Map<string, WhatsAppUserSession>();
+  try {
+    if (fs.existsSync(DB_SESSIONS_FILE)) {
+      const raw = fs.readFileSync(DB_SESSIONS_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) {
+        data.forEach((s) => {
+          if (s && s.phoneNumber) {
+            map.set(s.phoneNumber, s);
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[OLI WhatsApp Service] No se pudo leer db_oli_sessions.json:', err);
+  }
+  return map;
+}
+
+const userSessions = loadPersistedSessions();
+
+let saveSessionsTimer: NodeJS.Timeout | null = null;
+export function debouncedSaveSessions(): void {
+  if (saveSessionsTimer) clearTimeout(saveSessionsTimer);
+  saveSessionsTimer = setTimeout(() => {
+    try {
+      const arr = Array.from(userSessions.values());
+      fs.writeFileSync(DB_SESSIONS_FILE, JSON.stringify(arr, null, 2), 'utf8');
+    } catch (err) {
+      console.error('[OLI WhatsApp Service] Error guardando db_oli_sessions.json:', err);
+    }
+  }, 1200);
+}
+
+// Extract human preferences from conversational text to remember for the user
+export function extractAndApplyUserPreferences(session: WhatsAppUserSession, text: string): void {
+  if (!text) return;
+  const lower = text.toLowerCase();
+  if (!session.preferences) {
+    session.preferences = {};
+  }
+  if (/perro|mascota|pet-?friendly|canino|gato/.test(lower)) {
+    session.preferences.petFriendly = true;
+  }
+  if (/vegetariano|vegano|sin carne|veggie/.test(lower)) {
+    session.preferences.vegetarian = true;
+  }
+  if (/ni[ñn]os|hijos|bendici[oó]n|familiar|familia/.test(lower)) {
+    session.preferences.familyWithKids = true;
+  }
+  if (/barato|barateli|tres lucas|poco presupuesto|econ[oó]mico/.test(lower)) {
+    session.preferences.budgetPreference = 'economico';
+  }
+}
 
 // Cleanup stale sessions after 24 hours
 setInterval(() => {
   const now = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
+  let changed = false;
   for (const [phone, session] of userSessions.entries()) {
     if (now - session.lastInteraction > dayMs) {
       userSessions.delete(phone);
+      changed = true;
     }
   }
+  if (changed) debouncedSaveSessions();
 }, 60 * 60 * 1000);
 
 export function getOrCreateSession(phoneNumber: string): WhatsAppUserSession {
@@ -34,11 +104,16 @@ export function getOrCreateSession(phoneNumber: string): WhatsAppUserSession {
       lastCity: 'Cajicá',
       lastInteraction: Date.now(),
       messageHistory: [],
+      preferences: {},
     };
     userSessions.set(phoneNumber, session);
   } else {
     session.lastInteraction = Date.now();
+    if (!session.preferences) {
+      session.preferences = {};
+    }
   }
+  debouncedSaveSessions();
   return session;
 }
 
@@ -199,6 +274,7 @@ export async function processIncomingWhatsAppWebhook(
     }
 
     const session = getOrCreateSession(fromPhone);
+    extractAndApplyUserPreferences(session, userText);
 
     // Call Oli Agent with user text and previous session context
     const oliResponse = await generateOliPlan({
