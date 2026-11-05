@@ -467,10 +467,9 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
           ...stopsWithCoords.map((s) => [s.coords.lat, s.coords.lng] as [number, number]),
         ];
 
-        // Draw Stop Markers with official OleVeci Pin Icon + Stop Number
+        // Draw Stop Markers with official OleVeci Pin Icon + Stop Number (sin etiqueta de texto flotante)
         stopsWithCoords.forEach((stop) => {
           const stopDivIcon = createOleVeciPinIcon({
-            label: stop.post.businessName,
             stopNumber: stop.index,
             size: 50,
             pulse: true,
