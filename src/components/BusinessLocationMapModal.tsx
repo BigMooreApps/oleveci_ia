@@ -352,7 +352,7 @@ export const BusinessLocationMapModal: React.FC<BusinessLocationMapModalProps> =
           <div ref={mapContainerRef} className="w-full h-full" style={{ minHeight: '320px' }} />
 
           {/* Floating Map Controls */}
-          <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2">
+          <div className="absolute top-3 left-3 z-[1000]">
             <button
               type="button"
               onClick={handleRecenter}
@@ -361,17 +361,6 @@ export const BusinessLocationMapModal: React.FC<BusinessLocationMapModalProps> =
             >
               <Compass className="w-3.5 h-3.5 text-[#007af7]" />
               <span>Centrar negocio</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleLocateMe}
-              disabled={gpsLoading}
-              className="bg-white/95 hover:bg-white text-slate-800 px-3 py-1.5 rounded-xl text-xs font-bold shadow-md border border-slate-200/90 flex items-center gap-1.5 transition cursor-pointer backdrop-blur-xs active:scale-95"
-              title="Calcular distancia desde mi ubicación GPS"
-            >
-              <Crosshair className={`w-3.5 h-3.5 text-emerald-600 ${gpsLoading ? 'animate-spin' : ''}`} />
-              <span>{gpsLoading ? 'Detectando GPS...' : 'Mi ubicación GPS'}</span>
             </button>
           </div>
 
@@ -422,35 +411,70 @@ export const BusinessLocationMapModal: React.FC<BusinessLocationMapModalProps> =
             </button>
           </div>
 
-          {/* Navigation Action Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {/* Google Maps Route Button */}
+          {/* Navigation Action Buttons coordinados con el diseño de Itinerarios */}
+          <div className="space-y-2">
+            {/* Botón Principal: Cómo llegar con Google Maps */}
             <a
               href={googleMapsDirectionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 shadow-md shadow-emerald-700/20 transition cursor-pointer active:scale-98"
+              id="btn-location-google-maps"
+              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#0056d6] to-[#041f5e] hover:from-[#0047b3] hover:to-[#02184d] text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all active:scale-[0.99] cursor-pointer group"
               title="Abrir indicaciones paso a paso en Google Maps"
             >
-              <Navigation className="w-4 h-4 text-white shrink-0" />
+              <Navigation className="w-4 h-4 text-white fill-white group-hover:rotate-12 transition-transform shrink-0" />
               <span>Cómo llegar con Google Maps</span>
-              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+              <ExternalLink className="w-3.5 h-3.5 text-blue-200 shrink-0" />
             </a>
 
-            {/* Waze Route Button */}
-            <a
-              href={wazeDirectionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold text-slate-900 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200/80 shadow-2xs transition cursor-pointer active:scale-98"
-              title="Abrir navegación en Waze"
-            >
-              <svg className="w-4 h-4 fill-[#05c8f7] shrink-0" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12c0 2.17.7 4.18 1.88 5.81L2.5 21.5l4.08-1.28C8.08 21.2 9.97 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm-2.5 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm5 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm-5.5 6c.55 1.48 1.94 2.5 3 2.5s2.45-1.02 3-2.5h-6z" />
-              </svg>
-              <span>Cómo llegar con Waze</span>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-            </a>
+            {/* Botones Secundarios: GPS Actual y Waze */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Botón GPS */}
+              <button
+                type="button"
+                id="btn-location-gps-toggle"
+                onClick={handleLocateMe}
+                disabled={gpsLoading}
+                className={`py-2.5 px-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-2xs border ${
+                  userLocation
+                    ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-300'
+                }`}
+                title={userLocation ? 'GPS activo usando tu ubicación' : 'Calcular distancia desde mi ubicación GPS'}
+              >
+                {gpsLoading ? (
+                  <>
+                    <Crosshair className="w-3.5 h-3.5 animate-spin text-[#0056d6] shrink-0" />
+                    <span className="truncate">Detectando GPS...</span>
+                  </>
+                ) : userLocation ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    <span className="truncate">GPS Activo{distanceKm ? ` (${distanceKm})` : ''}</span>
+                  </>
+                ) : (
+                  <>
+                    <Crosshair className="w-3.5 h-3.5 text-[#0056d6] shrink-0" />
+                    <span className="truncate">Usar Mi GPS Actual</span>
+                  </>
+                )}
+              </button>
+
+              {/* Botón Waze */}
+              <a
+                href={wazeDirectionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                id="btn-location-waze"
+                className="py-2.5 px-3 rounded-2xl bg-[#EAF2FC] hover:bg-[#d6e7fc] border border-blue-200/80 text-[#0A62F4] text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                title="Abrir navegación en Waze"
+              >
+                <svg className="w-3.5 h-3.5 fill-[#0A62F4] shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12c0 2.17.7 4.18 1.88 5.81L2.5 21.5l4.08-1.28C8.08 21.2 9.97 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm-2.5 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm5 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm-5.5 6c.55 1.48 1.94 2.5 3 2.5s2.45-1.02 3-2.5h-6z" />
+                </svg>
+                <span className="truncate">Navegar con Waze</span>
+              </a>
+            </div>
           </div>
 
           {/* Secondary contact option if available */}

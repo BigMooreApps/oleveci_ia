@@ -28,6 +28,7 @@ import L from 'leaflet';
 import { Post, LocationCoordinates } from '../types';
 import { useApp } from '../context/AppContext';
 import { WhatsAppIcon } from './WhatsAppIcon';
+import { createOleVeciPinIcon } from '../utils/mapIcons';
 import { BusinessLocationMapModal } from './BusinessLocationMapModal';
 
 interface PlanRouteSectionProps {
@@ -466,23 +467,13 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
           ...stopsWithCoords.map((s) => [s.coords.lat, s.coords.lng] as [number, number]),
         ];
 
-        // Draw Stop Markers with OleVeci Brand Styling
+        // Draw Stop Markers with official OleVeci Pin Icon + Stop Number
         stopsWithCoords.forEach((stop) => {
-          // OleVeci Pin badge with stop number
-          const stopHtml = `
-            <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; filter: drop-shadow(0 6px 12px rgba(4, 31, 94, 0.35)); transition: transform 0.2s;">
-              <div style="width: 32px; height: 32px; border-radius: 12px; background: linear-gradient(135deg, #007af7 0%, #041f5e 100%); border: 2.5px solid #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0, 86, 214, 0.3);">
-                <span style="color: #ffffff; font-weight: 900; font-size: 13px; font-family: system-ui, sans-serif;">${stop.index}</span>
-              </div>
-              <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #041f5e; margin-top: -1px;"></div>
-            </div>
-          `;
-
-          const stopDivIcon = L.divIcon({
-            className: 'oleveci-stop-pin',
-            html: stopHtml,
-            iconSize: [34, 38],
-            iconAnchor: [17, 38],
+          const stopDivIcon = createOleVeciPinIcon({
+            label: stop.post.businessName,
+            stopNumber: stop.index,
+            size: 50,
+            pulse: true,
           });
 
           const stopMarker = L.marker([stop.coords.lat, stop.coords.lng], {
@@ -490,25 +481,37 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
           }).addTo(map);
 
           const popupContent = `
-            <div style="font-family: system-ui, -apple-system, sans-serif; padding: 6px; min-width: 180px;">
-              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                <span style="background: #0056d6; color: white; width: 18px; height: 18px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900;">${stop.index}</span>
-                <span style="font-size: 12px; font-weight: 800; color: #021b58; line-height: 1.2;">${stop.post.businessName}</span>
+            <div style="font-family: inherit; padding: 4px; min-width: 180px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                ${
+                  stop.post.businessLogo
+                    ? `<img src="${stop.post.businessLogo}" style="width: 28px; height: 28px; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0;" />`
+                    : `<div style="width: 28px; height: 28px; border-radius: 8px; background: #0056d6; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;">${stop.index}</div>`
+                }
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <span style="background: #ff7700; color: #ffffff; width: 16px; height: 16px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; shrink-0;">${stop.index}</span>
+                    <span style="font-weight: 800; font-size: 12px; color: #021b58; line-height: 1.2; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${stop.post.businessName}</span>
+                  </div>
+                  <div style="font-size: 10px; color: #007af7; font-weight: 600;">
+                    ${stop.post.subCategory || stop.post.category || 'Parada de plan'}
+                  </div>
+                </div>
               </div>
-              <div style="font-size: 11px; color: #64748b; margin-bottom: 8px;">
-                ${stop.post.businessAddress || stop.post.businessCity || currentCity}
+              <div style="font-size: 11px; color: #475569; margin-bottom: 8px; line-height: 1.3;">
+                📍 ${stop.post.businessAddress || stop.post.businessCity || currentCity}
               </div>
               <a
                 href="https://www.google.com/maps/dir/?api=1&destination=${stop.coords.lat},${stop.coords.lng}"
                 target="_blank"
                 rel="noopener noreferrer"
-                style="display: inline-flex; align-items: center; justify-content: center; width: 100%; gap: 6px; background: #0056d6; color: #ffffff; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 10px; text-decoration: none; box-shadow: 0 2px 6px rgba(0, 86, 214, 0.25);"
+                style="display: inline-flex; align-items: center; justify-content: center; width: 100%; gap: 6px; background: #041f5e; color: #ffffff; font-size: 11px; font-weight: 700; padding: 7px 10px; border-radius: 10px; text-decoration: none; box-shadow: 0 2px 6px rgba(4, 31, 94, 0.25);"
               >
-                <span>🚗 Ir a parada ${stop.index} en Maps</span>
+                <span>🚗 Cómo llegar a parada ${stop.index}</span>
               </a>
             </div>
           `;
-          stopMarker.bindPopup(popupContent, { offset: [0, -32] });
+          stopMarker.bindPopup(popupContent, { offset: [0, -45] });
           newMarkers.push(stopMarker);
         });
 

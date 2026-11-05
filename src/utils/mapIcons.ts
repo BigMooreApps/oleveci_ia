@@ -3,6 +3,7 @@ import L from 'leaflet';
 export interface OleVeciPinOptions {
   label?: string;
   priceTag?: string;
+  stopNumber?: number | string;
   isDraggable?: boolean;
   size?: number;
   pulse?: boolean;
@@ -16,6 +17,7 @@ export const createOleVeciPinIcon = (options: OleVeciPinOptions = {}) => {
   const {
     label,
     priceTag,
+    stopNumber,
     isDraggable = false,
     size = 58,
     pulse = true,
@@ -37,6 +39,7 @@ export const createOleVeciPinIcon = (options: OleVeciPinOptions = {}) => {
           ? `<div style="position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: 50; filter: drop-shadow(0 4px 12px rgba(4,31,94,0.35));">
               <div style="background: linear-gradient(135deg, #041f5e, #007af7); color: #ffffff; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; white-space: nowrap; border: 1.5px solid #ffffff; letter-spacing: 0.2px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; display: flex; align-items: center; gap: 4px;">
                 ${priceTag ? `<span style="background: #ff7700; color: #ffffff; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 900;">${priceTag}</span>` : ''}
+                ${stopNumber !== undefined ? `<span style="background: #ff7700; color: #ffffff; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 900;">${stopNumber}</span>` : ''}
                 ${label ? `<span>${label}</span>` : ''}
               </div>
               <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid #007af7; margin-top: -1px;"></div>
@@ -49,6 +52,13 @@ export const createOleVeciPinIcon = (options: OleVeciPinOptions = {}) => {
         style="width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 8px 16px rgba(4,31,94,0.35)); pointer-events: none;"
         draggable="false"
       />
+      ${
+        stopNumber !== undefined
+          ? `<div style="position: absolute; top: -5px; right: -5px; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 9999px; background: linear-gradient(135deg, #0056d6 0%, #041f5e 100%); color: #ffffff; border: 2px solid #ffffff; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(4, 31, 94, 0.45); z-index: 10; font-family: system-ui, -apple-system, sans-serif;">
+              ${stopNumber}
+            </div>`
+          : ''
+      }
       ${
         pulse
           ? `<div style="position: absolute; top: ${anchorY}px; left: ${anchorX}px; transform: translate(-50%, -50%); width: 26px; height: 10px; background: radial-gradient(ellipse at center, rgba(0,122,247,0.6) 0%, rgba(0,122,247,0) 75%); border-radius: 9999px; pointer-events: none; z-index: -1;"></div>`
