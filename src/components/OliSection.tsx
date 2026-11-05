@@ -649,8 +649,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
       {/* Top Bar for active conversation (ChatGPT/Gemini style) */}
       {hasStarted && (
-        <div className="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 py-2.5 shadow-2xs">
-          <div className="max-w-3xl mx-auto flex items-center justify-between">
+        <div className="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3 sm:px-4 py-2.5 shadow-2xs">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 shrink-0 flex items-center justify-center">
                 <img
@@ -701,7 +701,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
       <div className="w-full flex-1 flex flex-col relative z-10">
         {/* INITIAL STATE: Hero presentation & Quick starter options */}
         {!hasStarted && (
-          <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-10">
+          <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-10">
             {/* Full Oli Mascot Character (Complete, unclipped, not inside a circle) */}
             <div className="relative mb-2 sm:mb-3 flex flex-col items-center">
               <div className="relative w-24 h-24 sm:w-44 sm:h-44 flex items-center justify-center transition-transform hover:scale-105 duration-300">
@@ -782,7 +782,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
         {/* CONVERSATION THREAD: Active chat messages */}
         {hasStarted && (
-          <div className="w-full max-w-3xl mx-auto flex-1 px-4 py-6 space-y-6">
+          <div className="w-full max-w-4xl mx-auto flex-1 px-2.5 sm:px-4 py-3 sm:py-6 space-y-4 sm:space-y-6">
             {chatHistory.map((msg, index) => {
               const isUser = msg.sender === 'user';
 
@@ -792,10 +792,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
                 return (
                   <div
                     key={index}
-                    className="w-full flex justify-end gap-2.5 sm:gap-3 items-end animate-in fade-in slide-in-from-bottom-2 duration-300"
+                    className="w-full flex justify-end gap-2 sm:gap-2.5 items-end animate-in fade-in slide-in-from-bottom-2 duration-300"
                   >
                     {isEditingThis ? (
-                      <div className="w-full max-w-[90%] sm:max-w-[80%] rounded-2xl rounded-br-xs bg-[#0056d6] text-white p-3.5 sm:p-4 shadow-md border border-blue-400/50 space-y-3">
+                      <div className="w-full max-w-[95%] sm:max-w-[85%] rounded-2xl rounded-br-xs bg-[#0056d6] text-white p-3.5 sm:p-4 shadow-md border border-blue-400/50 space-y-3">
                         <div className="flex items-center justify-between text-xs text-blue-100 border-b border-blue-400/30 pb-1.5 font-medium">
                           <span className="flex items-center gap-1.5">
                             <Pencil className="w-3.5 h-3.5 text-blue-200" />
@@ -839,7 +839,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="group relative max-w-[85%] sm:max-w-[75%]">
+                      <div className="group relative max-w-[90%] sm:max-w-[78%]">
                         {/* Action buttons (Editar y Borrar) on hover */}
                         <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity absolute -top-3.5 right-2 hidden sm:flex items-center gap-1 bg-white border border-slate-200 rounded-full px-2 py-0.5 shadow-sm text-slate-500 z-10">
                           <button
@@ -911,32 +911,26 @@ export const OliSection: React.FC<OliSectionProps> = ({
               return (
                 <div
                   key={index}
-                  className="w-full flex gap-2.5 sm:gap-3 items-start animate-in fade-in slide-in-from-bottom-2 duration-300"
+                  className="w-full space-y-3 sm:space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
                 >
-                  {/* Oli Mascot Avatar (Complete, unclipped) */}
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center shrink-0 mt-0.5">
-                    <img
-                      src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
-                      alt="Oli"
-                      className="w-full h-full object-contain drop-shadow-xs"
-                    />
-                  </div>
+                  {/* Conversational Bubble */}
+                  <div className="w-full rounded-2xl bg-white border border-slate-200/90 p-3.5 sm:p-5 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
+                          alt="Oli"
+                          className="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-2xs shrink-0"
+                        />
+                        <span className="text-xs sm:text-sm font-bold text-[#0056d6]">
+                          Oli Asistente
+                        </span>
+                        <span className="text-[10px] sm:text-xs text-slate-400">
+                          · Sabana Centro
+                        </span>
+                      </div>
 
-                  {/* Oli Message Content */}
-                  <div className="flex-1 min-w-0 space-y-4">
-                    {/* Conversational Bubble */}
-                    <div className="w-full rounded-2xl rounded-tl-xs bg-white border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-[#0056d6]">
-                            Oli Asistente
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            · Sabana Centro
-                          </span>
-                        </div>
-
-                        {/* Botón interactivo de voz de Oli */}
+                      {/* Botón interactivo de voz de Oli */}
                         <button
                           type="button"
                           onClick={() => handleToggleAudio(msg.text)}
@@ -1297,48 +1291,48 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                 return (
                                   <div
                                     key={post.id}
-                                    className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group cursor-pointer"
+                                    className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between group cursor-pointer"
                                     onClick={() => onSelectPost?.(post)}
                                   >
-                                    <div className="flex items-start gap-3 min-w-0 w-full flex-1 overflow-hidden">
-                                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative">
+                                    <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 w-full flex-1 overflow-hidden">
+                                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative">
                                         <img
                                           src={post.imageUrl || '/Logo_OleVeci.png'}
                                           alt={post.title}
                                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />
                                         {(post.promotionalPrice || post.originalPrice) && (
-                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[10px] font-black text-emerald-400 text-center py-0.5 truncate px-1">
+                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[11px] font-black text-emerald-400 text-center py-0.5 px-1 truncate">
                                             ${(post.promotionalPrice || post.originalPrice || 0).toLocaleString('es-CO')}
                                           </div>
                                         )}
                                       </div>
 
-                                      <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                      <div className="min-w-0 flex-1 space-y-1 sm:space-y-1.5 overflow-hidden">
+                                        <div className="flex items-start justify-between gap-1.5">
                                           <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words line-clamp-2">
                                             {post.title}
                                           </h4>
-                                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 whitespace-nowrap">
                                             Anuncio Destacado
                                           </span>
                                         </div>
 
-                                        <p className="text-xs font-semibold text-slate-700 flex items-center gap-1 min-w-0">
-                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                        <p className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 min-w-0">
+                                          <Store className="w-3.5 h-3.5 text-[#0066FF] shrink-0" />
                                           <span className="truncate">{post.businessName}</span>
                                           <span className="text-slate-400 font-normal shrink-0">· {post.businessCity}</span>
                                         </p>
 
                                         {post.businessAddress && (
-                                          <p className="text-[11px] text-slate-500 flex items-center gap-1 min-w-0 truncate">
+                                          <p className="text-[11px] text-slate-500 flex items-center gap-1.5 min-w-0 truncate">
                                             <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                                             <span className="truncate">{post.businessAddress}</span>
                                           </p>
                                         )}
 
                                         {post.description && (
-                                          <p className="text-xs text-slate-600 line-clamp-2 break-words">
+                                          <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed break-words">
                                             {post.description}
                                           </p>
                                         )}
@@ -1355,7 +1349,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           href={waUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 min-w-0"
+                                          className="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 min-w-0"
                                           title="Escribir al WhatsApp del negocio"
                                         >
                                           <WhatsAppIcon className="w-4 h-4 fill-white shrink-0" />
@@ -1366,7 +1360,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                       <button
                                         type="button"
                                         onClick={() => onSelectPost?.(post)}
-                                        className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 min-w-0"
+                                        className="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 min-w-0"
                                         title="Ver anuncio completo"
                                       >
                                         <span className="truncate">Ver oferta</span>
@@ -1396,10 +1390,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                 return (
                                   <div
                                     key={biz.id}
-                                    className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between group"
+                                    className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between group"
                                   >
-                                    <div className="flex items-start gap-3 min-w-0 w-full flex-1 overflow-hidden">
-                                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
+                                    <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 w-full flex-1 overflow-hidden">
+                                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
                                         <img
                                           src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
                                           alt={biz.name}
@@ -1407,7 +1401,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                         />
                                       </div>
 
-                                      <div className="min-w-0 flex-1 space-y-1 overflow-hidden">
+                                      <div className="min-w-0 flex-1 space-y-1 sm:space-y-1.5 overflow-hidden">
                                         <div className="flex items-center gap-1.5 flex-wrap">
                                           <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors break-words line-clamp-2">
                                             {biz.name}
@@ -1423,14 +1417,14 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                         </div>
 
                                         <div className="flex items-center gap-1.5 text-[11px] text-slate-500 min-w-0">
-                                          <MapPin className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                          <MapPin className="w-3.5 h-3.5 text-[#0066FF] shrink-0" />
                                           <span className="truncate">
                                             {biz.city} · {biz.address}
                                           </span>
                                         </div>
 
                                         {biz.description && (
-                                          <p className="text-xs text-slate-600 line-clamp-2 break-words">
+                                          <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed break-words">
                                             {biz.description}
                                           </p>
                                         )}
@@ -1444,7 +1438,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           href={waUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 min-w-0"
+                                          className="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 min-w-0"
                                           title="Escribir al WhatsApp del negocio"
                                         >
                                           <WhatsAppIcon className="w-4 h-4 fill-white shrink-0" />
@@ -1455,7 +1449,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                       <button
                                         type="button"
                                         onClick={() => onSelectBusiness?.(biz.id)}
-                                        className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 min-w-0"
+                                        className="flex-1 sm:flex-initial h-9 sm:h-10 px-3.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056d6] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 min-w-0"
                                         title="Ver perfil completo del comercio en la app"
                                       >
                                         <span className="truncate">Ver en app</span>
@@ -1495,22 +1489,19 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         );
                       })()
                     )}
-                  </div>
                 </div>
               );
             })}
 
             {/* Loading state like Gemini/ChatGPT */}
             {isLoading && (
-              <div className="w-full flex gap-2.5 sm:gap-3 items-start animate-in fade-in duration-300">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
+              <div className="w-full animate-in fade-in duration-300">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-blue-100/90 shadow-xs flex items-center gap-3 text-slate-700 w-full">
                   <img
                     src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
                     alt="Oli"
-                    className="w-full h-full object-contain animate-bounce drop-shadow-xs"
+                    className="w-6 h-6 object-contain animate-bounce shrink-0 drop-shadow-2xs"
                   />
-                </div>
-                <div className="p-4 rounded-2xl rounded-tl-xs bg-white border border-blue-100 shadow-xs flex items-center gap-3 text-slate-700">
                   <Loader2 className="w-4 h-4 animate-spin text-[#0066FF] shrink-0" />
                   <span className="text-xs sm:text-sm font-medium text-slate-600">
                     Oli está consultando comercios y publicaciones en tiempo real...
@@ -1526,13 +1517,13 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
       {/* Seamless Bottom Input Bar (ChatGPT / Gemini style - Integrated into the chat canvas) */}
       <div
-        className="sticky inset-x-0 bg-gradient-to-t from-white via-white/95 to-white/0 pt-2 px-4 z-20 pointer-events-auto transition-[bottom] duration-150"
+        className="sticky inset-x-0 bg-gradient-to-t from-white via-white/95 to-white/0 pt-2 px-2.5 sm:px-4 z-20 pointer-events-auto transition-[bottom] duration-150"
         style={{
           bottom: viewportBottomOffset > 0 ? `${viewportBottomOffset}px` : 0,
           paddingBottom: viewportBottomOffset > 0 ? '0.75rem' : 'max(1rem, env(safe-area-inset-bottom, 1rem))',
         }}
       >
-        <div className="max-w-3xl mx-auto w-full">
+        <div className="max-w-4xl mx-auto w-full">
           <form
             onSubmit={(e) => {
               e.preventDefault();
