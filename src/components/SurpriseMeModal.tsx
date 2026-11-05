@@ -15,15 +15,12 @@ import {
   X,
   Check,
   RotateCcw,
-  Sparkles,
   ArrowRight,
   ChevronDown,
   Globe,
-  Crown,
-  Coins,
+  Compass,
+  Scissors,
   Banknote,
-  Gem,
-  Wallet,
 } from 'lucide-react';
 
 import {
@@ -44,7 +41,7 @@ const PLAN_EXPERIENCES = [
     id: 'all',
     label: '¡Cualquier plan!',
     subtitle: 'Explorar todas las opciones disponibles',
-    icon: Sparkles,
+    icon: Compass,
   },
   {
     id: 'plan_comer_algo',
@@ -91,8 +88,8 @@ const PLAN_EXPERIENCES = [
   {
     id: 'plan_cuidado_personal',
     label: 'Belleza y Autocuidado',
-    subtitle: 'Spas, barberías y bienestar',
-    icon: Sparkles,
+    subtitle: 'Spas, barberías y estética',
+    icon: Scissors,
   },
   {
     id: 'plan_comprar_algo',
@@ -108,21 +105,21 @@ const PLAN_EXPERIENCES = [
   },
 ];
 
-// Curated budget options
+// Curated budget options - all using the Banknote icon
 const BUDGET_OPTIONS = [
   {
     value: null,
     label: 'Cualquiera',
     shortLabel: 'Cualquiera',
     subtitle: 'Sin límite de presupuesto',
-    icon: Crown,
+    icon: Banknote,
   },
   {
     value: 30000,
     label: 'Económico',
     shortLabel: 'Hasta $30.000',
     subtitle: 'Planes y promociones accesibles',
-    icon: Coins,
+    icon: Banknote,
   },
   {
     value: 50000,
@@ -136,7 +133,7 @@ const BUDGET_OPTIONS = [
     label: 'Especial',
     shortLabel: 'Hasta $100.000',
     subtitle: 'Ocasiones especiales y planes completos',
-    icon: Gem,
+    icon: Banknote,
   },
 ];
 
@@ -227,7 +224,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
       return {
         label: 'Cualquiera',
         subtitle: 'Sin límite de presupuesto',
-        icon: Crown,
+        icon: Banknote,
       };
     }
     const predefined = BUDGET_OPTIONS.find((b) => b.value === draftBudget);
@@ -235,13 +232,13 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
       return {
         label: predefined.shortLabel,
         subtitle: `${predefined.label} (Hasta $${predefined.value.toLocaleString('es-CO')} COP)`,
-        icon: predefined.icon,
+        icon: Banknote,
       };
     }
     return {
       label: `Hasta $${draftBudget.toLocaleString('es-CO')}`,
       subtitle: `Presupuesto personalizado ($${draftBudget.toLocaleString('es-CO')} COP)`,
-      icon: Wallet,
+      icon: Banknote,
     };
   }, [draftBudget]);
 
@@ -422,13 +419,13 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                 onClick={() => setOpenDropdown((prev) => (prev === 'plan' ? null : 'plan'))}
                 className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
                   openDropdown === 'plan'
-                    ? 'bg-white border-[#007af7] ring-2 ring-[#007af7]/20 shadow-sm'
+                    ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/20 shadow-sm'
                     : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'plan'}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-xs">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
                     <SelectedPlanIcon className="w-4 h-4 text-white" />
                   </div>
                   <div className="min-w-0">
@@ -443,7 +440,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                    openDropdown === 'plan' ? 'rotate-180 text-[#007af7]' : ''
+                    openDropdown === 'plan' ? 'rotate-180 text-[#ff7700]' : ''
                   }`}
                 />
               </button>
@@ -464,7 +461,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                         }}
                         className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                           isSelected
-                            ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
+                            ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
                             : 'hover:bg-slate-50 border border-transparent text-slate-700'
                         }`}
                       >
@@ -472,8 +469,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           <div
                             className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                               isSelected
-                                ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
-                                : 'bg-sky-50 text-[#007af7]'
+                                ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                                : 'bg-orange-50 text-[#ff7700]'
                             }`}
                           >
                             <IconComponent className="w-3.5 h-3.5" />
@@ -481,7 +478,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           <div className="min-w-0">
                             <span
                               className={`text-xs block truncate ${
-                                isSelected ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
+                                isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
                               }`}
                             >
                               {plan.label}
@@ -492,7 +489,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           </div>
                         </div>
                         {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
                             <Check className="w-2.5 h-2.5 stroke-[3]" />
                           </span>
                         )}
@@ -520,13 +517,13 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                 onClick={() => setOpenDropdown((prev) => (prev === 'city' ? null : 'city'))}
                 className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
                   openDropdown === 'city'
-                    ? 'bg-white border-[#007af7] ring-2 ring-[#007af7]/20 shadow-sm'
+                    ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/20 shadow-sm'
                     : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'city'}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-xs">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
                     {draftCity === 'all' ? (
                       <Globe className="w-4 h-4 text-white" />
                     ) : (
@@ -545,7 +542,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                    openDropdown === 'city' ? 'rotate-180 text-[#007af7]' : ''
+                    openDropdown === 'city' ? 'rotate-180 text-[#ff7700]' : ''
                   }`}
                 />
               </button>
@@ -562,7 +559,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                     }}
                     className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                       draftCity === 'all'
-                        ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
+                        ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
                         : 'hover:bg-slate-50 border border-transparent text-slate-700'
                     }`}
                   >
@@ -570,8 +567,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                       <div
                         className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                           draftCity === 'all'
-                            ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
-                            : 'bg-sky-50 text-[#007af7]'
+                            ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                            : 'bg-orange-50 text-[#ff7700]'
                         }`}
                       >
                         <Globe className="w-3.5 h-3.5" />
@@ -579,7 +576,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                       <div className="min-w-0">
                         <span
                           className={`text-xs block truncate ${
-                            draftCity === 'all' ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
+                            draftCity === 'all' ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
                           }`}
                         >
                           Todos los municipios
@@ -590,7 +587,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                       </div>
                     </div>
                     {draftCity === 'all' && (
-                      <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
                         <Check className="w-2.5 h-2.5 stroke-[3]" />
                       </span>
                     )}
@@ -611,7 +608,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                         }}
                         className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                           isSelected
-                            ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
+                            ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
                             : 'hover:bg-slate-50 border border-transparent text-slate-700'
                         }`}
                       >
@@ -619,22 +616,22 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           <div
                             className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                               isSelected
-                                ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
-                                : 'bg-sky-50 text-[#007af7]'
+                                ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                                : 'bg-orange-50 text-[#ff7700]'
                             }`}
                           >
                             <MapPin className="w-3.5 h-3.5" />
                           </div>
                           <span
                             className={`text-xs truncate ${
-                              isSelected ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
+                              isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
                             }`}
                           >
                             {city}
                           </span>
                         </div>
                         {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
                             <Check className="w-2.5 h-2.5 stroke-[3]" />
                           </span>
                         )}
@@ -662,13 +659,13 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                 onClick={() => setOpenDropdown((prev) => (prev === 'budget' ? null : 'budget'))}
                 className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
                   openDropdown === 'budget'
-                    ? 'bg-white border-[#007af7] ring-2 ring-[#007af7]/20 shadow-sm'
+                    ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/20 shadow-sm'
                     : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'budget'}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-xs">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
                     <SelectedBudgetIcon className="w-4 h-4 text-white" />
                   </div>
                   <div className="min-w-0">
@@ -683,7 +680,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                    openDropdown === 'budget' ? 'rotate-180 text-[#007af7]' : ''
+                    openDropdown === 'budget' ? 'rotate-180 text-[#ff7700]' : ''
                   }`}
                 />
               </button>
@@ -709,7 +706,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           }}
                           className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
                             isSelected
-                              ? 'bg-sky-50/80 border border-[#007af7]/30 shadow-2xs'
+                              ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
                               : 'hover:bg-slate-50 border border-transparent text-slate-700'
                           }`}
                         >
@@ -717,8 +714,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                             <div
                               className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                                 isSelected
-                                  ? 'bg-gradient-to-tr from-[#007af7] to-sky-500 text-white shadow-2xs'
-                                  : 'bg-sky-50 text-[#007af7]'
+                                  ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                                  : 'bg-orange-50 text-[#ff7700]'
                               }`}
                             >
                               <IconComponent className="w-3.5 h-3.5" />
@@ -726,7 +723,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                             <div className="min-w-0">
                               <span
                                 className={`text-xs block truncate ${
-                                  isSelected ? 'font-semibold text-[#007af7]' : 'font-medium text-slate-700'
+                                  isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
                                 }`}
                               >
                                 {b.shortLabel}
@@ -737,7 +734,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                             </div>
                           </div>
                           {isSelected && (
-                            <span className="w-4 h-4 rounded-full bg-[#007af7] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
                               <Check className="w-2.5 h-2.5 stroke-[3]" />
                             </span>
                           )}
@@ -783,7 +780,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                           }
                         }}
                         placeholder="Ej: 40.000 COP"
-                        className="w-full pl-7 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-white focus:bg-white text-xs font-normal text-slate-800 border border-slate-200 focus:border-[#007af7] focus:ring-2 focus:ring-[#007af7]/20 outline-none transition"
+                        className="w-full pl-7 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-white focus:bg-white text-xs font-normal text-slate-800 border border-slate-200 focus:border-[#ff7700] focus:ring-2 focus:ring-[#ff7700]/20 outline-none transition"
                       />
                       {customBudgetInput && (
                         <button
