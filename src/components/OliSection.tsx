@@ -1045,7 +1045,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                               <span>{plan.stops.length} paradas</span>
                             </div>
 
-                            <div className="flex items-center gap-1 sm:gap-1.5 bg-black/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg font-bold">
+                            <div className="flex items-center gap-1 sm:gap-1.5 bg-black/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg">
                               <span>Total estimado: {formatPriceCOP(plan.totalEstimatedCost)}</span>
                             </div>
 
