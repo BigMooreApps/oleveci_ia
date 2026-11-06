@@ -36,6 +36,7 @@ interface PlanRouteSectionProps {
   planTitle: string;
   currentCity?: string;
   scheduledTime?: string;
+  hideStopsTimeline?: boolean;
   onSelectPost?: (post: Post) => void;
   onOpenLocationMap?: (post: Post) => void;
 }
@@ -86,6 +87,7 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
   planTitle,
   currentCity = 'Cajicá',
   scheduledTime,
+  hideStopsTimeline = false,
   onSelectPost,
   onOpenLocationMap,
 }) => {
@@ -717,162 +719,164 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
       </div>
 
       {/* 4. Timeline de Paradas del Plan */}
-      <div className="pt-2">
-        {/* Punto de Inicio en el Timeline */}
-        <div className="relative pl-7 pb-3">
-          {/* Línea vertical conectora */}
-          <div className="absolute left-3 top-3 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
-          
-          <div className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
-            <div className={`w-1.5 h-1.5 rounded-full bg-[#007af7] ${isGpsActive && userCoords ? 'animate-ping' : ''}`} />
-          </div>
+      {!hideStopsTimeline && (
+        <div className="pt-2">
+          {/* Punto de Inicio en el Timeline */}
+          <div className="relative pl-7 pb-3">
+            {/* Línea vertical conectora */}
+            <div className="absolute left-3 top-3 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
+            
+            <div className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
+              <div className={`w-1.5 h-1.5 rounded-full bg-[#007af7] ${isGpsActive && userCoords ? 'animate-ping' : ''}`} />
+            </div>
 
-          <div className="text-[11px] font-bold text-slate-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-400">Inicio:</span>
-              <span className="text-[#0056d6] font-extrabold">
-                {isGpsActive && userCoords ? '📍 Tu ubicación actual' : stopsWithCoords[0]?.post.businessName || `Centro de ${currentCity}`}
-              </span>
-              {isGpsActive && userCoords && (
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  GPS activo
+            <div className="text-[11px] font-bold text-slate-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-400">Inicio:</span>
+                <span className="text-[#0056d6] font-extrabold">
+                  {isGpsActive && userCoords ? '📍 Tu ubicación actual' : stopsWithCoords[0]?.post.businessName || `Centro de ${currentCity}`}
+                </span>
+                {isGpsActive && userCoords && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    GPS activo
+                  </span>
+                )}
+              </div>
+              {isGpsActive && userCoords && routeSegments.distToFirstFormatted && (
+                <span className="text-[10px] text-slate-500 font-medium">
+                  a ~{routeSegments.distToFirstFormatted} (~{routeSegments.timeToFirstMin} min) de la 1ª parada
                 </span>
               )}
             </div>
-            {isGpsActive && userCoords && routeSegments.distToFirstFormatted && (
-              <span className="text-[10px] text-slate-500 font-medium">
-                a ~{routeSegments.distToFirstFormatted} (~{routeSegments.timeToFirstMin} min) de la 1ª parada
-              </span>
-            )}
           </div>
-        </div>
 
-        {/* Lista secuencial de paradas con estilo Timeline */}
-        <div className="space-y-3">
-          {stopsWithCoords.map((stop, idx) => {
-            const seg = routeSegments.segments[idx];
-            const isLast = idx === stopsWithCoords.length - 1;
-            const fullAddress = `${stop.post.businessAddress || 'Dirección registrada'}${
-              stop.post.businessSector ? `, ${stop.post.businessSector}` : ''
-            }, ${stop.post.businessCity || currentCity}`;
+          {/* Lista secuencial de paradas con estilo Timeline */}
+          <div className="space-y-3">
+            {stopsWithCoords.map((stop, idx) => {
+              const seg = routeSegments.segments[idx];
+              const isLast = idx === stopsWithCoords.length - 1;
+              const fullAddress = `${stop.post.businessAddress || 'Dirección registrada'}${
+                stop.post.businessSector ? `, ${stop.post.businessSector}` : ''
+              }, ${stop.post.businessCity || currentCity}`;
 
-            return (
-              <div key={stop.post.id || idx} className="relative pl-7">
-                {/* Línea vertical conectora entre paradas */}
-                {!isLast && (
-                  <div className="absolute left-3 top-8 bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
-                )}
+              return (
+                <div key={stop.post.id || idx} className="relative pl-7">
+                  {/* Línea vertical conectora entre paradas */}
+                  {!isLast && (
+                    <div className="absolute left-3 top-8 bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
+                  )}
 
-                {/* Badge numérico del paso en el timeline */}
-                <div className="absolute left-0 top-3 w-6 h-6 rounded-xl bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-xs font-black shadow-sm ring-2 ring-white">
-                  {stop.index}
-                </div>
+                  {/* Badge numérico del paso en el timeline */}
+                  <div className="absolute left-0 top-3 w-6 h-6 rounded-xl bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-xs font-black shadow-sm ring-2 ring-white">
+                    {stop.index}
+                  </div>
 
-                {/* Tarjeta de la parada en color gris claro */}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectPost?.(stop.post);
-                  }}
-                  className="rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3.5 space-y-2.5 cursor-pointer group active:scale-[0.99] select-none"
-                  title={`Ver detalles de ${stop.post.businessName}`}
-                >
-                  {/* Encabezado: Comercio e Imagen */}
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {stop.post.businessLogo || stop.post.imageUrl ? (
-                        <img
-                          src={stop.post.businessLogo || stop.post.imageUrl}
-                          alt=""
-                          className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:border-blue-300 transition-colors shadow-2xs bg-white"
-                        />
-                      ) : (
-                        <div className="w-11 h-11 rounded-xl bg-white text-[#0056d6] flex items-center justify-center font-black text-sm shrink-0 border border-slate-200 shadow-2xs">
-                          <Store className="w-5 h-5" />
+                  {/* Tarjeta de la parada en color gris claro */}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectPost?.(stop.post);
+                    }}
+                    className="rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3.5 space-y-2.5 cursor-pointer group active:scale-[0.99] select-none"
+                    title={`Ver detalles de ${stop.post.businessName}`}
+                  >
+                    {/* Encabezado: Comercio e Imagen */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {stop.post.businessLogo || stop.post.imageUrl ? (
+                          <img
+                            src={stop.post.businessLogo || stop.post.imageUrl}
+                            alt=""
+                            className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:border-blue-300 transition-colors shadow-2xs bg-white"
+                          />
+                        ) : (
+                          <div className="w-11 h-11 rounded-xl bg-white text-[#0056d6] flex items-center justify-center font-black text-sm shrink-0 border border-slate-200 shadow-2xs">
+                            <Store className="w-5 h-5" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-[#007af7] uppercase tracking-wider">
+                              {idx === 0 ? '1ª Parada' : isLast ? 'Destino Final' : `Parada ${stop.index}`}
+                            </span>
+                          </div>
+                          <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
+                            {stop.post.businessName}
+                          </h5>
+                          <p className="text-[11px] text-slate-500 font-medium truncate">
+                            {stop.post.title || stop.post.businessSector || currentCity}
+                          </p>
                         </div>
-                      )}
+                      </div>
 
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-bold text-[#007af7] uppercase tracking-wider">
-                            {idx === 0 ? '1ª Parada' : isLast ? 'Destino Final' : `Parada ${stop.index}`}
-                          </span>
-                        </div>
-                        <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors truncate">
-                          {stop.post.businessName}
-                        </h5>
-                        <p className="text-[11px] text-slate-500 font-medium truncate">
-                          {stop.post.title || stop.post.businessSector || currentCity}
-                        </p>
+                      {/* Botones de acción rápida: WhatsApp y Cómo Llegar */}
+                      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        {stop.post.businessWhatsapp && (
+                          <a
+                            href={`https://wa.me/${stop.post.businessWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
+                              `¡Hola ${stop.post.businessName}! Vi su parada en un plan de OleVeci y me gustaría confirmar su atención.`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs"
+                            title="Contactar por WhatsApp"
+                            aria-label="WhatsApp"
+                          >
+                            <WhatsAppIcon className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onOpenLocationMap) {
+                              onOpenLocationMap(stop.post);
+                            } else {
+                              setLocationModalBusiness({
+                                name: stop.post.businessName,
+                                address: stop.post.businessAddress || '',
+                                city: stop.post.businessCity || currentCity || 'Cajicá',
+                                sector: stop.post.businessSector || '',
+                                coordinates: stop.coords,
+                                logo: stop.post.businessLogo || stop.post.imageUrl,
+                                category: stop.post.category,
+                                subCategory: stop.post.subCategory,
+                                whatsapp: stop.post.businessWhatsapp,
+                                phone: stop.post.businessPhone,
+                                verified: stop.post.isVerified || stop.post.businessVerified,
+                              });
+                            }
+                          }}
+                          className="w-8 h-8 rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs"
+                          title="Ver mapa y cómo llegar"
+                          aria-label="Ver mapa"
+                        >
+                          <Navigation className="w-3.5 h-3.5 fill-current" />
+                        </button>
                       </div>
                     </div>
 
-                    {/* Botones de acción rápida: WhatsApp y Cómo Llegar */}
-                    <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {stop.post.businessWhatsapp && (
-                        <a
-                          href={`https://wa.me/${stop.post.businessWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
-                            `¡Hola ${stop.post.businessName}! Vi su parada en un plan de OleVeci y me gustaría confirmar su atención.`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs"
-                          title="Contactar por WhatsApp"
-                          aria-label="WhatsApp"
-                        >
-                          <WhatsAppIcon className="w-3.5 h-3.5" />
-                        </a>
+                    {/* Dirección y Distancia del Tramo */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 text-[11px] text-slate-500">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <MapPin className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />
+                        <span className="truncate">{fullAddress}</span>
+                      </div>
+
+                      {seg && (
+                        <span className="font-bold text-slate-700 shrink-0 text-[10px] bg-white px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
+                          ~{seg.distFormatted} • ~{seg.timeMin}m
+                        </span>
                       )}
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (onOpenLocationMap) {
-                            onOpenLocationMap(stop.post);
-                          } else {
-                            setLocationModalBusiness({
-                              name: stop.post.businessName,
-                              address: stop.post.businessAddress || '',
-                              city: stop.post.businessCity || currentCity || 'Cajicá',
-                              sector: stop.post.businessSector || '',
-                              coordinates: stop.coords,
-                              logo: stop.post.businessLogo || stop.post.imageUrl,
-                              category: stop.post.category,
-                              subCategory: stop.post.subCategory,
-                              whatsapp: stop.post.businessWhatsapp,
-                              phone: stop.post.businessPhone,
-                              verified: stop.post.isVerified || stop.post.businessVerified,
-                            });
-                          }
-                        }}
-                        className="w-8 h-8 rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs"
-                        title="Ver mapa y cómo llegar"
-                        aria-label="Ver mapa"
-                      >
-                        <Navigation className="w-3.5 h-3.5 fill-current" />
-                      </button>
                     </div>
-                  </div>
-
-                  {/* Dirección y Distancia del Tramo */}
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 text-[11px] text-slate-500">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <MapPin className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />
-                      <span className="truncate">{fullAddress}</span>
-                    </div>
-
-                    {seg && (
-                      <span className="font-bold text-slate-700 shrink-0 text-[10px] bg-white px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
-                        ~{seg.distFormatted} • ~{seg.timeMin}m
-                      </span>
-                    )}
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {locationModalBusiness && (
         <BusinessLocationMapModal

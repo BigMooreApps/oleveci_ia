@@ -23,6 +23,7 @@ import {
   ArrowRight,
   Store,
   Compass,
+  Route,
   Phone,
   Tag,
   X,
@@ -40,6 +41,7 @@ import { WhatsAppIcon } from './WhatsAppIcon';
 import { OliPlanResponse, OliPlanStop } from '../types';
 import { removeStopAndRecalculatePlan } from '../utils/oliPlanClientUtils';
 import { OliWhatsAppModal } from './OliWhatsAppModal';
+import { PlanRouteSection } from './PlanRouteSection';
 
 const formatPriceCOP = (amount?: number | null): string => {
   if (amount === undefined || amount === null || isNaN(amount)) {
@@ -117,6 +119,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
   const [editingMessageText, setEditingMessageText] = useState('');
   const [expandedResults, setExpandedResults] = useState<Record<number, boolean>>({});
+  const [expandedRoutePlanIndex, setExpandedRoutePlanIndex] = useState<number | null>(null);
 
   // WhatsApp Modal State
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
@@ -584,16 +587,18 @@ export const OliSection: React.FC<OliSectionProps> = ({
     };
   };
 
-  const handleSavePlan = () => {
-    if (!currentPlan) return;
-    const readyPlan = convertToReadyPlan(currentPlan);
+  const handleSavePlan = (planParam?: OliPlanResponse) => {
+    const p = planParam || currentPlan;
+    if (!p) return;
+    const readyPlan = convertToReadyPlan(p);
     addReadyPlan(readyPlan);
     setIsSaved(true);
   };
 
-  const handleOpenInEditor = () => {
-    if (!currentPlan) return;
-    const readyPlan = convertToReadyPlan(currentPlan);
+  const handleOpenInEditor = (planParam?: OliPlanResponse) => {
+    const p = planParam || currentPlan;
+    if (!p) return;
+    const readyPlan = convertToReadyPlan(p);
     if (onOpenItineraryBuilder) {
       onOpenItineraryBuilder(readyPlan);
     } else if (onSelectPlan) {
@@ -601,9 +606,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
     }
   };
 
-  const handleSharePlan = async () => {
-    if (!currentPlan || !currentPlan.stops) return;
-    const stopsList = currentPlan.stops
+  const handleSharePlan = async (planParam?: OliPlanResponse) => {
+    const p = planParam || currentPlan;
+    if (!p || !p.stops) return;
+    const stopsList = p.stops
       .map(
         (s, i) =>
           `📍 Parada ${i + 1} (${s.time}): *${s.businessName}* en ${s.businessCity}\n   • ${s.activity} (${s.cost.toLocaleString('es-CO')} pesos)`
@@ -611,18 +617,18 @@ export const OliSection: React.FC<OliSectionProps> = ({
       .join('\n\n');
 
     const message =
-      `¡Hola! 👋 Oli en OleVeci nos armó este planazo para ${currentPlan.day}:\n\n` +
-      `🗺️ *${currentPlan.planTitle}*\n` +
-      `💡 ${currentPlan.summary}\n\n` +
+      `¡Hola! 👋 Oli en OleVeci nos armó este planazo para ${p.day}:\n\n` +
+      `🗺️ *${p.planTitle}*\n` +
+      `💡 ${p.summary}\n\n` +
       `${stopsList}\n\n` +
-      `💰 *Presupuesto total estimado:* ${currentPlan.totalEstimatedCost?.toLocaleString('es-CO')} pesos\n` +
+      `💰 *Presupuesto total estimado:* ${p.totalEstimatedCost?.toLocaleString('es-CO')} pesos\n` +
       `📲 Míralo y ábrelo en OleVeci: https://oleveci.com/planes\n\n` +
       `¿Quién se anima? 🙌`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: currentPlan.planTitle,
+          title: p.planTitle,
           text: message,
           url: window.location.href,
         });
@@ -1028,218 +1034,323 @@ export const OliSection: React.FC<OliSectionProps> = ({
                     {/* CONDITIONAL DISPLAY: IF PLAN EXISTS -> SHOW ONLY ITINERARY. IF NO PLAN -> SHOW UNIFIED POST-FIRST RESULTS */}
                     {plan && plan.stops && plan.stops.length > 0 ? (
                       /* RICH ITINERARY PLAN CARD (Plan takes priority, no duplicate satellite cards below) */
-                      <div className="w-full rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
-                        {/* Header Banner */}
-                        <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-3.5 sm:p-5 text-white">
-                          <h2 className="text-base sm:text-xl font-black tracking-tight leading-snug">
-                            {plan.planTitle}
-                          </h2>
-                          <p className="text-xs text-blue-100 mt-1 line-clamp-2 font-normal">
-                            {plan.narrativeHook}
-                          </p>
+                      (() => {
+                        const isRouteExpanded = expandedRoutePlanIndex === index;
 
-                          {/* Quick Stats Pill */}
-                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/20 text-[10px] sm:text-xs">
-                            <div className="flex items-center gap-1 sm:gap-1.5 bg-black/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg">
-                              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300 shrink-0" />
-                              <span>{plan.stops.length} paradas</span>
+                        const planPosts: Post[] = plan.stops.map((stop, sIdx) => {
+                          const matchingPost = (posts || []).find((p) => p.id === stop.postId) ||
+                            (stop.postTitle ? (posts || []).find((p) => p.title.toLowerCase().trim() === stop.postTitle.toLowerCase().trim()) : undefined) ||
+                            (posts || []).find((p) => p.businessId === stop.businessId);
+
+                          const matchingBiz = (businesses || []).find((b) => b.id === stop.businessId || (stop.businessName && b.name.toLowerCase().trim() === stop.businessName.toLowerCase().trim()));
+
+                          const coords = (matchingPost?.coordinates && matchingPost.coordinates.lat)
+                            ? matchingPost.coordinates
+                            : (matchingBiz?.coordinates && matchingBiz.coordinates.lat)
+                              ? matchingBiz.coordinates
+                              : undefined;
+
+                          if (matchingPost) {
+                            return {
+                              ...matchingPost,
+                              businessName: stop.businessName || matchingPost.businessName,
+                              businessAddress: stop.businessAddress || matchingPost.businessAddress || matchingBiz?.address || '',
+                              businessCity: stop.businessCity || matchingPost.businessCity || matchingBiz?.city || currentCity || 'Cajicá',
+                              businessSector: matchingBiz?.sector || matchingPost.businessSector || '',
+                              businessWhatsapp: stop.businessWhatsapp || matchingPost.businessWhatsapp || matchingBiz?.whatsapp || '',
+                              businessPhone: stop.businessPhone || matchingPost.businessPhone || matchingBiz?.phone || '',
+                              businessLogo: stop.imageUrl || matchingPost.businessLogo || matchingBiz?.logo || '/Logo_OleVeci.png',
+                              coordinates: coords || matchingPost.coordinates || { lat: 4.9184, lng: -74.0259 },
+                            };
+                          }
+
+                          return {
+                            id: stop.postId || `stop-post-${stop.businessId || sIdx}`,
+                            businessId: stop.businessId || matchingBiz?.id || `biz-${sIdx}`,
+                            businessName: stop.businessName || matchingBiz?.name || 'Comercio Local',
+                            businessLogo: stop.imageUrl || matchingBiz?.logo || '/Logo_OleVeci.png',
+                            businessCity: stop.businessCity || matchingBiz?.city || currentCity || 'Cajicá',
+                            businessSector: matchingBiz?.sector || '',
+                            businessWhatsapp: stop.businessWhatsapp || stop.businessPhone || matchingBiz?.whatsapp || '',
+                            businessPhone: stop.businessPhone || matchingBiz?.phone || '',
+                            businessAddress: stop.businessAddress || matchingBiz?.address || 'Dirección registrada',
+                            coordinates: coords || { lat: 4.9184, lng: -74.0259 },
+                            type: 'promo' as const,
+                            title: stop.postTitle || stop.activity || stop.businessName,
+                            description: stop.postDescription || stop.whySelected || stop.activity || '',
+                            imageUrl: stop.imageUrl || matchingBiz?.coverImage || '/Logo_OleVeci.png',
+                            promotionalPrice: stop.cost,
+                            startsAt: new Date().toISOString(),
+                            categoryId: matchingBiz?.categoryId || 'general',
+                            tags: ['itinerario', 'oli'],
+                            status: 'active' as const,
+                          };
+                        });
+
+                        return (
+                          <div className="w-full rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
+                            {/* Header Banner */}
+                            <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-3.5 sm:p-5 text-white">
+                              <h2 className="text-base sm:text-xl font-black tracking-tight leading-snug">
+                                {plan.planTitle}
+                              </h2>
+                              <p className="text-xs text-blue-100 mt-1 line-clamp-2 font-normal">
+                                {plan.narrativeHook}
+                              </p>
+
+                              {/* Quick Stats Pill */}
+                              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/20 text-[10px] sm:text-xs">
+                                <div className="flex items-center gap-1 sm:gap-1.5 bg-black/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg">
+                                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300 shrink-0" />
+                                  <span>{plan.stops.length} paradas</span>
+                                </div>
+
+                                <div className="flex items-center gap-1 sm:gap-1.5 bg-black/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg">
+                                  <span>Total estimado: {formatPriceCOP(plan.totalEstimatedCost)}</span>
+                                </div>
+
+                                {plan.budgetStatus === 'over_budget' && (
+                                  <span className="bg-amber-500/90 text-white font-bold text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded sm:rounded-md">
+                                    Supera presupuesto
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
-                            <div className="flex items-center gap-1 sm:gap-1.5 bg-black/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg">
-                              <span>Total estimado: {formatPriceCOP(plan.totalEstimatedCost)}</span>
-                            </div>
+                            {/* Stops List with Timeline Style */}
+                            <div className="p-2.5 sm:p-5 space-y-2.5 sm:space-y-3.5">
+                              {/* Punto de Inicio en el Timeline */}
+                              <div className="relative pl-6 sm:pl-7 pb-1.5 sm:pb-2">
+                                {/* Línea vertical conectora hacia abajo */}
+                                <div className="absolute left-2.5 sm:left-3 top-2.5 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
 
-                            {plan.budgetStatus === 'over_budget' && (
-                              <span className="bg-amber-500/90 text-white font-bold text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded sm:rounded-md">
-                                Supera presupuesto
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                                <div className="absolute left-1 sm:left-1.5 top-1 w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
+                                  <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#007af7]" />
+                                </div>
 
-                        {/* Stops List with Timeline Style */}
-                        <div className="p-2.5 sm:p-5 space-y-2.5 sm:space-y-3.5">
-                          {/* Punto de Inicio en el Timeline */}
-                          <div className="relative pl-6 sm:pl-7 pb-1.5 sm:pb-2">
-                            {/* Línea vertical conectora hacia abajo */}
-                            <div className="absolute left-2.5 sm:left-3 top-2.5 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
+                                <div className="text-[10px] sm:text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                                  <span className="text-slate-400 font-medium">Inicio:</span>
+                                  <span className="text-[#0056d6] font-extrabold truncate">
+                                    {plan.stops[0]?.businessName || `Centro de ${currentCity || 'Cajicá'}`}
+                                  </span>
+                                </div>
+                              </div>
 
-                            <div className="absolute left-1 sm:left-1.5 top-1 w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
-                              <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#007af7]" />
-                            </div>
+                              {/* Lista secuencial de paradas con estilo Timeline */}
+                              <div className="space-y-2.5 sm:space-y-3">
+                                {plan.stops.map((stop, sIdx) => {
+                                  const isLast = sIdx === plan.stops.length - 1;
 
-                            <div className="text-[10px] sm:text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                              <span className="text-slate-400 font-medium">Inicio:</span>
-                              <span className="text-[#0056d6] font-extrabold truncate">
-                                {plan.stops[0]?.businessName || `Centro de ${currentCity || 'Cajicá'}`}
-                              </span>
-                            </div>
-                          </div>
+                                  const matchingPost = (posts || []).find((p) => p.id === stop.postId) ||
+                                    (stop.postTitle ? (posts || []).find((p) => p.title.toLowerCase().trim() === stop.postTitle.toLowerCase().trim()) : undefined) ||
+                                    (posts || []).find((p) => p.businessId === stop.businessId) || {
+                                      id: stop.postId || `stop-post-${stop.businessId || sIdx}`,
+                                      businessId: stop.businessId,
+                                      businessName: stop.businessName,
+                                      businessLogo: stop.imageUrl || '/Logo_OleVeci.png',
+                                      businessCity: stop.businessCity || currentCity || 'Sabana Centro',
+                                      businessSector: '',
+                                      businessWhatsapp: stop.businessWhatsapp || stop.businessPhone || '',
+                                      businessPhone: stop.businessPhone || '',
+                                      businessAddress: stop.businessAddress || '',
+                                      coordinates: { lat: 4.93, lng: -74.03 },
+                                      type: 'promo' as const,
+                                      title: stop.postTitle || stop.activity || stop.businessName,
+                                      description: stop.postDescription || stop.whySelected || stop.activity || '',
+                                      imageUrl: stop.imageUrl || '/Logo_OleVeci.png',
+                                      promotionalPrice: stop.cost,
+                                      startsAt: new Date().toISOString(),
+                                      categoryId: 'general',
+                                      tags: ['itinerario', 'oli'],
+                                      status: 'active' as const,
+                                    };
 
-                          {/* Lista secuencial de paradas con estilo Timeline */}
-                          <div className="space-y-2.5 sm:space-y-3">
-                            {plan.stops.map((stop, sIdx) => {
-                              const isLast = sIdx === plan.stops.length - 1;
+                                  const displayTitle = matchingPost.title || stop.postTitle || stop.businessName;
+                                  const displayDescription = matchingPost.description || stop.postDescription || stop.whySelected || stop.activity || '';
+                                  const displayImage = matchingPost.imageUrl || stop.imageUrl || '/Logo_OleVeci.png';
+                                  const displayBusiness = stop.businessName || matchingPost.businessName;
+                                  const displayCity = stop.businessCity || matchingPost.businessCity;
+                                  const displayAddress = stop.businessAddress || matchingPost.businessAddress || 'Dirección registrada';
+                                  const displayCost = stop.cost || matchingPost.promotionalPrice || matchingPost.originalPrice;
 
-                              const matchingPost = (posts || []).find((p) => p.id === stop.postId) ||
-                                (stop.postTitle ? (posts || []).find((p) => p.title.toLowerCase().trim() === stop.postTitle.toLowerCase().trim()) : undefined) ||
-                                (posts || []).find((p) => p.businessId === stop.businessId) || {
-                                  id: stop.postId || `stop-post-${stop.businessId || sIdx}`,
-                                  businessId: stop.businessId,
-                                  businessName: stop.businessName,
-                                  businessLogo: stop.imageUrl || '/Logo_OleVeci.png',
-                                  businessCity: stop.businessCity || currentCity || 'Sabana Centro',
-                                  businessSector: '',
-                                  businessWhatsapp: stop.businessWhatsapp || stop.businessPhone || '',
-                                  businessPhone: stop.businessPhone || '',
-                                  businessAddress: stop.businessAddress || '',
-                                  coordinates: { lat: 4.93, lng: -74.03 },
-                                  type: 'promo' as const,
-                                  title: stop.postTitle || stop.activity || stop.businessName,
-                                  description: stop.postDescription || stop.whySelected || stop.activity || '',
-                                  imageUrl: stop.imageUrl || '/Logo_OleVeci.png',
-                                  promotionalPrice: stop.cost,
-                                  startsAt: new Date().toISOString(),
-                                  categoryId: 'general',
-                                  tags: ['itinerario', 'oli'],
-                                  status: 'active' as const,
-                                };
+                                  const fullAddress = `${displayAddress}${
+                                    displayCity ? `, ${displayCity}` : ''
+                                  }`;
 
-                              const displayTitle = matchingPost.title || stop.postTitle || stop.businessName;
-                              const displayDescription = matchingPost.description || stop.postDescription || stop.whySelected || stop.activity || '';
-                              const displayImage = matchingPost.imageUrl || stop.imageUrl || '/Logo_OleVeci.png';
-                              const displayBusiness = stop.businessName || matchingPost.businessName;
-                              const displayCity = stop.businessCity || matchingPost.businessCity;
-                              const displayAddress = stop.businessAddress || matchingPost.businessAddress || 'Dirección registrada';
-                              const displayCost = stop.cost || matchingPost.promotionalPrice || matchingPost.originalPrice;
+                                  return (
+                                    <div key={sIdx} className="relative pl-6 sm:pl-8">
+                                      {/* Línea vertical conectora entre paradas */}
+                                      {!isLast && (
+                                        <div className="absolute left-2.5 sm:left-3 top-7 sm:top-8 bottom-[-12px] sm:bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
+                                      )}
 
-                              const fullAddress = `${displayAddress}${
-                                displayCity ? `, ${displayCity}` : ''
-                              }`;
-
-                              return (
-                                <div key={sIdx} className="relative pl-6 sm:pl-8">
-                                  {/* Línea vertical conectora entre paradas */}
-                                  {!isLast && (
-                                    <div className="absolute left-2.5 sm:left-3 top-7 sm:top-8 bottom-[-12px] sm:bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
-                                  )}
-
-                                  {/* Badge numérico circular del paso en el timeline */}
-                                  <div className="absolute left-0 top-2.5 sm:top-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs ring-2 ring-white">
-                                    {sIdx + 1}
-                                  </div>
-
-                                  {/* Tarjeta de la parada: Clic abre el anuncio */}
-                                  <div
-                                    onClick={() => onSelectPost?.(matchingPost)}
-                                    className="w-full rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 cursor-pointer group active:scale-[0.99] select-none"
-                                    title="Toca para ver el anuncio completo"
-                                  >
-                                    {/* 1. Encabezado: Imagen con precio + Título y Comercio + Botón Quitar */}
-                                    <div className="flex items-start gap-2 sm:gap-3">
-                                      {/* Imagen con precio sobrepuesto (estilo OleVeci, compacta en móvil) */}
-                                      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
-                                        <img
-                                          src={displayImage}
-                                          alt={displayTitle}
-                                          className="w-full h-full object-cover"
-                                        />
-                                        {displayCost ? (
-                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[9px] sm:text-[11px] font-black text-emerald-400 text-center py-0.5 px-0.5 truncate leading-tight">
-                                            ${Math.round(displayCost).toLocaleString('es-CO')}
-                                          </div>
-                                        ) : null}
+                                      {/* Badge numérico circular del paso en el timeline */}
+                                      <div className="absolute left-0 top-2.5 sm:top-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs ring-2 ring-white">
+                                        {sIdx + 1}
                                       </div>
 
-                                      {/* Título, Comercio y Dirección con tipografía compacta y ordenada */}
-                                      <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-                                        <div className="flex items-start justify-between gap-1">
-                                          <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words line-clamp-2 sm:line-clamp-none">
-                                            {displayTitle}
-                                          </h5>
+                                      {/* Tarjeta de la parada: Clic abre el anuncio */}
+                                      <div
+                                        onClick={() => onSelectPost?.(matchingPost)}
+                                        className="w-full rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 cursor-pointer group active:scale-[0.99] select-none"
+                                        title="Toca para ver el anuncio completo"
+                                      >
+                                        {/* 1. Encabezado: Imagen con precio + Título y Comercio + Botón Quitar */}
+                                        <div className="flex items-start gap-2 sm:gap-3">
+                                          {/* Imagen con precio sobrepuesto (estilo OleVeci, compacta en móvil) */}
+                                          <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
+                                            <img
+                                              src={displayImage}
+                                              alt={displayTitle}
+                                              className="w-full h-full object-cover"
+                                            />
+                                            {displayCost ? (
+                                              <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[9px] sm:text-[11px] font-black text-emerald-400 text-center py-0.5 px-0.5 truncate leading-tight">
+                                                ${Math.round(displayCost).toLocaleString('es-CO')}
+                                              </div>
+                                            ) : null}
+                                          </div>
 
-                                          {/* Botón Quitar parada (arriba a la derecha, sutil) */}
-                                          {plan.stops && plan.stops.length > 1 && (
-                                            <button
-                                              type="button"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRemoveStop(index, sIdx);
-                                              }}
-                                              className="w-5 h-5 sm:w-6 sm:h-6 -mr-0.5 -mt-0.5 rounded-md sm:rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition shrink-0 cursor-pointer"
-                                              title="Quitar esta parada del plan"
-                                            >
-                                              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                                            </button>
-                                          )}
+                                          {/* Título, Comercio y Dirección con tipografía compacta y ordenada */}
+                                          <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                                            <div className="flex items-start justify-between gap-1">
+                                              <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words line-clamp-2 sm:line-clamp-none">
+                                                {displayTitle}
+                                              </h5>
+
+                                              {/* Botón Quitar parada (arriba a la derecha, sutil) */}
+                                              {plan.stops && plan.stops.length > 1 && (
+                                                <button
+                                                  type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveStop(index, sIdx);
+                                                  }}
+                                                  className="w-5 h-5 sm:w-6 sm:h-6 -mr-0.5 -mt-0.5 rounded-md sm:rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition shrink-0 cursor-pointer"
+                                                  title="Quitar esta parada del plan"
+                                                >
+                                                  <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                                </button>
+                                              )}
+                                            </div>
+
+                                            {/* Nombre del comercio con icono (ordenado, sin redundancia de municipio) */}
+                                            <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
+                                              <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                              <span className="truncate">{displayBusiness}</span>
+                                            </div>
+
+                                            {/* Dirección compacta */}
+                                            <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] text-slate-500 min-w-0">
+                                              <MapPin className="w-2.5 h-2.5 text-[#ff7700] shrink-0" />
+                                              <span className="truncate">{fullAddress}</span>
+                                            </div>
+                                          </div>
                                         </div>
 
-                                        {/* Nombre del comercio con icono (ordenado, sin redundancia de municipio) */}
-                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
-                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
-                                          <span className="truncate">{displayBusiness}</span>
-                                        </div>
-
-                                        {/* Dirección compacta */}
-                                        <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] text-slate-500 min-w-0">
-                                          <MapPin className="w-2.5 h-2.5 text-[#ff7700] shrink-0" />
-                                          <span className="truncate">{fullAddress}</span>
-                                        </div>
+                                        {/* 2. Cuerpo: Descripción completa a todo lo ancho de la tarjeta */}
+                                        {displayDescription && (
+                                          <div className="bg-white/70 sm:bg-white/80 rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 border border-slate-200/60 shadow-2xs">
+                                            <p className="text-[10px] sm:text-xs text-slate-600 leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none">
+                                              {displayDescription}
+                                            </p>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
-
-                                    {/* 2. Cuerpo: Descripción completa a todo lo ancho de la tarjeta */}
-                                    {displayDescription && (
-                                      <div className="bg-white/70 sm:bg-white/80 rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 border border-slate-200/60 shadow-2xs">
-                                        <p className="text-[10px] sm:text-xs text-slate-600 leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none">
-                                          {displayDescription}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Footer Actions */}
-                          <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={handleOpenInEditor}
-                                className="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#0066FF] to-[#0052cc] hover:from-blue-700 hover:to-blue-900 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
-                              >
-                                <Compass className="w-4 h-4" />
-                                <span>Abrir en Diseñador de Rutas</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={handleSharePlan}
-                                className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs"
-                              >
-                                <Share2 className="w-4 h-4 text-emerald-600" />
-                                <span>Compartir Plan</span>
-                              </button>
+                                  );
+                                })}
+                              </div>
                             </div>
 
-                            <button
-                              type="button"
-                              onClick={handleSavePlan}
-                              disabled={isSaved}
-                              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs ${
-                                isSaved
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
-                                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                              }`}
-                            >
-                              <Bookmark className="w-4 h-4" />
-                              <span>{isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}</span>
-                            </button>
+                            {/* Sección Expandible: Ver la Ruta Directamente Dentro del Chat sin Salir */}
+                            {isRouteExpanded && (
+                              <div className="p-3 sm:p-5 pt-1 border-t border-slate-200/80 bg-slate-50/70 animate-in fade-in duration-300 space-y-3">
+                                <div className="flex items-center justify-between pb-1 px-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-[#0066FF] animate-pulse" />
+                                    <h4 className="text-xs sm:text-sm font-bold text-slate-800">
+                                      Ruta del Plan ({plan.stops.length} paradas)
+                                    </h4>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setExpandedRoutePlanIndex(null)}
+                                    className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-0.5 rounded-lg hover:bg-slate-200/70 transition cursor-pointer"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                    <span>Ocultar ruta</span>
+                                  </button>
+                                </div>
+
+                                <PlanRouteSection
+                                  posts={planPosts}
+                                  planTitle={plan.planTitle || 'Itinerario OleVeci'}
+                                  currentCity={plan.stops[0]?.businessCity || currentCity || 'Cajicá'}
+                                  scheduledTime={plan.day || 'Fin de semana'}
+                                  hideStopsTimeline={true}
+                                  onSelectPost={(p) => onSelectPost?.(p)}
+                                />
+                              </div>
+                            )}
+
+                            {/* Footer Actions */}
+                            <div className="p-3 sm:p-4 bg-white flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                              <div className="flex flex-wrap items-center gap-2">
+                                {/* Botón Principal: Ver la ruta / Ocultar ruta dentro del chat */}
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedRoutePlanIndex(isRouteExpanded ? null : index)}
+                                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-xs ${
+                                    isRouteExpanded
+                                      ? 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-900/20'
+                                      : 'text-white bg-gradient-to-r from-[#0066FF] to-[#0052cc] hover:from-blue-700 hover:to-blue-900 shadow-blue-600/20'
+                                  }`}
+                                  title="Ver mapa interactivo y cómo llegar sin salir del chat"
+                                >
+                                  <Route className="w-4 h-4" />
+                                  <span>{isRouteExpanded ? 'Ocultar ruta' : 'Ver la ruta'}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleSharePlan(plan)}
+                                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                                >
+                                  <Share2 className="w-4 h-4 text-emerald-600" />
+                                  <span>Compartir Plan</span>
+                                </button>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSavePlan(plan)}
+                                  disabled={isSaved}
+                                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs ${
+                                    isSaved
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                                  }`}
+                                >
+                                  <Bookmark className="w-4 h-4" />
+                                  <span>{isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenInEditor(plan)}
+                                  className="px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 border border-slate-200 text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                                  title="Abrir en Diseñador de Rutas para personalización avanzada"
+                                >
+                                  <Compass className="w-3.5 h-3.5 text-blue-600" />
+                                  <span className="hidden sm:inline">Diseñador</span>
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        );
+                      })()
                     ) : (
                       /* SEARCH / RECOMMENDATION MODE: POST-FIRST UNIFIED RESULTS (NO DUPLICATES) */
                       (() => {
