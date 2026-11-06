@@ -87,6 +87,7 @@ import {
   THEMES,
 } from './InvitationCardPreview';
 import { PlanRouteSection } from './PlanRouteSection';
+import { ItineraryPlanCard } from './ItineraryPlanCard';
 import { PostDetailModal } from './PostDetailModal';
 import { formatPostShareText } from '../utils/shareUtils';
 import { SharePostModal } from './SharePostModal';
@@ -3312,8 +3313,8 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
     },
     {
       step: 2 as WizardStep,
-      name: 'Invitación',
-      subtitle: 'Diseña tu tarjeta',
+      name: 'Itinerario',
+      subtitle: 'Tu plan armado',
       icon: Ticket,
     },
     {
@@ -3559,34 +3560,18 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
                     />
                   </div>
                 </div>
-              ) : autoViewMode === 'card' ? (
-                <div className="w-full max-w-md flex flex-col items-center pb-2 animate-in fade-in zoom-in-95 duration-200">
-                  <InvitationCardPreview
-                    cardRef={invitationCardRef}
-                    className="w-full max-w-none"
-                    posts={selectedPosts}
-                    currentCity={currentCity}
-                    planTitle={planTitle}
-                    scheduledTime={scheduledTime}
-                    personalNote={personalNote}
-                    hidePrices={hidePrices}
-                    cardTemplate={cardTemplate}
-                    theme={currentThemeConfig}
-                    bgLayout={bgLayout}
-                    selectedPhotoIndex={selectedPhotoIndex}
-                    totalPrice={totalPrice}
-                    hasPricedItems={hasPricedItems}
-                    onSelectPost={(p) => setPreviewPost(p)}
-                  />
-                </div>
               ) : (
-                <div className="w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[420px] flex flex-col items-center pb-4">
-                  <PlanRouteSection
-                    posts={selectedPosts}
+                <div className="w-full max-w-lg flex flex-col items-center pb-2 animate-in fade-in zoom-in-95 duration-200">
+                  <ItineraryPlanCard
+                    cardRef={invitationCardRef}
                     planTitle={planTitle}
+                    narrativeHook={personalNote}
+                    stops={selectedPosts}
                     currentCity={currentCity}
-                    scheduledTime={scheduledTime}
+                    totalEstimatedCost={totalPrice}
                     onSelectPost={(p) => setPreviewPost(p)}
+                    onSharePlan={handleShareGeneral}
+                    initialRouteExpanded={autoViewMode === 'map'}
                   />
                 </div>
               )}
@@ -4039,114 +4024,33 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
           </div>
         )}
 
-        {/* STEP 2: CREAR INVITACIÓN, CORTE Y PERSONALIZACIÓN DIRECTA EN TARJETA */}
+        {/* STEP 2: ITINERARIO ARMADO Y PERSONALIZACIÓN DIRECTA */}
         {currentStep === 2 && (
           <div className="flex-1 flex flex-col min-h-0 bg-slate-100/60 overflow-hidden">
             {/* Main content: centered interactive card with in-card direct editing */}
             <div className="flex-1 overflow-y-auto min-h-0 p-3 sm:p-6 flex flex-col items-center justify-start">
               <div className="w-full max-w-md sm:max-w-lg space-y-3 pb-3">
-                {/* Previsualización de la Tarjeta con edición directa inline */}
-                <div className="space-y-2">
-                  <InvitationCardPreview
+                {/* Previsualización del Itinerario con edición directa */}
+                <div className="w-full">
+                  <ItineraryPlanCard
                     cardRef={invitationCardRef}
-                    className="w-full max-w-none"
-                    posts={selectedPosts}
-                    currentCity={currentCity}
                     planTitle={planTitle}
-                    scheduledTime={scheduledTime}
-                    personalNote={personalNote}
-                    hidePrices={hidePrices}
-                    cardTemplate={cardTemplate}
-                    theme={currentThemeConfig}
-                    bgLayout={bgLayout}
-                    selectedPhotoIndex={selectedPhotoIndex}
-                    totalPrice={totalPrice}
-                    hasPricedItems={hasPricedItems}
-                    onSelectPost={(p) => setPreviewPost(p)}
-                    isEditing={isCardEditing}
+                    narrativeHook={personalNote}
+                    stops={selectedPosts}
+                    currentCity={currentCity}
+                    totalEstimatedCost={totalPrice}
+                    isEditable={true}
                     onTitleChange={(val) => setPlanTitle(val)}
-                    onNoteChange={(val) => setPersonalNote(val)}
+                    onNarrativeChange={(val) => setPersonalNote(val)}
+                    onRemoveStop={(idx) => {
+                      if (selectedPosts[idx]) {
+                        handleRemovePost(selectedPosts[idx].id);
+                      }
+                    }}
+                    onSelectPost={(p) => setPreviewPost(p)}
+                    onSharePlan={handleShareGeneral}
+                    initialRouteExpanded={false}
                   />
-                </div>
-
-                {/* Botón de Editar directamente debajo de la invitación (sin contenedor / sin caja de fondo) */}
-                <div className="flex items-center justify-center gap-2.5 pt-1.5 pb-2 z-20">
-                  {/* Botón Editar / Listo */}
-                  <button
-                    type="button"
-                    id="btn-toggle-card-edit"
-                    onClick={() => setIsCardEditing(!isCardEditing)}
-                    className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95 ${
-                      isCardEditing
-                        ? "bg-[#0056d6] text-white shadow-blue-500/25 hover:bg-[#0047b3]"
-                        : "bg-white text-slate-700 hover:text-[#0056d6] border border-slate-200/90 hover:border-[#0056d6] hover:bg-blue-50/40 hover:shadow-md"
-                    }`}
-                    title={isCardEditing ? "Finalizar edición" : "Editar invitación"}
-                  >
-                    {isCardEditing ? (
-                      <>
-                        <Check className="w-4 h-4 text-white" />
-                        <span>Listo</span>
-                      </>
-                    ) : (
-                      <>
-                        <Pencil className="w-4 h-4 text-slate-500" />
-                        <span>Editar</span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* Opciones activadas por el botón editar: Iconos de acción independientes (sin contenedor) */}
-                  {isCardEditing && (
-                    <div className="flex items-center gap-2 animate-in fade-in-0 duration-200">
-                      {/* Iconito para cambiar el color */}
-                      <button
-                        type="button"
-                        id="btn-cycle-card-color"
-                        onClick={handleCycleTheme}
-                        className="w-10 h-10 rounded-full bg-white hover:bg-slate-50 text-purple-600 border border-slate-200/90 shadow-sm hover:shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95 group"
-                        title="Cambiar color de la tarjeta"
-                        aria-label="Cambiar color de la tarjeta"
-                      >
-                        <Palette className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      </button>
-
-                      {/* Iconito para cambiar el corte de fotos */}
-                      <button
-                        type="button"
-                        id="btn-cycle-card-layout"
-                        onClick={handleCyclePhotoLayout}
-                        className="w-10 h-10 rounded-full bg-white hover:bg-slate-50 text-blue-600 border border-slate-200/90 shadow-sm hover:shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95 group"
-                        title="Cambiar corte de fotos"
-                        aria-label="Cambiar corte de fotos"
-                      >
-                        <Crop className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      </button>
-
-                      {/* Iconito para ocultar o mostrar precios (signo pesos) */}
-                      <button
-                        type="button"
-                        id="btn-toggle-hide-prices"
-                        onClick={() => setHidePrices(!hidePrices)}
-                        className={`w-10 h-10 rounded-full border shadow-sm hover:shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95 group ${
-                          hidePrices
-                            ? "bg-rose-50/70 hover:bg-rose-100/70 border-rose-200/90 text-rose-500"
-                            : "bg-white hover:bg-emerald-50/60 border-slate-200/90 hover:border-emerald-300 text-emerald-600"
-                        }`}
-                        title={hidePrices ? "Precios ocultos (clic para mostrar)" : "Precios visibles (clic para ocultar)"}
-                        aria-label={hidePrices ? "Mostrar precios en la tarjeta" : "Ocultar precios en la tarjeta"}
-                      >
-                        {hidePrices ? (
-                          <div className="relative flex items-center justify-center">
-                            <DollarSign className="w-4 h-4 text-slate-400 group-hover:scale-110 transition-transform stroke-[2]" />
-                            <span className="absolute w-5 h-[2px] bg-rose-500 -rotate-45 rounded-full pointer-events-none" />
-                          </div>
-                        ) : (
-                          <DollarSign className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform stroke-[2.5]" />
-                        )}
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -4174,10 +4078,10 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
                   onClick={() => setCurrentStep(3)}
                   title="Ver mapa interactivo, paradas y cómo llegar"
                   aria-label="Siguiente: Ver ruta y mapa"
-                  className="w-10 h-10 sm:h-11 sm:w-auto px-0 sm:px-4 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-[#0056d6] text-slate-700 hover:text-white border border-slate-200/90 hover:border-[#0056d6] hover:shadow-md hover:shadow-blue-500/25 active:bg-[#0047b3] focus:bg-[#0056d6] focus:text-white active:scale-95 flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold text-xs sm:text-sm"
+                  className="w-10 h-10 sm:h-11 sm:w-auto px-0 sm:px-4 rounded-xl sm:rounded-2xl bg-[#0066FF] hover:bg-[#0052cc] text-white shadow-md shadow-blue-500/25 active:bg-[#0047b3] active:scale-95 flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold text-xs sm:text-sm"
                 >
                   <Route className="hidden sm:inline w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                  <span className="hidden sm:inline">Ver Ruta y Mapa</span>
+                  <span className="hidden sm:inline">Ver Ruta y Cómo Llegar</span>
                   <ArrowRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 </button>
               </div>
