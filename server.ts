@@ -1709,8 +1709,26 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath, {
-      maxAge: '1y',
-      immutable: true,
+      setHeaders: (res, filePath) => {
+        const file = filePath.toLowerCase();
+        // Never cache service worker, registerSW, manifest, or html
+        if (
+          file.endsWith('sw.js') ||
+          file.endsWith('registersw.js') ||
+          file.endsWith('manifest.webmanifest') ||
+          file.endsWith('.html')
+        ) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+        } else if (file.includes('assets') || file.match(/\.[a-f0-9]{8,}\./i)) {
+          // Hashed JS/CSS chunks can be cached long-term
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else {
+          // Regular static icons/images
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+        }
+      },
       index: false,
     }));
   }
@@ -1889,6 +1907,9 @@ async function startServer() {
       }
 
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       return res.status(200).send(html);
     } catch (error) {
       console.error('Error procesando OpenGraph HTML:', error);
