@@ -1031,15 +1031,13 @@ export const OliSection: React.FC<OliSectionProps> = ({
                       <div className="w-full rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
                         {/* Header Banner */}
                         <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-4 sm:p-5 text-white">
-                          <div className="flex items-center justify-between gap-3 mb-2">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-bold uppercase tracking-wider text-white">
-                              <Sparkles className="w-3 h-3" />
-                              Plan en {plan.stops[0]?.businessCity || currentCity || 'Sabana Centro'}
-                            </span>
-                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-black/20 text-white">
-                              {plan.day}
-                            </span>
-                          </div>
+                          {plan.day && (
+                            <div className="flex items-center justify-end mb-2">
+                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-black/20 text-white">
+                                {plan.day}
+                              </span>
+                            </div>
+                          )}
 
                           <h2 className="text-base sm:text-xl font-black tracking-tight leading-snug">
                             {plan.planTitle}
@@ -1058,12 +1056,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
                             <div className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1 rounded-lg font-bold">
                               <span>Total estimado: {formatPriceCOP(plan.totalEstimatedCost)}</span>
                             </div>
-
-                            {plan.costPerPerson && plan.personCount && plan.personCount > 1 && (
-                              <div className="flex items-center gap-1.5 bg-white/20 px-2.5 py-1 rounded-lg font-semibold text-[11px]">
-                                <span>~{formatPriceCOP(plan.costPerPerson)} / persona ({plan.personCount} personas)</span>
-                              </div>
-                            )}
 
                             {plan.budgetStatus === 'over_budget' && (
                               <span className="bg-amber-500/90 text-white font-bold text-[10px] px-2 py-0.5 rounded-md">
