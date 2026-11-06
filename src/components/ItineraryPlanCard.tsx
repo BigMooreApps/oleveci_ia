@@ -40,6 +40,7 @@ export interface ItineraryPlanCardProps {
   showActions?: boolean;
   showRouteButton?: boolean;
   showLogoHeader?: boolean;
+  scrollableStops?: boolean;
 }
 
 export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
@@ -63,6 +64,7 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
   showActions = true,
   showRouteButton = true,
   showLogoHeader = true,
+  scrollableStops = false,
 }) => {
   const [isRouteExpanded, setIsRouteExpanded] = useState<boolean>(initialRouteExpanded);
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
@@ -87,10 +89,12 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
   return (
     <div
       ref={cardRef}
-      className={`w-full rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden ${className}`}
+      className={`w-full rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden ${
+        scrollableStops ? 'flex flex-col' : ''
+      } ${className}`}
     >
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-3.5 sm:p-5 text-white">
+      <div className="shrink-0 bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-3.5 sm:p-5 text-white">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             {isEditingTitle && isEditable ? (
@@ -150,7 +154,11 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
       </div>
 
       {/* Stops List with Timeline Style */}
-      <div className="p-2.5 sm:p-5 space-y-2.5 sm:space-y-3.5">
+      <div
+        className={`p-2.5 sm:p-5 space-y-2.5 sm:space-y-3.5 ${
+          scrollableStops ? 'flex-1 overflow-y-auto min-h-0 itinerary-stops-scroll' : ''
+        }`}
+      >
         {stops.length === 0 ? (
           <div className="py-8 text-center text-slate-400 text-xs sm:text-sm">
             No hay actividades en este itinerario aún.

@@ -728,12 +728,12 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-3.5 sm:p-4 space-y-3 overflow-y-auto overscroll-contain">
+        <div className="p-3.5 sm:p-4 space-y-3 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {/* ======================================================== */}
           {/* PREVIEW CARD: ITINERARY PLAN CARD OR 9:16 STORY POST/BIZ */}
           {/* ======================================================== */}
           {isPlan && effectivePlanStops.length > 0 ? (
-            <div className="w-full max-h-[380px] sm:max-h-[420px] overflow-y-auto rounded-2xl border border-white/20 shadow-2xl bg-white select-none">
+            <div className="w-full select-none">
               <ItineraryPlanCard
                 planTitle={cardTitle || 'Itinerario'}
                 narrativeHook={resolvedPlan?.personalNote}
@@ -742,6 +742,8 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
                 totalEstimatedCost={resolvedPlan?.estimatedBudget}
                 showActions={false}
                 showLogoHeader={true}
+                scrollableStops={true}
+                className="max-h-[380px] sm:max-h-[420px] shadow-2xl border border-white/20"
               />
             </div>
           ) : (
