@@ -321,7 +321,7 @@ interface ItineraryBuilderModalProps {
   onOpenOliAssistant?: () => void;
 }
 
-export type WizardStep = 1 | 2 | 3;
+export type WizardStep = 1 | 2;
 export type BuilderMode = 'mode_select' | 'automatic' | 'manual';
 
 export type TemplateCategory = 'all' | 'oficial' | 'vip' | 'tickets' | 'editorial' | 'gastro' | 'social';
@@ -3317,12 +3317,6 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
       subtitle: 'Tu plan armado',
       icon: Ticket,
     },
-    {
-      step: 3 as WizardStep,
-      name: 'Ruta y Mapa',
-      subtitle: 'Forma de llegar',
-      icon: Route,
-    },
   ];
 
   return (
@@ -4055,7 +4049,7 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
               </div>
             </div>
 
-            {/* Bottom Navigation Footer: Volver/Modificar + Ver Ruta */}
+            {/* Bottom Navigation Footer: Volver/Modificar + Compartir / Publicar */}
             <div className="p-2.5 sm:p-4 bg-white/95 backdrop-blur-md border-t border-slate-200/90 flex items-center justify-between gap-2 shrink-0 z-30">
               <button
                 type="button"
@@ -4069,75 +4063,15 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
                 <span className="hidden sm:inline">Modificar actividades</span>
               </button>
 
-              {/* Barra de Iconos de Acción: Ver Ruta */}
-              <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-                {/* Botón Ver Ruta y Mapa para avanzar al paso 3 (Siguiente) */}
-                <button
-                  type="button"
-                  id="btn-step2-to-route"
-                  onClick={() => setCurrentStep(3)}
-                  title="Ver mapa interactivo, paradas y cómo llegar"
-                  aria-label="Siguiente: Ver ruta y mapa"
-                  className="w-10 h-10 sm:h-11 sm:w-auto px-0 sm:px-4 rounded-xl sm:rounded-2xl bg-[#0066FF] hover:bg-[#0052cc] text-white shadow-md shadow-blue-500/25 active:bg-[#0047b3] active:scale-95 flex items-center justify-center gap-1.5 transition-all cursor-pointer font-bold text-xs sm:text-sm"
-                >
-                  <Route className="hidden sm:inline w-4 h-4 sm:w-4.5 sm:h-4.5" />
-                  <span className="hidden sm:inline">Ver Ruta y Cómo Llegar</span>
-                  <ArrowRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: RUTA, MAPA Y FORMA DE LLEGAR */}
-        {currentStep === 3 && (
-          <div className="flex-1 flex flex-col min-h-0 bg-slate-100/50 overflow-hidden">
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="w-full flex-1 p-3 sm:p-6 flex flex-col items-center justify-start bg-slate-50/80 min-h-full">
-                <div className="w-full max-w-3xl space-y-4">
-                  {/* Componente de la Ruta y Forma de Llegar */}
-                  <div className="w-full bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm space-y-3 pb-4">
-                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-rose-500" />
-                        <span>Forma de llegar y paradas del itinerario</span>
-                      </h4>
-                    </div>
-                    <PlanRouteSection
-                      posts={selectedPosts}
-                      planTitle={planTitle}
-                      currentCity={currentCity}
-                      scheduledTime={scheduledTime}
-                      onSelectPost={(p) => setPreviewPost(p)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Navigation Footer Paso 3: Volver a Invitación + Compartir o Publicar */}
-            <div className="p-2.5 sm:p-4 bg-white/95 backdrop-blur-md border-t border-slate-200/90 flex items-center justify-between gap-2 shrink-0 z-30">
-              <button
-                type="button"
-                id="btn-step3-back"
-                onClick={() => setCurrentStep(2)}
-                className="w-10 h-10 sm:w-auto px-0 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 bg-slate-100 hover:bg-[#0056d6] hover:text-white border border-slate-200/80 hover:border-[#0056d6] hover:shadow-md hover:shadow-blue-500/25 flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
-                title="Editar diseño de la invitación"
-                aria-label="Atrás: Editar invitación"
-              >
-                <ArrowLeft className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline">Editar Invitación</span>
-              </button>
-
               <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                 {/* Compartir Itinerario */}
                 <button
                   type="button"
-                  id="btn-step3-share"
+                  id="btn-step2-share"
                   onClick={handleShareGeneral}
-                  title="Compartir itinerario y ruta"
-                  aria-label="Compartir itinerario y ruta"
-                  className="h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-[#0056d6] text-slate-700 hover:text-white border border-slate-200/90 hover:border-[#0056d6] hover:shadow-md hover:shadow-blue-500/25 active:bg-[#0047b3] focus:bg-[#0056d6] focus:text-white active:scale-95 flex items-center gap-1.5 transition-all cursor-pointer font-bold text-xs sm:text-sm"
+                  title="Compartir itinerario"
+                  aria-label="Compartir itinerario"
+                  className="h-10 sm:h-11 px-3.5 sm:px-5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0066FF] to-[#0052cc] hover:from-blue-700 hover:to-blue-900 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 active:scale-95 flex items-center gap-2 transition-all cursor-pointer shrink-0"
                 >
                   <Share2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                   <span>Compartir Itinerario</span>
@@ -4147,7 +4081,7 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
                 {isAdminCreation && (
                   <button
                     type="button"
-                    id="btn-admin-publish-plan-step3"
+                    id="btn-admin-publish-plan-step2"
                     onClick={() => {
                       if (selectedPosts.length === 0) {
                         alert('Debes seleccionar al menos una parada para publicar el plan.');
@@ -4155,7 +4089,7 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
                       }
                       setShowAdminPublishModal(true);
                     }}
-                    className="h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl bg-[#007af7] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
+                    className="h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
                     title="Publicar en Itinerarios Listos"
                   >
                     <CheckSquare className="w-4 h-4 text-white" />
