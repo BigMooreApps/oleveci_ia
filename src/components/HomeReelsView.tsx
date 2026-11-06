@@ -84,6 +84,7 @@ export const HomeReelsView: React.FC<HomeReelsViewProps> = ({
     // 1. Build all Itinerary Reel Posts from readyPlans (the same ones in the Itinerarios section)
     const allItineraryReels: Post[] = [];
     (readyPlans || []).forEach((plan) => {
+      if (!plan || !plan.id || plan.id.startsWith('itin_')) return;
       // Filter by municipality if city is set
       if (currentCity && currentCity !== 'all') {
         const planMun = (plan.municipality || '').toLowerCase().trim();

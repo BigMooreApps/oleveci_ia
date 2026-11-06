@@ -113,9 +113,20 @@ export const ReadyPlansView: React.FC<ReadyPlansViewProps> = ({
     return count;
   }, [selectedCategory, selectedPlanType, maxPlanBudget, currentCity, currentSector, sortOrder, searchQuery]);
 
+  // Deduplicate and filter out temporary uncurated draft plans
+  const cleanReadyPlans = useMemo(() => {
+    const seen = new Set<string>();
+    return (readyPlans || []).filter((p) => {
+      if (!p || !p.id || p.id.startsWith('itin_')) return false;
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+  }, [readyPlans]);
+
   // Filtered and sorted plans using unified filterReadyPlans engine
   const filteredPlans = useMemo(() => {
-    return filterReadyPlans(readyPlans, {
+    return filterReadyPlans(cleanReadyPlans, {
       selectedCategory,
       selectedPlanType,
       selectedCity: currentCity,
@@ -127,7 +138,7 @@ export const ReadyPlansView: React.FC<ReadyPlansViewProps> = ({
       userLocation,
     });
   }, [
-    readyPlans,
+    cleanReadyPlans,
     selectedCategory,
     selectedPlanType,
     currentCity,
@@ -396,8 +407,8 @@ export const ReadyPlansView: React.FC<ReadyPlansViewProps> = ({
         sortOrder={sortOrder}
         onSortChange={setSortOrder}
         filteredCount={filteredPlans.length}
-        totalPlansCount={readyPlans.length}
-        allPlans={readyPlans}
+        totalPlansCount={cleanReadyPlans.length}
+        allPlans={cleanReadyPlans}
         onResetFilters={handleClearAllFilters}
       />
 

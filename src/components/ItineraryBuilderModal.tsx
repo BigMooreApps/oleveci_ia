@@ -2363,7 +2363,7 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
 
   const getOrSaveCurrentItinerary = (): SimulatedReadyPlan => {
     if (!sharedPlanIdRef.current) {
-      sharedPlanIdRef.current = `itin_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      sharedPlanIdRef.current = initialPlan?.id || `itin_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     }
     const currentThemeConfig = THEMES[selectedTheme] || THEMES.nordic_light;
     const tags = [
@@ -2392,7 +2392,13 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
       tags,
     };
 
-    addReadyPlan(planToSave);
+    // Persist to server so the deep link works for recipients
+    fetch('/api/plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(planToSave),
+    }).catch(() => {});
+
     return planToSave;
   };
 

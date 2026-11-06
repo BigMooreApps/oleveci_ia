@@ -813,10 +813,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((p: SimulatedReadyPlan) => ({
-            ...p,
-            category: normalizeCategory(p.category),
-          }));
+          const seen = new Set<string>();
+          const cleanPlans = parsed.filter((p: SimulatedReadyPlan) => {
+            if (!p || !p.id || p.id.startsWith('itin_')) return false;
+            if (seen.has(p.id)) return false;
+            seen.add(p.id);
+            return true;
+          });
+          if (cleanPlans.length > 0) {
+            return cleanPlans.map((p: SimulatedReadyPlan) => ({
+              ...p,
+              category: normalizeCategory(p.category),
+            }));
+          }
         }
       }
     } catch {
@@ -1711,7 +1720,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setReadyPlans((prev) => {
             const map = new Map(prev.map((p) => [p.id, p]));
             serverPlans.forEach((sp: SimulatedReadyPlan) => {
-              if (sp?.id) {
+              if (sp?.id && !sp.id.startsWith('itin_')) {
                 const existing = map.get(sp.id);
                 map.set(sp.id, Object.assign({}, existing, sp));
               }

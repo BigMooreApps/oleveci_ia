@@ -274,6 +274,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
     // 2. Matching itinerary reels from readyPlans
     const matchingItineraries = (readyPlans || []).filter((plan) => {
+      if (!plan || !plan.id || plan.id.startsWith('itin_')) return false;
       // City filter
       if (draftCity && draftCity !== 'all') {
         const planMun = (plan.municipality || '').toLowerCase().trim();
