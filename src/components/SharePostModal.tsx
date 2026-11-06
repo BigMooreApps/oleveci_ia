@@ -206,22 +206,12 @@ async function generatePlanImageBlob(
       textY += 28;
     }
 
-    // Logo OleVeci en la parte superior derecha simétricamente
+    // Logo OleVeci en la parte superior derecha simétricamente (solo, sin recuadro)
     const logoX = cardMargin + cardW - 32 - logoBoxSize;
-    const logoY = cardMargin + 30;
-    drawRoundRect(ctx, logoX, logoY, logoBoxSize, logoBoxSize, 16);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    const logoY = cardMargin + 28;
 
     if (logoImg) {
-      ctx.save();
-      drawRoundRect(ctx, logoX + 6, logoY + 6, logoBoxSize - 12, logoBoxSize - 12, 12);
-      ctx.clip();
-      ctx.drawImage(logoImg, logoX + 6, logoY + 6, logoBoxSize - 12, logoBoxSize - 12);
-      ctx.restore();
+      ctx.drawImage(logoImg, logoX, logoY, logoBoxSize, logoBoxSize);
     } else {
       ctx.fillStyle = '#ffffff';
       ctx.font = '900 22px system-ui, sans-serif';

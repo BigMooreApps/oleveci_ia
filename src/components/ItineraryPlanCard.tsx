@@ -67,16 +67,10 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
   const [isRouteExpanded, setIsRouteExpanded] = useState<boolean>(initialRouteExpanded);
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [editedTitle, setEditedTitle] = useState<string>(planTitle);
-  const [isEditingNarrative, setIsEditingNarrative] = useState<boolean>(false);
-  const [editedNarrative, setEditedNarrative] = useState<string>(narrativeHook || '');
 
   React.useEffect(() => {
     setEditedTitle(planTitle);
   }, [planTitle]);
-
-  React.useEffect(() => {
-    setEditedNarrative(narrativeHook || '');
-  }, [narrativeHook]);
 
   // Compute total cost if not explicitly passed
   const calculatedTotal = totalEstimatedCost !== undefined
@@ -87,13 +81,6 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
     setIsEditingTitle(false);
     if (onTitleChange && editedTitle.trim()) {
       onTitleChange(editedTitle.trim());
-    }
-  };
-
-  const handleNarrativeSubmit = () => {
-    setIsEditingNarrative(false);
-    if (onNarrativeChange) {
-      onNarrativeChange(editedNarrative.trim());
     }
   };
 
@@ -132,45 +119,20 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
               </h2>
             )}
 
-            {isEditingNarrative && isEditable ? (
-              <div className="mt-1">
-                <input
-                  type="text"
-                  value={editedNarrative}
-                  onChange={(e) => setEditedNarrative(e.target.value)}
-                  onBlur={handleNarrativeSubmit}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNarrativeSubmit()}
-                  autoFocus
-                  placeholder="Añade una breve nota o dedicatoria..."
-                  className="bg-white/20 text-blue-50 text-xs rounded-md px-2 py-0.5 w-full border border-white/40 focus:outline-hidden focus:ring-1 focus:ring-white placeholder:text-blue-200/70"
-                />
-              </div>
-            ) : (
-              (narrativeHook || (isEditable && onNarrativeChange)) && (
-                <p
-                  onClick={() => {
-                    if (isEditable && onNarrativeChange) setIsEditingNarrative(true);
-                  }}
-                  className={`text-xs text-blue-100 mt-1 font-normal ${
-                    isEditable && onNarrativeChange ? 'cursor-pointer hover:underline' : ''
-                  } ${narrativeHook ? 'line-clamp-2' : 'italic text-blue-200/70'}`}
-                  title={isEditable && onNarrativeChange ? 'Toca para editar la nota' : undefined}
-                >
-                  {narrativeHook || (isEditable ? '+ Añadir nota o descripción...' : '')}
-                </p>
-              )
-            )}
+            {narrativeHook ? (
+              <p className="text-xs text-blue-100 mt-1 font-normal line-clamp-2">
+                {narrativeHook}
+              </p>
+            ) : null}
           </div>
 
-          {/* Logo OleVeci en la parte superior derecha simétricamente */}
+          {/* Logo OleVeci en la parte superior derecha simétricamente (sin recuadro) */}
           {showLogoHeader && (
-            <div className="shrink-0 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs p-1">
-              <img
-                src="/Icono_Oleveci_sin_fondo.png?v=clean"
-                alt="OleVeci"
-                className="w-full h-full object-contain drop-shadow-xs"
-              />
-            </div>
+            <img
+              src="/Icono_Oleveci_sin_fondo.png?v=clean"
+              alt="OleVeci"
+              className="shrink-0 w-10 h-10 sm:w-11 sm:h-11 object-contain drop-shadow-sm select-none"
+            />
           )}
         </div>
 

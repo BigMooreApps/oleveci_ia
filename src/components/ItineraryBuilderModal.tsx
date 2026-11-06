@@ -4035,7 +4035,6 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
                     totalEstimatedCost={totalPrice}
                     isEditable={true}
                     onTitleChange={(val) => setPlanTitle(val)}
-                    onNarrativeChange={(val) => setPersonalNote(val)}
                     onRemoveStop={(idx) => {
                       if (selectedPosts[idx]) {
                         handleRemovePost(selectedPosts[idx].id);
