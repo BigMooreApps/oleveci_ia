@@ -135,199 +135,205 @@ async function generatePlanImageBlob(
       loadCanvasImage('/Icono_Oleveci_sin_fondo.png?v=clean'),
     ]);
 
-    const canvasW = 800;
-    const cardMargin = 0;
-    const cardW = 800;
-    const logoBoxSize = 64;
+    const cardW = 460;
+    const paddingX = 18;
+    const paddingY = 16;
+    const logoSize = 44;
+    const scale = 2; // Sharp Retina resolution
 
     // Measure Header with logo space on the right
-    ctx.font = '900 34px system-ui, -apple-system, sans-serif';
-    const titleLines = wrapText(ctx, title, cardW - logoBoxSize - 80, 2);
-    const titleH = titleLines.length * 42;
-    const noteH = personalNote ? 30 : 0;
-    const headerH = Math.max(160, 32 + titleH + noteH + 18 + 36 + 24);
+    ctx.font = '900 18px system-ui, -apple-system, sans-serif';
+    const titleMaxWidth = cardW - paddingX * 2 - logoSize - 14;
+    const titleLines = wrapText(ctx, title, titleMaxWidth, 2);
+    const titleH = titleLines.length * 24;
+    const noteH = personalNote ? 20 : 0;
+    const topRowH = Math.max(titleH + noteH, logoSize);
+    const dividerY = paddingY + topRowH + 12;
+    const pillsY = dividerY + 10;
+    const pillH = 26;
+    const headerH = pillsY + pillH + 14;
 
     // Measure Stops
+    const stopBoxX = 48;
+    const stopBoxW = cardW - stopBoxX - 16;
+    const thumbSize = 70;
+
     const stopHeights = stops.map((post) => {
-      ctx.font = '700 20px system-ui, -apple-system, sans-serif';
-      const sTitleLines = wrapText(ctx, post.title, 520, 2);
-      const topH = Math.max(120, sTitleLines.length * 26 + 56);
+      ctx.font = '700 13px system-ui, -apple-system, sans-serif';
+      const sTitleLines = wrapText(ctx, post.title, stopBoxW - thumbSize - 28, 2);
+      const topH = Math.max(thumbSize, sTitleLines.length * 17 + 22 + 18);
 
-      ctx.font = '400 15px system-ui, -apple-system, sans-serif';
-      const descLines = wrapText(ctx, post.description || '', 670, 3);
-      const descBoxH = descLines.length > 0 ? (descLines.length * 22 + 22) : 0;
+      ctx.font = '400 10.5px system-ui, -apple-system, sans-serif';
+      const descLines = wrapText(ctx, post.description || '', stopBoxW - 24, 3);
+      const descBoxH = descLines.length > 0 ? descLines.length * 15 + 14 : 0;
 
-      return topH + (descBoxH > 0 ? descBoxH + 14 : 0) + 26;
+      return 10 + topH + (descBoxH > 0 ? 8 + descBoxH : 0) + 10;
     });
 
-    const timelineStartH = 46;
-    const stopsTotalH = stopHeights.reduce((a, b) => a + b, 0) + Math.max(0, stops.length - 1) * 18;
-    const bottomPadding = 30;
+    const timelineStartH = 34;
+    const stopsTotalH = stopHeights.reduce((a, b) => a + b, 0) + Math.max(0, stops.length - 1) * 12;
+    const bottomPadding = 18;
 
     const cardH = headerH + timelineStartH + stopsTotalH + bottomPadding;
-    const canvasH = cardH;
 
-    canvas.width = canvasW;
-    canvas.height = canvasH;
+    canvas.width = cardW * scale;
+    canvas.height = cardH * scale;
+
+    ctx.scale(scale, scale);
 
     // Draw card rounded container
     ctx.save();
-    drawRoundRect(ctx, 0, 0, cardW, cardH, 24);
+    drawRoundRect(ctx, 0, 0, cardW, cardH, 20);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.clip();
 
     // 1. Header Banner Gradient
-    const headerGrad = ctx.createLinearGradient(cardMargin, cardMargin, cardMargin + cardW, cardMargin + headerH);
+    const headerGrad = ctx.createLinearGradient(0, 0, cardW, headerH);
     headerGrad.addColorStop(0, '#0066FF');
     headerGrad.addColorStop(0.5, '#00B4D8');
     headerGrad.addColorStop(1, '#0096C7');
     ctx.fillStyle = headerGrad;
-    ctx.fillRect(cardMargin, cardMargin, cardW, headerH);
+    ctx.fillRect(0, 0, cardW, headerH);
 
     // Header Title
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 34px system-ui, -apple-system, sans-serif';
-    let textY = cardMargin + 44;
+    ctx.font = '900 18px system-ui, -apple-system, sans-serif';
+    let textY = paddingY + 18;
     titleLines.forEach((l) => {
-      ctx.fillText(l, cardMargin + 32, textY);
-      textY += 40;
+      ctx.fillText(l, paddingX, textY);
+      textY += 23;
     });
 
     // Optional Note
     if (personalNote) {
       ctx.fillStyle = '#e0f2fe';
-      ctx.font = '400 19px system-ui, -apple-system, sans-serif';
-      ctx.fillText(personalNote, cardMargin + 32, textY);
-      textY += 28;
+      ctx.font = '400 12px system-ui, -apple-system, sans-serif';
+      ctx.fillText(personalNote, paddingX, textY);
+      textY += 18;
     }
 
     // Logo OleVeci en la parte superior derecha simétricamente (solo, sin recuadro)
-    const logoX = cardMargin + cardW - 32 - logoBoxSize;
-    const logoY = cardMargin + 28;
+    const logoX = cardW - paddingX - logoSize;
+    const logoY = paddingY;
 
     if (logoImg) {
-      ctx.drawImage(logoImg, logoX, logoY, logoBoxSize, logoBoxSize);
+      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
     } else {
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 22px system-ui, sans-serif';
+      ctx.font = '900 17px system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('OV', logoX + logoBoxSize / 2, logoY + logoBoxSize / 2 + 8);
+      ctx.fillText('OV', logoX + logoSize / 2, logoY + logoSize / 2 + 6);
       ctx.textAlign = 'left';
     }
 
-    // Divider line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+    // Divider line (estrictamente debajo del título y del logo)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(cardMargin + 32, textY + 4);
-    ctx.lineTo(cardMargin + cardW - 32, textY + 4);
+    ctx.moveTo(paddingX, dividerY);
+    ctx.lineTo(cardW - paddingX, dividerY);
     ctx.stroke();
-    textY += 16;
 
     // Pills row
     const pill1Text = `📍 ${stops.length} paradas`;
-    ctx.font = '700 17px system-ui, -apple-system, sans-serif';
-    const p1W = ctx.measureText(pill1Text).width + 24;
-    drawRoundRect(ctx, cardMargin + 32, textY, p1W, 32, 10);
+    ctx.font = '700 11px system-ui, -apple-system, sans-serif';
+    const p1W = ctx.measureText(pill1Text).width + 16;
+    drawRoundRect(ctx, paddingX, pillsY, p1W, pillH, 7);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(pill1Text, cardMargin + 44, textY + 22);
+    ctx.fillText(pill1Text, paddingX + 8, pillsY + 17);
 
     const calculatedTotal = estimatedBudget !== undefined
       ? estimatedBudget
       : stops.reduce((s, p) => s + (p.promotionalPrice || p.originalPrice || 0), 0);
     const pill2Text = `Total estimado: ${calculatedTotal > 0 ? Math.round(calculatedTotal).toLocaleString('es-CO') + ' pesos' : 'Sin costo'}`;
-    ctx.font = '400 17px system-ui, -apple-system, sans-serif';
-    const p2W = ctx.measureText(pill2Text).width + 24;
-    drawRoundRect(ctx, cardMargin + 32 + p1W + 10, textY, p2W, 32, 10);
+    ctx.font = '400 11px system-ui, -apple-system, sans-serif';
+    const p2W = ctx.measureText(pill2Text).width + 16;
+    drawRoundRect(ctx, paddingX + p1W + 8, pillsY, p2W, pillH, 7);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(pill2Text, cardMargin + 44 + p1W + 10, textY + 22);
+    ctx.fillText(pill2Text, paddingX + p1W + 16, pillsY + 17);
 
     // 2. Timeline Start Point
-    let timelineY = cardMargin + headerH + 24;
-    const timelineX = cardMargin + 46;
+    let timelineY = headerH + 14;
+    const timelineX = 26;
 
     // Start Dot Circle
     ctx.beginPath();
-    ctx.arc(timelineX, timelineY + 8, 7, 0, Math.PI * 2);
+    ctx.arc(timelineX, timelineY + 6, 5.5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.strokeStyle = '#007af7';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.arc(timelineX, timelineY + 8, 2.5, 0, Math.PI * 2);
+    ctx.arc(timelineX, timelineY + 6, 2, 0, Math.PI * 2);
     ctx.fillStyle = '#007af7';
     ctx.fill();
 
-    ctx.font = '500 17px system-ui, -apple-system, sans-serif';
+    ctx.font = '500 11px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Inicio: ', timelineX + 18, timelineY + 14);
+    ctx.fillText('Inicio: ', timelineX + 14, timelineY + 10);
     const inW = ctx.measureText('Inicio: ').width;
 
-    ctx.font = '800 17px system-ui, -apple-system, sans-serif';
+    ctx.font = '800 11px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#0056d6';
     const startStore = stops[0]?.businessName || `Centro de ${currentCity}`;
-    ctx.fillText(startStore, timelineX + 18 + inW, timelineY + 14);
+    ctx.fillText(startStore, timelineX + 14 + inW, timelineY + 10);
 
     timelineY += timelineStartH;
 
     // 3. Sequential Stops
     stops.forEach((post, idx) => {
       const boxH = stopHeights[idx];
-      const stopBoxX = cardMargin + 76;
-      const stopBoxW = cardW - 96;
-
-      const badgeY = timelineY + 26;
+      const badgeY = timelineY + 18;
 
       // Connecting vertical line to next stop
       if (idx < stops.length - 1) {
         ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(timelineX, badgeY + 14);
-        ctx.lineTo(timelineX, badgeY + boxH + 8);
+        ctx.moveTo(timelineX, badgeY + 10);
+        ctx.lineTo(timelineX, badgeY + boxH + 4);
         ctx.stroke();
       }
 
       // Step Number Badge (Blue circle with white number)
       ctx.beginPath();
-      ctx.arc(timelineX, badgeY, 14, 0, Math.PI * 2);
-      const bGrad = ctx.createLinearGradient(timelineX - 14, badgeY - 14, timelineX + 14, badgeY + 14);
+      ctx.arc(timelineX, badgeY, 10, 0, Math.PI * 2);
+      const bGrad = ctx.createLinearGradient(timelineX - 10, badgeY - 10, timelineX + 10, badgeY + 10);
       bGrad.addColorStop(0, '#0056d6');
       bGrad.addColorStop(1, '#041f5e');
       ctx.fillStyle = bGrad;
       ctx.fill();
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 15px system-ui, -apple-system, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(String(idx + 1), timelineX, badgeY + 5);
-      ctx.textAlign = 'left';
-
-      // Stop Card Outer Box (slate-100)
-      drawRoundRect(ctx, stopBoxX, timelineY, stopBoxW, boxH, 18);
-      ctx.fillStyle = '#f1f5f9';
-      ctx.fill();
-      ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 10px system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(idx + 1), timelineX, badgeY + 3.5);
+      ctx.textAlign = 'left';
+
+      // Stop Card Outer Box (slate-100)
+      drawRoundRect(ctx, stopBoxX, timelineY, stopBoxW, boxH, 14);
+      ctx.fillStyle = '#f1f5f9';
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
       // Thumbnail with Price
-      const thumbX = stopBoxX + 14;
-      const thumbY = timelineY + 14;
-      const thumbSize = 110;
+      const thumbX = stopBoxX + 9;
+      const thumbY = timelineY + 9;
 
       ctx.save();
-      drawRoundRect(ctx, thumbX, thumbY, thumbSize, thumbSize, 12);
+      drawRoundRect(ctx, thumbX, thumbY, thumbSize, thumbSize, 10);
       ctx.clip();
       const img = loadedImgs[idx];
       if (img) {
@@ -345,61 +351,62 @@ async function generatePlanImageBlob(
         ctx.fillStyle = '#e2e8f0';
         ctx.fillRect(thumbX, thumbY, thumbSize, thumbSize);
         ctx.fillStyle = '#64748b';
-        ctx.font = '800 22px system-ui, sans-serif';
+        ctx.font = '800 15px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('OV', thumbX + thumbSize / 2, thumbY + thumbSize / 2 + 8);
+        ctx.fillText('OV', thumbX + thumbSize / 2, thumbY + thumbSize / 2 + 5);
         ctx.textAlign = 'left';
       }
 
       // Overlaid Price Badge
       const stopPrice = post.promotionalPrice || post.originalPrice;
       if (stopPrice) {
-        ctx.fillStyle = 'rgba(2, 6, 23, 0.88)';
-        ctx.fillRect(thumbX, thumbY + thumbSize - 26, thumbSize, 26);
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.85)';
+        ctx.fillRect(thumbX, thumbY + thumbSize - 19, thumbSize, 19);
         ctx.fillStyle = '#34d399';
-        ctx.font = '900 14px system-ui, sans-serif';
+        ctx.font = '900 10.5px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`$${Math.round(stopPrice).toLocaleString('es-CO')}`, thumbX + thumbSize / 2, thumbY + thumbSize - 8);
+        ctx.fillText(`$${Math.round(stopPrice).toLocaleString('es-CO')}`, thumbX + thumbSize / 2, thumbY + thumbSize - 5);
         ctx.textAlign = 'left';
       }
       ctx.restore();
 
       // Info text on the right of thumbnail
-      const infoX = thumbX + thumbSize + 14;
-      const infoW = stopBoxW - (thumbSize + 42);
-      let infoY = timelineY + 28;
+      const infoX = thumbX + thumbSize + 10;
+      const infoW = stopBoxW - (thumbSize + 26);
+      let infoY = timelineY + 20;
 
       // Title
       ctx.fillStyle = '#0f172a';
-      ctx.font = '700 19px system-ui, -apple-system, sans-serif';
+      ctx.font = '700 12.5px system-ui, -apple-system, sans-serif';
       const sTitleLines = wrapText(ctx, post.title, infoW, 2);
       sTitleLines.forEach((tl) => {
         ctx.fillText(tl, infoX, infoY);
-        infoY += 24;
+        infoY += 16;
       });
 
       // Store
       ctx.fillStyle = '#334155';
-      ctx.font = '600 16px system-ui, sans-serif';
-      ctx.fillText(`🏪 ${post.businessName}`, infoX, infoY + 4);
-      infoY += 22;
+      ctx.font = '600 11px system-ui, sans-serif';
+      ctx.fillText(`🏪 ${post.businessName}`, infoX, infoY + 2);
+      infoY += 15;
 
       // Address
       const fullAddress = `${post.businessAddress || 'Dirección registrada'}${post.businessCity ? ', ' + post.businessCity : ''}`;
       ctx.fillStyle = '#64748b';
-      ctx.font = '500 15px system-ui, sans-serif';
+      ctx.font = '500 9.5px system-ui, sans-serif';
       const addrLines = wrapText(ctx, `📍 ${fullAddress}`, infoW, 1);
-      ctx.fillText(addrLines[0] || '', infoX, infoY + 4);
+      ctx.fillText(addrLines[0] || '', infoX, infoY + 2);
 
       // Description Box
       if (post.description) {
-        const descBoxY = timelineY + Math.max(120, sTitleLines.length * 26 + 56) + 10;
-        const descBoxW = stopBoxW - 28;
-        ctx.font = '400 14.5px system-ui, -apple-system, sans-serif';
-        const descLines = wrapText(ctx, post.description, descBoxW - 24, 3);
-        const descBoxH = descLines.length * 22 + 18;
+        const topPartH = Math.max(thumbSize, sTitleLines.length * 17 + 22 + 18);
+        const descBoxY = timelineY + 9 + topPartH + 8;
+        const descBoxW = stopBoxW - 18;
+        ctx.font = '400 10.5px system-ui, -apple-system, sans-serif';
+        const descLines = wrapText(ctx, post.description, descBoxW - 14, 3);
+        const descBoxH = descLines.length * 15 + 14;
 
-        drawRoundRect(ctx, stopBoxX + 14, descBoxY, descBoxW, descBoxH, 10);
+        drawRoundRect(ctx, stopBoxX + 9, descBoxY, descBoxW, descBoxH, 8);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
         ctx.strokeStyle = '#e2e8f0';
@@ -407,22 +414,22 @@ async function generatePlanImageBlob(
         ctx.stroke();
 
         ctx.fillStyle = '#475569';
-        let descTextY = descBoxY + 18;
+        let descTextY = descBoxY + 14;
         descLines.forEach((dl) => {
-          ctx.fillText(dl, stopBoxX + 24, descTextY);
-          descTextY += 22;
+          ctx.fillText(dl, stopBoxX + 16, descTextY);
+          descTextY += 15;
         });
       }
 
-      timelineY += boxH + 18;
+      timelineY += boxH + 12;
     });
 
     ctx.restore(); // restore card clipping
 
     // Card outer border
     ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 2;
-    drawRoundRect(ctx, 1, 1, cardW - 2, cardH - 2, 24);
+    ctx.lineWidth = 1.5;
+    drawRoundRect(ctx, 0.5, 0.5, cardW - 1, cardH - 1, 20);
     ctx.stroke();
 
     return await new Promise<Blob | null>((resolve) =>
