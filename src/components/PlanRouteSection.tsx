@@ -101,6 +101,7 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
   const markersRef = useRef<L.Marker[]>([]);
   const polylineHaloRef = useRef<L.Polyline | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
+  const activeDrivingCoordsRef = useRef<[number, number][] | null>(null);
   const isMountedRef = useRef<boolean>(true);
 
   // Track component mount status
@@ -323,15 +324,15 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
   // Fit bounds helper to focus on itinerary stops (including user GPS if active)
   const handleFitBounds = () => {
     if (!mapInstanceRef.current) return;
-    const planPoints: [number, number][] = [
+    const points: [number, number][] = activeDrivingCoordsRef.current || [
       ...(isGpsActive && userCoords ? [[userCoords.lat, userCoords.lng] as [number, number]] : []),
       ...stopsWithCoords.map((s) => [s.coords.lat, s.coords.lng] as [number, number]),
     ];
-    if (planPoints.length > 1) {
-      const bounds = L.latLngBounds(planPoints);
+    if (points.length > 1) {
+      const bounds = L.latLngBounds(points);
       mapInstanceRef.current.fitBounds(bounds, { padding: [45, 45], maxZoom: 16, animate: true });
-    } else if (planPoints.length === 1) {
-      mapInstanceRef.current.setView(planPoints[0], 15, { animate: true });
+    } else if (points.length === 1) {
+      mapInstanceRef.current.setView(points[0], 15, { animate: true });
     }
   };
 
@@ -365,6 +366,7 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
       markersRef.current = [];
 
       // Clear polylines
+      activeDrivingCoordsRef.current = null;
       if (polylineHaloRef.current) {
         try {
           polylineHaloRef.current.remove();
@@ -518,9 +520,9 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
 
         markersRef.current = newMarkers;
 
-        // Draw Beautiful Polyline connecting the itinerary stops (and origin)
+        // Draw real car driving route connecting stops via street network
         if (planPoints.length > 1) {
-          // Halo layer for crisp border
+          // Halo layer for crisp white border
           polylineHaloRef.current = L.polyline(planPoints, {
             color: '#ffffff',
             weight: 7,
@@ -529,18 +531,56 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
             lineJoin: 'round',
           }).addTo(map);
 
-          // Vibrant primary path
+          // Vibrant primary path: initial fallback line
           polylineRef.current = L.polyline(planPoints, {
-            color: '#0056d6',
-            weight: 4,
+            color: '#0066FF',
+            weight: 4.5,
             opacity: 0.95,
-            dashArray: '8, 8',
+            dashArray: '6, 6',
             lineCap: 'round',
             lineJoin: 'round',
           }).addTo(map);
 
-          const bounds = L.latLngBounds(planPoints);
-          map.fitBounds(bounds, { padding: [45, 45], maxZoom: 16, animate: false });
+          const initialBounds = L.latLngBounds(planPoints);
+          map.fitBounds(initialBounds, { padding: [45, 45], maxZoom: 16, animate: false });
+
+          // Fetch real driving road geometry via OSRM (car road network)
+          const coordsParam = planPoints.map(([lat, lng]) => `${lng},${lat}`).join(';');
+          const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
+
+          fetch(osrmUrl)
+            .then((res) => {
+              if (!res.ok) throw new Error('OSRM route status error');
+              return res.json();
+            })
+            .then((data) => {
+              if (!isEffectActive || !isMountedRef.current || !mapInstanceRef.current) return;
+              if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
+                const drivingCoords: [number, number][] = data.routes[0].geometry.coordinates.map(
+                  ([lng, lat]: [number, number]) => [lat, lng]
+                );
+                if (drivingCoords.length > 1) {
+                  activeDrivingCoordsRef.current = drivingCoords;
+                  if (polylineHaloRef.current) {
+                    polylineHaloRef.current.setLatLngs(drivingCoords);
+                  }
+                  if (polylineRef.current) {
+                    polylineRef.current.setLatLngs(drivingCoords);
+                    polylineRef.current.setStyle({
+                      color: '#0066FF',
+                      weight: 5,
+                      opacity: 0.95,
+                      dashArray: '', // solid real car driving path
+                    });
+                  }
+                  const roadBounds = L.latLngBounds(drivingCoords);
+                  map.fitBounds(roadBounds, { padding: [45, 45], maxZoom: 16, animate: true });
+                }
+              }
+            })
+            .catch(() => {
+              // Keeps direct line gracefully if offline or request fails
+            });
         } else if (planPoints.length === 1) {
           map.setView(planPoints[0], 15);
         }
@@ -613,12 +653,6 @@ export const PlanRouteSection: React.FC<PlanRouteSectionProps> = ({
       {/* 2. Mapa Interactivo Rediseñado con Estilo Editorial Limpio */}
       <div className="relative w-full h-64 sm:h-72 rounded-3xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
-
-        {/* Badge flotante de ruta */}
-        <div className="absolute top-3 left-3 z-10 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-slate-200/90 text-[11px] text-[#041f5e] font-extrabold flex items-center gap-1.5 pointer-events-none">
-          <span className="w-2 h-2 rounded-full bg-[#007af7] animate-pulse" />
-          <span>Ruta punto a punto</span>
-        </div>
 
         {/* Controles flotantes modernos de mapa */}
         <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
