@@ -1030,15 +1030,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                       /* RICH ITINERARY PLAN CARD (Plan takes priority, no duplicate satellite cards below) */
                       <div className="w-full rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
                         {/* Header Banner */}
-                        <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-4 sm:p-5 text-white">
-                          {plan.day && (
-                            <div className="flex items-center justify-end mb-2">
-                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-black/20 text-white">
-                                {plan.day}
-                              </span>
-                            </div>
-                          )}
-
+                        <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-3.5 sm:p-5 text-white">
                           <h2 className="text-base sm:text-xl font-black tracking-tight leading-snug">
                             {plan.planTitle}
                           </h2>
