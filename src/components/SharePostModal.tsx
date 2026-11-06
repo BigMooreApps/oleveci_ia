@@ -135,9 +135,9 @@ async function generatePlanImageBlob(
       loadCanvasImage('/Icono_Oleveci_sin_fondo.png?v=clean'),
     ]);
 
-    const canvasW = 840;
-    const cardMargin = 20;
-    const cardW = canvasW - cardMargin * 2; // 800
+    const canvasW = 800;
+    const cardMargin = 0;
+    const cardW = 800;
     const logoBoxSize = 64;
 
     // Measure Header with logo space on the right
@@ -161,22 +161,18 @@ async function generatePlanImageBlob(
     });
 
     const timelineStartH = 46;
-    const footerH = 50;
     const stopsTotalH = stopHeights.reduce((a, b) => a + b, 0) + Math.max(0, stops.length - 1) * 18;
+    const bottomPadding = 30;
 
-    const cardH = headerH + timelineStartH + stopsTotalH + footerH + 20;
-    const canvasH = cardH + cardMargin * 2;
+    const cardH = headerH + timelineStartH + stopsTotalH + bottomPadding;
+    const canvasH = cardH;
 
     canvas.width = canvasW;
     canvas.height = canvasH;
 
-    // Background of canvas (clean soft slate)
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, canvasW, canvasH);
-
     // Draw card rounded container
     ctx.save();
-    drawRoundRect(ctx, cardMargin, cardMargin, cardW, cardH, 28);
+    drawRoundRect(ctx, 0, 0, cardW, cardH, 24);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.clip();
@@ -421,31 +417,13 @@ async function generatePlanImageBlob(
       timelineY += boxH + 18;
     });
 
-    // 4. Card Footer
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(cardMargin, timelineY, cardW, footerH);
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(cardMargin, timelineY);
-    ctx.lineTo(cardMargin + cardW, timelineY);
-    ctx.stroke();
-
-    ctx.font = '800 17px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = '#0066FF';
-    ctx.fillText('OleVeci', cardMargin + 28, timelineY + 32);
-
-    ctx.font = '500 14px system-ui, sans-serif';
-    ctx.fillStyle = '#64748b';
-    ctx.fillText('• Tu Guía Local en la Sabana', cardMargin + 98, timelineY + 32);
-
-    ctx.font = '600 15px system-ui, sans-serif';
-    ctx.fillStyle = '#007af7';
-    ctx.textAlign = 'right';
-    ctx.fillText('oleveci.com', cardMargin + cardW - 28, timelineY + 32);
-    ctx.textAlign = 'left';
-
     ctx.restore(); // restore card clipping
+
+    // Card outer border
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    drawRoundRect(ctx, 1, 1, cardW - 2, cardH - 2, 24);
+    ctx.stroke();
 
     return await new Promise<Blob | null>((resolve) =>
       canvas.toBlob((b) => resolve(b), 'image/png')
