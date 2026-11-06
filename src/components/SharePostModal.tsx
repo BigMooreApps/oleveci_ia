@@ -120,28 +120,32 @@ async function generatePlanImageBlob(
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // Load all stop images in parallel (with CORS safety)
-    const loadedImgs = await Promise.all(
-      stops.map(async (s) => {
-        if (!s.imageUrl) return null;
-        try {
-          return await loadCanvasImage(s.imageUrl);
-        } catch {
-          return null;
-        }
-      })
-    );
+    // Load all stop images and official OleVeci logo in parallel (with CORS safety)
+    const [loadedImgs, logoImg] = await Promise.all([
+      Promise.all(
+        stops.map(async (s) => {
+          if (!s.imageUrl) return null;
+          try {
+            return await loadCanvasImage(s.imageUrl);
+          } catch {
+            return null;
+          }
+        })
+      ),
+      loadCanvasImage('/Icono_Oleveci_sin_fondo.png?v=clean'),
+    ]);
 
     const canvasW = 840;
     const cardMargin = 20;
     const cardW = canvasW - cardMargin * 2; // 800
+    const logoBoxSize = 64;
 
-    // Measure Header
+    // Measure Header with logo space on the right
     ctx.font = '900 34px system-ui, -apple-system, sans-serif';
-    const titleLines = wrapText(ctx, title, cardW - 70, 2);
+    const titleLines = wrapText(ctx, title, cardW - logoBoxSize - 80, 2);
     const titleH = titleLines.length * 42;
     const noteH = personalNote ? 30 : 0;
-    const headerH = 32 + titleH + noteH + 18 + 36 + 24;
+    const headerH = Math.max(160, 32 + titleH + noteH + 18 + 36 + 24);
 
     // Measure Stops
     const stopHeights = stops.map((post) => {
@@ -200,6 +204,30 @@ async function generatePlanImageBlob(
       ctx.font = '400 19px system-ui, -apple-system, sans-serif';
       ctx.fillText(personalNote, cardMargin + 32, textY);
       textY += 28;
+    }
+
+    // Logo OleVeci en la parte superior derecha simétricamente
+    const logoX = cardMargin + cardW - 32 - logoBoxSize;
+    const logoY = cardMargin + 30;
+    drawRoundRect(ctx, logoX, logoY, logoBoxSize, logoBoxSize, 16);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    if (logoImg) {
+      ctx.save();
+      drawRoundRect(ctx, logoX + 6, logoY + 6, logoBoxSize - 12, logoBoxSize - 12, 12);
+      ctx.clip();
+      ctx.drawImage(logoImg, logoX + 6, logoY + 6, logoBoxSize - 12, logoBoxSize - 12);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 22px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('OV', logoX + logoBoxSize / 2, logoY + logoBoxSize / 2 + 8);
+      ctx.textAlign = 'left';
     }
 
     // Divider line
@@ -737,6 +765,8 @@ export const SharePostModal: React.FC<SharePostModalProps> = ({
                 stops={effectivePlanStops}
                 currentCity={resolvedPlan?.municipality || 'Cajicá'}
                 totalEstimatedCost={resolvedPlan?.estimatedBudget}
+                showActions={false}
+                showLogoHeader={true}
               />
             </div>
           ) : (

@@ -37,6 +37,9 @@ export interface ItineraryPlanCardProps {
   isSaved?: boolean;
   className?: string;
   initialRouteExpanded?: boolean;
+  showActions?: boolean;
+  showRouteButton?: boolean;
+  showLogoHeader?: boolean;
 }
 
 export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
@@ -57,6 +60,9 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
   isSaved = false,
   className = '',
   initialRouteExpanded = false,
+  showActions = true,
+  showRouteButton = true,
+  showLogoHeader = true,
 }) => {
   const [isRouteExpanded, setIsRouteExpanded] = useState<boolean>(initialRouteExpanded);
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
@@ -98,60 +104,75 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
     >
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#0096C7] p-3.5 sm:p-5 text-white">
-        {isEditingTitle && isEditable ? (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              onBlur={handleTitleSubmit}
-              onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
-              autoFocus
-              className="bg-white/20 text-white font-black text-base sm:text-xl rounded-lg px-2 py-1 w-full border border-white/40 focus:outline-hidden focus:ring-2 focus:ring-white"
-            />
-          </div>
-        ) : (
-          <h2
-            onClick={() => {
-              if (isEditable && onTitleChange) setIsEditingTitle(true);
-            }}
-            className={`text-base sm:text-xl font-black tracking-tight leading-snug ${
-              isEditable && onTitleChange ? 'cursor-pointer hover:underline' : ''
-            }`}
-            title={isEditable && onTitleChange ? 'Toca para editar el título' : undefined}
-          >
-            {planTitle}
-          </h2>
-        )}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            {isEditingTitle && isEditable ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  onBlur={handleTitleSubmit}
+                  onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
+                  autoFocus
+                  className="bg-white/20 text-white font-black text-base sm:text-xl rounded-lg px-2 py-1 w-full border border-white/40 focus:outline-hidden focus:ring-2 focus:ring-white"
+                />
+              </div>
+            ) : (
+              <h2
+                onClick={() => {
+                  if (isEditable && onTitleChange) setIsEditingTitle(true);
+                }}
+                className={`text-base sm:text-xl font-black tracking-tight leading-snug ${
+                  isEditable && onTitleChange ? 'cursor-pointer hover:underline' : ''
+                }`}
+                title={isEditable && onTitleChange ? 'Toca para editar el título' : undefined}
+              >
+                {planTitle}
+              </h2>
+            )}
 
-        {isEditingNarrative && isEditable ? (
-          <div className="mt-1">
-            <input
-              type="text"
-              value={editedNarrative}
-              onChange={(e) => setEditedNarrative(e.target.value)}
-              onBlur={handleNarrativeSubmit}
-              onKeyDown={(e) => e.key === 'Enter' && handleNarrativeSubmit()}
-              autoFocus
-              placeholder="Añade una breve nota o dedicatoria..."
-              className="bg-white/20 text-blue-50 text-xs rounded-md px-2 py-0.5 w-full border border-white/40 focus:outline-hidden focus:ring-1 focus:ring-white placeholder:text-blue-200/70"
-            />
+            {isEditingNarrative && isEditable ? (
+              <div className="mt-1">
+                <input
+                  type="text"
+                  value={editedNarrative}
+                  onChange={(e) => setEditedNarrative(e.target.value)}
+                  onBlur={handleNarrativeSubmit}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNarrativeSubmit()}
+                  autoFocus
+                  placeholder="Añade una breve nota o dedicatoria..."
+                  className="bg-white/20 text-blue-50 text-xs rounded-md px-2 py-0.5 w-full border border-white/40 focus:outline-hidden focus:ring-1 focus:ring-white placeholder:text-blue-200/70"
+                />
+              </div>
+            ) : (
+              (narrativeHook || (isEditable && onNarrativeChange)) && (
+                <p
+                  onClick={() => {
+                    if (isEditable && onNarrativeChange) setIsEditingNarrative(true);
+                  }}
+                  className={`text-xs text-blue-100 mt-1 font-normal ${
+                    isEditable && onNarrativeChange ? 'cursor-pointer hover:underline' : ''
+                  } ${narrativeHook ? 'line-clamp-2' : 'italic text-blue-200/70'}`}
+                  title={isEditable && onNarrativeChange ? 'Toca para editar la nota' : undefined}
+                >
+                  {narrativeHook || (isEditable ? '+ Añadir nota o descripción...' : '')}
+                </p>
+              )
+            )}
           </div>
-        ) : (
-          (narrativeHook || (isEditable && onNarrativeChange)) && (
-            <p
-              onClick={() => {
-                if (isEditable && onNarrativeChange) setIsEditingNarrative(true);
-              }}
-              className={`text-xs text-blue-100 mt-1 font-normal ${
-                isEditable && onNarrativeChange ? 'cursor-pointer hover:underline' : ''
-              } ${narrativeHook ? 'line-clamp-2' : 'italic text-blue-200/70'}`}
-              title={isEditable && onNarrativeChange ? 'Toca para editar la nota' : undefined}
-            >
-              {narrativeHook || (isEditable ? '+ Añadir nota o descripción...' : '')}
-            </p>
-          )
-        )}
+
+          {/* Logo OleVeci en la parte superior derecha simétricamente */}
+          {showLogoHeader && (
+            <div className="shrink-0 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 shadow-xs p-1">
+              <img
+                src="/Icono_Oleveci_sin_fondo.png?v=clean"
+                alt="OleVeci"
+                className="w-full h-full object-contain drop-shadow-xs"
+              />
+            </div>
+          )}
+        </div>
 
         {/* Quick Stats Pill */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/20 text-[10px] sm:text-xs">
@@ -322,74 +343,78 @@ export const ItineraryPlanCard: React.FC<ItineraryPlanCardProps> = ({
       )}
 
       {/* Footer Actions: Solo Iconos */}
-      <div className="p-2 sm:p-2.5 bg-white flex items-center justify-between gap-1.5 border-t border-slate-100">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Botón Ver/Ocultar Ruta (Solo Icono) */}
-          <button
-            type="button"
-            onClick={() => setIsRouteExpanded(!isRouteExpanded)}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-xs ${
-              isRouteExpanded
-                ? 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-900/20 ring-2 ring-blue-500/50'
-                : 'text-white bg-gradient-to-r from-[#0066FF] to-[#0052cc] hover:from-blue-700 hover:to-blue-900 shadow-blue-600/20'
-            }`}
-            title={isRouteExpanded ? 'Ocultar ruta' : 'Ver la ruta en el mapa'}
-            aria-label={isRouteExpanded ? 'Ocultar ruta' : 'Ver la ruta'}
-          >
-            <Route className="w-4 h-4" />
-          </button>
+      {showActions && (
+        <div className="p-2 sm:p-2.5 bg-white flex items-center justify-between gap-1.5 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Botón Ver/Ocultar Ruta (Solo Icono) */}
+            {showRouteButton && (
+              <button
+                type="button"
+                onClick={() => setIsRouteExpanded(!isRouteExpanded)}
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-xs ${
+                  isRouteExpanded
+                    ? 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-900/20 ring-2 ring-blue-500/50'
+                    : 'text-white bg-gradient-to-r from-[#0066FF] to-[#0052cc] hover:from-blue-700 hover:to-blue-900 shadow-blue-600/20'
+                }`}
+                title={isRouteExpanded ? 'Ocultar ruta' : 'Ver la ruta en el mapa'}
+                aria-label={isRouteExpanded ? 'Ocultar ruta' : 'Ver la ruta'}
+              >
+                <Route className="w-4 h-4" />
+              </button>
+            )}
 
-          {/* Botón Compartir Plan (Solo Icono) */}
-          {onSharePlan && (
-            <button
-              type="button"
-              onClick={onSharePlan}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
-              title="Compartir Plan"
-              aria-label="Compartir Plan"
-            >
-              <Share2 className="w-4 h-4 text-emerald-600" />
-            </button>
-          )}
+            {/* Botón Compartir Plan (Solo Icono) */}
+            {onSharePlan && (
+              <button
+                type="button"
+                onClick={onSharePlan}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
+                title="Compartir Plan"
+                aria-label="Compartir Plan"
+              >
+                <Share2 className="w-4 h-4 text-emerald-600" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Botón Guardar Plan (Solo Icono) */}
+            {onSavePlan && (
+              <button
+                type="button"
+                onClick={onSavePlan}
+                disabled={isSaved}
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs ${
+                  isSaved
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                    : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0066FF] border border-slate-200'
+                }`}
+                title={isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}
+                aria-label={isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}
+              >
+                {isSaved ? (
+                  <Check className="w-4 h-4 text-emerald-600" />
+                ) : (
+                  <Bookmark className="w-4 h-4" />
+                )}
+              </button>
+            )}
+
+            {/* Botón Diseñador (Solo Icono) */}
+            {onOpenDesigner && (
+              <button
+                type="button"
+                onClick={onOpenDesigner}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-[#0066FF] border border-slate-200 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
+                title="Abrir en Diseñador de Rutas"
+                aria-label="Abrir en Diseñador de Rutas"
+              >
+                <Compass className="w-4 h-4 text-blue-600" />
+              </button>
+            )}
+          </div>
         </div>
-
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Botón Guardar Plan (Solo Icono) */}
-          {onSavePlan && (
-            <button
-              type="button"
-              onClick={onSavePlan}
-              disabled={isSaved}
-              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs ${
-                isSaved
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0066FF] border border-slate-200'
-              }`}
-              title={isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}
-              aria-label={isSaved ? '¡Plan Guardado!' : 'Guardar Plan'}
-            >
-              {isSaved ? (
-                <Check className="w-4 h-4 text-emerald-600" />
-              ) : (
-                <Bookmark className="w-4 h-4" />
-              )}
-            </button>
-          )}
-
-          {/* Botón Diseñador (Solo Icono) */}
-          {onOpenDesigner && (
-            <button
-              type="button"
-              onClick={onOpenDesigner}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-[#0066FF] border border-slate-200 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
-              title="Abrir en Diseñador de Rutas"
-              aria-label="Abrir en Diseñador de Rutas"
-            >
-              <Compass className="w-4 h-4 text-blue-600" />
-            </button>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 };
