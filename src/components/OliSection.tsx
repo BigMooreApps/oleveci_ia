@@ -1190,13 +1190,10 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           )}
                                         </div>
 
-                                        {/* Nombre del comercio con icono y municipio (ordenado, sin saltos extraños) */}
+                                        {/* Nombre del comercio con icono (ordenado, sin redundancia de municipio) */}
                                         <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
                                           <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
                                           <span className="truncate">{displayBusiness}</span>
-                                          {displayCity && (
-                                            <span className="text-slate-400 font-normal shrink-0">· {displayCity}</span>
-                                          )}
                                         </div>
 
                                         {/* Dirección compacta */}
