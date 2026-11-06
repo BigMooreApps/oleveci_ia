@@ -135,55 +135,56 @@ async function generatePlanImageBlob(
       loadCanvasImage('/Icono_Oleveci_sin_fondo.png?v=clean'),
     ]);
 
-    const cardW = 460;
-    const paddingX = 18;
+    // Exact card width matching mobile screen and target reference (420px)
+    const cardW = 420;
+    const paddingX = 16;
     const paddingY = 16;
-    const logoSize = 44;
-    const scale = 2; // Sharp Retina resolution
+    const logoW = 38;
+    const logoH = 43;
 
     // Measure Header with logo space on the right
-    ctx.font = '900 18px system-ui, -apple-system, sans-serif';
-    const titleMaxWidth = cardW - paddingX * 2 - logoSize - 14;
+    ctx.font = '800 17px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    const titleMaxWidth = cardW - paddingX * 2 - logoW - 14; // 338px
     const titleLines = wrapText(ctx, title, titleMaxWidth, 2);
-    const titleH = titleLines.length * 24;
-    const noteH = personalNote ? 20 : 0;
-    const topRowH = Math.max(titleH + noteH, logoSize);
+    const titleH = titleLines.length * 22;
+    const noteH = personalNote ? 18 : 0;
+    const topRowH = Math.max(titleH + noteH, logoH);
     const dividerY = paddingY + topRowH + 12;
     const pillsY = dividerY + 10;
-    const pillH = 26;
+    const pillH = 24;
     const headerH = pillsY + pillH + 14;
 
     // Measure Stops
-    const stopBoxX = 48;
-    const stopBoxW = cardW - stopBoxX - 16;
-    const thumbSize = 70;
+    const stopBoxX = 46;
+    const stopBoxW = cardW - stopBoxX - 14; // 360px
+    const thumbSize = 64; // 64x64px thumbnail
+    const infoW = stopBoxW - thumbSize - 25; // 271px
 
     const stopHeights = stops.map((post) => {
-      ctx.font = '700 13px system-ui, -apple-system, sans-serif';
-      const sTitleLines = wrapText(ctx, post.title, stopBoxW - thumbSize - 28, 2);
-      const topH = Math.max(thumbSize, sTitleLines.length * 17 + 22 + 18);
+      ctx.font = '700 11.5px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const sTitleLines = wrapText(ctx, post.title, infoW, 2);
+      const topPartH = Math.max(thumbSize, sTitleLines.length * 16 + 14 + 14);
 
-      ctx.font = '400 10.5px system-ui, -apple-system, sans-serif';
-      const descLines = wrapText(ctx, post.description || '', stopBoxW - 24, 3);
-      const descBoxH = descLines.length > 0 ? descLines.length * 15 + 14 : 0;
+      ctx.font = '400 10px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const descLines = wrapText(ctx, post.description || '', stopBoxW - 20, 3);
+      const descBoxH = descLines.length > 0 ? descLines.length * 14 + 10 : 0;
 
-      return 10 + topH + (descBoxH > 0 ? 8 + descBoxH : 0) + 10;
+      return 8 + topPartH + (descBoxH > 0 ? 6 + descBoxH : 0) + 8;
     });
 
-    const timelineStartH = 34;
+    const timelineStartH = 28;
     const stopsTotalH = stopHeights.reduce((a, b) => a + b, 0) + Math.max(0, stops.length - 1) * 12;
-    const bottomPadding = 18;
+    const bottomPadding = 16;
 
     const cardH = headerH + timelineStartH + stopsTotalH + bottomPadding;
 
-    canvas.width = cardW * scale;
-    canvas.height = cardH * scale;
-
-    ctx.scale(scale, scale);
+    // Canvas size is EXACTLY the card size (420px x cardH)
+    canvas.width = cardW;
+    canvas.height = cardH;
 
     // Draw card rounded container
     ctx.save();
-    drawRoundRect(ctx, 0, 0, cardW, cardH, 20);
+    drawRoundRect(ctx, 0, 0, cardW, cardH, 18);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.clip();
@@ -198,32 +199,32 @@ async function generatePlanImageBlob(
 
     // Header Title
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 18px system-ui, -apple-system, sans-serif';
+    ctx.font = '800 17px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     let textY = paddingY + 18;
     titleLines.forEach((l) => {
       ctx.fillText(l, paddingX, textY);
-      textY += 23;
+      textY += 22;
     });
 
     // Optional Note
     if (personalNote) {
       ctx.fillStyle = '#e0f2fe';
-      ctx.font = '400 12px system-ui, -apple-system, sans-serif';
+      ctx.font = '400 11.5px system-ui, -apple-system, sans-serif';
       ctx.fillText(personalNote, paddingX, textY);
-      textY += 18;
+      textY += 17;
     }
 
     // Logo OleVeci en la parte superior derecha simétricamente (solo, sin recuadro)
-    const logoX = cardW - paddingX - logoSize;
+    const logoX = cardW - paddingX - logoW;
     const logoY = paddingY;
 
     if (logoImg) {
-      ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+      ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
     } else {
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 17px system-ui, sans-serif';
+      ctx.font = '900 16px system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('OV', logoX + logoSize / 2, logoY + logoSize / 2 + 6);
+      ctx.fillText('OV', logoX + logoW / 2, logoY + logoH / 2 + 5);
       ctx.textAlign = 'left';
     }
 
@@ -237,25 +238,25 @@ async function generatePlanImageBlob(
 
     // Pills row
     const pill1Text = `📍 ${stops.length} paradas`;
-    ctx.font = '700 11px system-ui, -apple-system, sans-serif';
+    ctx.font = '700 10.5px system-ui, -apple-system, sans-serif';
     const p1W = ctx.measureText(pill1Text).width + 16;
-    drawRoundRect(ctx, paddingX, pillsY, p1W, pillH, 7);
+    drawRoundRect(ctx, paddingX, pillsY, p1W, pillH, 6);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(pill1Text, paddingX + 8, pillsY + 17);
+    ctx.fillText(pill1Text, paddingX + 8, pillsY + 16);
 
     const calculatedTotal = estimatedBudget !== undefined
       ? estimatedBudget
       : stops.reduce((s, p) => s + (p.promotionalPrice || p.originalPrice || 0), 0);
     const pill2Text = `Total estimado: ${calculatedTotal > 0 ? Math.round(calculatedTotal).toLocaleString('es-CO') + ' pesos' : 'Sin costo'}`;
-    ctx.font = '400 11px system-ui, -apple-system, sans-serif';
+    ctx.font = '400 10.5px system-ui, -apple-system, sans-serif';
     const p2W = ctx.measureText(pill2Text).width + 16;
-    drawRoundRect(ctx, paddingX + p1W + 8, pillsY, p2W, pillH, 7);
+    drawRoundRect(ctx, paddingX + p1W + 8, pillsY, p2W, pillH, 6);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(pill2Text, paddingX + p1W + 16, pillsY + 17);
+    ctx.fillText(pill2Text, paddingX + p1W + 16, pillsY + 16);
 
     // 2. Timeline Start Point
     let timelineY = headerH + 14;
@@ -263,11 +264,11 @@ async function generatePlanImageBlob(
 
     // Start Dot Circle
     ctx.beginPath();
-    ctx.arc(timelineX, timelineY + 6, 5.5, 0, Math.PI * 2);
+    ctx.arc(timelineX, timelineY + 6, 5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.strokeStyle = '#007af7';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2;
     ctx.stroke();
 
     ctx.beginPath();
@@ -275,22 +276,22 @@ async function generatePlanImageBlob(
     ctx.fillStyle = '#007af7';
     ctx.fill();
 
-    ctx.font = '500 11px system-ui, -apple-system, sans-serif';
+    ctx.font = '500 10.5px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Inicio: ', timelineX + 14, timelineY + 10);
+    ctx.fillText('Inicio: ', timelineX + 12, timelineY + 10);
     const inW = ctx.measureText('Inicio: ').width;
 
-    ctx.font = '800 11px system-ui, -apple-system, sans-serif';
+    ctx.font = '800 10.5px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#0056d6';
     const startStore = stops[0]?.businessName || `Centro de ${currentCity}`;
-    ctx.fillText(startStore, timelineX + 14 + inW, timelineY + 10);
+    ctx.fillText(startStore, timelineX + 12 + inW, timelineY + 10);
 
     timelineY += timelineStartH;
 
     // 3. Sequential Stops
     stops.forEach((post, idx) => {
       const boxH = stopHeights[idx];
-      const badgeY = timelineY + 18;
+      const badgeY = timelineY + 16;
 
       // Connecting vertical line to next stop
       if (idx < stops.length - 1) {
@@ -298,14 +299,14 @@ async function generatePlanImageBlob(
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(timelineX, badgeY + 10);
-        ctx.lineTo(timelineX, badgeY + boxH + 4);
+        ctx.lineTo(timelineX, badgeY + boxH + 6);
         ctx.stroke();
       }
 
       // Step Number Badge (Blue circle with white number)
       ctx.beginPath();
-      ctx.arc(timelineX, badgeY, 10, 0, Math.PI * 2);
-      const bGrad = ctx.createLinearGradient(timelineX - 10, badgeY - 10, timelineX + 10, badgeY + 10);
+      ctx.arc(timelineX, badgeY, 9.5, 0, Math.PI * 2);
+      const bGrad = ctx.createLinearGradient(timelineX - 9.5, badgeY - 9.5, timelineX + 9.5, badgeY + 9.5);
       bGrad.addColorStop(0, '#0056d6');
       bGrad.addColorStop(1, '#041f5e');
       ctx.fillStyle = bGrad;
@@ -315,7 +316,7 @@ async function generatePlanImageBlob(
       ctx.stroke();
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 10px system-ui, -apple-system, sans-serif';
+      ctx.font = '900 9.5px system-ui, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(String(idx + 1), timelineX, badgeY + 3.5);
       ctx.textAlign = 'left';
@@ -329,11 +330,11 @@ async function generatePlanImageBlob(
       ctx.stroke();
 
       // Thumbnail with Price
-      const thumbX = stopBoxX + 9;
-      const thumbY = timelineY + 9;
+      const thumbX = stopBoxX + 8;
+      const thumbY = timelineY + 8;
 
       ctx.save();
-      drawRoundRect(ctx, thumbX, thumbY, thumbSize, thumbSize, 10);
+      drawRoundRect(ctx, thumbX, thumbY, thumbSize, thumbSize, 8);
       ctx.clip();
       const img = loadedImgs[idx];
       if (img) {
@@ -351,7 +352,7 @@ async function generatePlanImageBlob(
         ctx.fillStyle = '#e2e8f0';
         ctx.fillRect(thumbX, thumbY, thumbSize, thumbSize);
         ctx.fillStyle = '#64748b';
-        ctx.font = '800 15px system-ui, sans-serif';
+        ctx.font = '800 14px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('OV', thumbX + thumbSize / 2, thumbY + thumbSize / 2 + 5);
         ctx.textAlign = 'left';
@@ -361,52 +362,51 @@ async function generatePlanImageBlob(
       const stopPrice = post.promotionalPrice || post.originalPrice;
       if (stopPrice) {
         ctx.fillStyle = 'rgba(2, 6, 23, 0.85)';
-        ctx.fillRect(thumbX, thumbY + thumbSize - 19, thumbSize, 19);
+        ctx.fillRect(thumbX, thumbY + thumbSize - 16, thumbSize, 16);
         ctx.fillStyle = '#34d399';
-        ctx.font = '900 10.5px system-ui, sans-serif';
+        ctx.font = '900 9.5px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`$${Math.round(stopPrice).toLocaleString('es-CO')}`, thumbX + thumbSize / 2, thumbY + thumbSize - 5);
+        ctx.fillText(`$${Math.round(stopPrice).toLocaleString('es-CO')}`, thumbX + thumbSize / 2, thumbY + thumbSize - 4);
         ctx.textAlign = 'left';
       }
       ctx.restore();
 
       // Info text on the right of thumbnail
-      const infoX = thumbX + thumbSize + 10;
-      const infoW = stopBoxW - (thumbSize + 26);
-      let infoY = timelineY + 20;
+      const infoX = thumbX + thumbSize + 9;
+      let infoY = timelineY + 18;
 
       // Title
       ctx.fillStyle = '#0f172a';
-      ctx.font = '700 12.5px system-ui, -apple-system, sans-serif';
+      ctx.font = '700 11.5px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       const sTitleLines = wrapText(ctx, post.title, infoW, 2);
       sTitleLines.forEach((tl) => {
         ctx.fillText(tl, infoX, infoY);
-        infoY += 16;
+        infoY += 15;
       });
 
       // Store
       ctx.fillStyle = '#334155';
-      ctx.font = '600 11px system-ui, sans-serif';
+      ctx.font = '600 10.5px system-ui, sans-serif';
       ctx.fillText(`🏪 ${post.businessName}`, infoX, infoY + 2);
-      infoY += 15;
+      infoY += 14;
 
       // Address
       const fullAddress = `${post.businessAddress || 'Dirección registrada'}${post.businessCity ? ', ' + post.businessCity : ''}`;
       ctx.fillStyle = '#64748b';
-      ctx.font = '500 9.5px system-ui, sans-serif';
+      ctx.font = '500 9px system-ui, sans-serif';
       const addrLines = wrapText(ctx, `📍 ${fullAddress}`, infoW, 1);
       ctx.fillText(addrLines[0] || '', infoX, infoY + 2);
 
       // Description Box
       if (post.description) {
-        const topPartH = Math.max(thumbSize, sTitleLines.length * 17 + 22 + 18);
-        const descBoxY = timelineY + 9 + topPartH + 8;
-        const descBoxW = stopBoxW - 18;
-        ctx.font = '400 10.5px system-ui, -apple-system, sans-serif';
+        const topPartH = Math.max(thumbSize, sTitleLines.length * 15 + 14 + 14);
+        const descBoxY = timelineY + 8 + topPartH + 6;
+        const descBoxW = stopBoxW - 16;
+        ctx.font = '400 10px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         const descLines = wrapText(ctx, post.description, descBoxW - 14, 3);
-        const descBoxH = descLines.length * 15 + 14;
+        const descBoxH = descLines.length * 14 + 10;
 
-        drawRoundRect(ctx, stopBoxX + 9, descBoxY, descBoxW, descBoxH, 8);
+        drawRoundRect(ctx, stopBoxX + 8, descBoxY, descBoxW, descBoxH, 8);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
         ctx.strokeStyle = '#e2e8f0';
@@ -414,10 +414,10 @@ async function generatePlanImageBlob(
         ctx.stroke();
 
         ctx.fillStyle = '#475569';
-        let descTextY = descBoxY + 14;
+        let descTextY = descBoxY + 13;
         descLines.forEach((dl) => {
-          ctx.fillText(dl, stopBoxX + 16, descTextY);
-          descTextY += 15;
+          ctx.fillText(dl, stopBoxX + 15, descTextY);
+          descTextY += 14;
         });
       }
 
@@ -429,7 +429,7 @@ async function generatePlanImageBlob(
     // Card outer border
     ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1.5;
-    drawRoundRect(ctx, 0.5, 0.5, cardW - 1, cardH - 1, 20);
+    drawRoundRect(ctx, 0.5, 0.5, cardW - 1, cardH - 1, 18);
     ctx.stroke();
 
     return await new Promise<Blob | null>((resolve) =>

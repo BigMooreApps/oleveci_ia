@@ -13586,5 +13586,1043 @@
       "cajicá",
       "plan_cita_romantica"
     ]
+  },
+  {
+    "id": "itin_1793937092242_91jr",
+    "planTitle": "Nuestra salida especial",
+    "scheduledTime": "Hoy 7:30 PM",
+    "coverImage": "https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/poster_bienvenida_oli.jpg",
+    "hidePrices": false,
+    "cardTemplate": "oleveci_brand",
+    "theme": {
+      "id": "blue_brand",
+      "name": "Azul OleVeci",
+      "bgGradient": "from-[#00173d] via-[#003894] to-[#0066e0]",
+      "overlayGradient": "from-[#001230]/40 via-transparent to-[#002870]/50",
+      "cardBg": "bg-[#002257]/90",
+      "badgeBg": "bg-white/20",
+      "badgeText": "text-white",
+      "accentText": "text-cyan-300",
+      "stopItemBg": "bg-white/[0.06] hover:bg-white/[0.1]",
+      "stopItemBorder": "border-white/20",
+      "dividerBorder": "border-white/20",
+      "dotColor": "bg-cyan-300",
+      "strokeHex": "#38bdf8"
+    },
+    "bgLayout": "horizontal",
+    "postIds": [
+      "post_oleveci_bienvenida",
+      "post_promo_cafe_origen"
+    ],
+    "fallbackPosts": [
+      {
+        "id": "post_oleveci_bienvenida",
+        "businessId": "biz_oleveci",
+        "businessName": "OleVeci",
+        "businessLogo": "/Icono_Oleveci_sin_fondo.png?v=clean",
+        "businessCity": "Cajicá",
+        "businessSector": "Centro",
+        "businessWhatsapp": "573100000000",
+        "businessPhone": "3100000000",
+        "businessAddress": "Cra. 3 # 3-15, Parque Principal, Cajicá",
+        "coordinates": {
+          "lat": 4.9192,
+          "lng": -74.0265
+        },
+        "type": "plan",
+        "title": "¡Bienvenido a OleVeci! Tu Guía Local",
+        "description": "¡Bienvenido a OleVeci.com! Acá encontrarás los mejores planes, promos y experiencias en tu municipio. Descubre lo mejor de Cajicá, Chía, Zipaquirá y Sabana Centro.",
+        "imageUrl": "https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/poster_bienvenida_oli.jpg",
+        "videoUrl": "https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/bienvenida_oleveci.mp4",
+        "mediaType": "video",
+        "aspectRatio": "9:16",
+        "imageFit": "cover",
+        "startsAt": "2026-10-26T14:21:07.042+00:00",
+        "expiresAt": "2027-10-27T02:21:07.042+00:00",
+        "expiryLabel": "¡Publicación destacada permanente!",
+        "categoryId": "cat_planes_eventos",
+        "featured": true,
+        "tags": [
+          "oleveci",
+          "bienvenida",
+          "sabana centro",
+          "planes",
+          "rutas",
+          "cajica",
+          "video",
+          "reel"
+        ],
+        "status": "active",
+        "metrics": {
+          "calls": 64,
+          "views": 3820,
+          "shares": 340,
+          "mapsClicks": 285,
+          "dailyMetrics": {
+            "2026-09-12": {
+              "calls": 1,
+              "views": 84,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-09-13": {
+              "calls": 1,
+              "views": 63,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-09-14": {
+              "calls": 1,
+              "views": 42,
+              "shares": 4,
+              "mapsClicks": 3,
+              "qrRedemptions": 0,
+              "whatsappClicks": 5
+            },
+            "2026-09-15": {
+              "calls": 1,
+              "views": 53,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-09-16": {
+              "calls": 1,
+              "views": 68,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-09-17": {
+              "calls": 1,
+              "views": 79,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-09-18": {
+              "calls": 2,
+              "views": 94,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-09-19": {
+              "calls": 2,
+              "views": 95,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-09-20": {
+              "calls": 1,
+              "views": 70,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-09-21": {
+              "calls": 1,
+              "views": 45,
+              "shares": 4,
+              "mapsClicks": 3,
+              "qrRedemptions": 0,
+              "whatsappClicks": 6
+            },
+            "2026-09-22": {
+              "calls": 1,
+              "views": 55,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-09-23": {
+              "calls": 1,
+              "views": 70,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-09-24": {
+              "calls": 1,
+              "views": 84,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-09-25": {
+              "calls": 2,
+              "views": 103,
+              "shares": 9,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 13
+            },
+            "2026-09-26": {
+              "calls": 2,
+              "views": 107,
+              "shares": 10,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 14
+            },
+            "2026-09-27": {
+              "calls": 1,
+              "views": 79,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-09-28": {
+              "calls": 1,
+              "views": 48,
+              "shares": 4,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 6
+            },
+            "2026-09-29": {
+              "calls": 1,
+              "views": 57,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-09-30": {
+              "calls": 1,
+              "views": 72,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-10-01": {
+              "calls": 1,
+              "views": 87,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-10-02": {
+              "calls": 2,
+              "views": 111,
+              "shares": 10,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 14
+            },
+            "2026-10-03": {
+              "calls": 2,
+              "views": 119,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 15
+            },
+            "2026-10-04": {
+              "calls": 1,
+              "views": 88,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-10-05": {
+              "calls": 1,
+              "views": 53,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-10-06": {
+              "calls": 1,
+              "views": 59,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-10-07": {
+              "calls": 1,
+              "views": 73,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-10-08": {
+              "calls": 2,
+              "views": 90,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-10-09": {
+              "calls": 2,
+              "views": 118,
+              "shares": 10,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 15
+            },
+            "2026-10-10": {
+              "calls": 2,
+              "views": 131,
+              "shares": 12,
+              "mapsClicks": 10,
+              "qrRedemptions": 0,
+              "whatsappClicks": 17
+            },
+            "2026-10-11": {
+              "calls": 2,
+              "views": 98,
+              "shares": 9,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 13
+            },
+            "2026-10-12": {
+              "calls": 1,
+              "views": 58,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-10-13": {
+              "calls": 1,
+              "views": 63,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-10-14": {
+              "calls": 1,
+              "views": 75,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-10-15": {
+              "calls": 2,
+              "views": 91,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-10-16": {
+              "calls": 2,
+              "views": 123,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 16
+            },
+            "2026-10-17": {
+              "calls": 2,
+              "views": 141,
+              "shares": 13,
+              "mapsClicks": 11,
+              "qrRedemptions": 0,
+              "whatsappClicks": 18
+            },
+            "2026-10-18": {
+              "calls": 2,
+              "views": 109,
+              "shares": 10,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 14
+            },
+            "2026-10-19": {
+              "calls": 1,
+              "views": 64,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-10-20": {
+              "calls": 1,
+              "views": 67,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-10-21": {
+              "calls": 1,
+              "views": 77,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-10-22": {
+              "calls": 2,
+              "views": 92,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-10-23": {
+              "calls": 2,
+              "views": 126,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 16
+            },
+            "2026-10-24": {
+              "calls": 3,
+              "views": 149,
+              "shares": 13,
+              "mapsClicks": 11,
+              "qrRedemptions": 0,
+              "whatsappClicks": 19
+            },
+            "2026-10-25": {
+              "calls": 2,
+              "views": 119,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 15
+            },
+            "2026-10-26": {
+              "calls": 1,
+              "views": 71,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            }
+          },
+          "whatsappClicks": 490
+        },
+        "createdAt": "2026-10-19T21:38:06.546226+00:00",
+        "imagePosition": {
+          "x": 50,
+          "y": 50
+        },
+        "imageScale": 1,
+        "mediaBgFill": "blur",
+        "planCategoryIds": [],
+        "planRoles": [],
+        "targetAudience": [],
+        "isPlan": false,
+        "suspensionHistory": [],
+        "planCategoryId": "plan_tarde_amigos",
+        "planCategoryName": "Tarde de amigos"
+      },
+      {
+        "id": "post_promo_cafe_origen",
+        "businessId": "biz_cafe_sabana",
+        "businessName": "Café & Trigo Artesanal",
+        "businessLogo": "https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=300&auto=format&fit=crop&q=80",
+        "businessCity": "Cajicá",
+        "businessSector": "Centro",
+        "businessWhatsapp": "573108923456",
+        "businessPhone": "3108923456",
+        "businessAddress": "Cl. 3 # 2-15, Parque Principal",
+        "coordinates": {
+          "lat": 4.918,
+          "lng": -74.0252
+        },
+        "type": "promotion",
+        "title": "Tarde de Café: Capuchino Especial + Croissant de Almendras",
+        "description": "Disfruta de la tarde con nuestro capuchino doble shot con notas a chocolate y avellana, acompañado de croissant horneado artesanalmente.",
+        "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
+        "mediaType": "image",
+        "aspectRatio": "9:16",
+        "imageFit": "cover",
+        "originalPrice": 19500,
+        "promotionalPrice": 13900,
+        "startsAt": "2026-10-02T14:41:22.333+00:00",
+        "expiresAt": "2027-10-20T23:59:59+00:00",
+        "expiryLabel": "Válido hoy hasta las 7:00 PM",
+        "categoryId": "cat_cafes_panaderias",
+        "featured": true,
+        "tags": [
+          "café",
+          "panadería",
+          "croissant",
+          "tarde",
+          "postre"
+        ],
+        "status": "active",
+        "metrics": {
+          "calls": 4,
+          "views": 311,
+          "shares": 11,
+          "mapsClicks": 35,
+          "whatsappClicks": 42
+        },
+        "createdAt": "2026-10-19T21:38:06.546226+00:00",
+        "imagePosition": {
+          "x": 50,
+          "y": 50
+        },
+        "imageScale": 1,
+        "mediaBgFill": "blur",
+        "planCategoryIds": [],
+        "planRoles": [],
+        "targetAudience": [],
+        "isPlan": false,
+        "suspensionHistory": [],
+        "planCategoryId": "plan_tomar_algo",
+        "planCategoryName": "Tomar algo"
+      }
+    ],
+    "category": "plan_cita_romantica",
+    "estimatedBudget": 13900,
+    "municipality": "Cajicá",
+    "timeOfDay": "tarde",
+    "dayType": "weekend",
+    "tags": [
+      "cajicá",
+      "plan_cita_romantica"
+    ]
+  },
+  {
+    "id": "itin_1793937590776_7g6u",
+    "planTitle": "Nuestra salida especial",
+    "scheduledTime": "Hoy 7:30 PM",
+    "coverImage": "https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/poster_bienvenida_oli.jpg",
+    "hidePrices": false,
+    "cardTemplate": "oleveci_brand",
+    "theme": {
+      "id": "blue_brand",
+      "name": "Azul OleVeci",
+      "bgGradient": "from-[#00173d] via-[#003894] to-[#0066e0]",
+      "overlayGradient": "from-[#001230]/40 via-transparent to-[#002870]/50",
+      "cardBg": "bg-[#002257]/90",
+      "badgeBg": "bg-white/20",
+      "badgeText": "text-white",
+      "accentText": "text-cyan-300",
+      "stopItemBg": "bg-white/[0.06] hover:bg-white/[0.1]",
+      "stopItemBorder": "border-white/20",
+      "dividerBorder": "border-white/20",
+      "dotColor": "bg-cyan-300",
+      "strokeHex": "#38bdf8"
+    },
+    "bgLayout": "horizontal",
+    "postIds": [
+      "post_oleveci_bienvenida",
+      "post_promo_cafe_origen"
+    ],
+    "fallbackPosts": [
+      {
+        "id": "post_oleveci_bienvenida",
+        "businessId": "biz_oleveci",
+        "businessName": "OleVeci",
+        "businessLogo": "/Icono_Oleveci_sin_fondo.png?v=clean",
+        "businessCity": "Cajicá",
+        "businessSector": "Centro",
+        "businessWhatsapp": "573100000000",
+        "businessPhone": "3100000000",
+        "businessAddress": "Cra. 3 # 3-15, Parque Principal, Cajicá",
+        "coordinates": {
+          "lat": 4.9192,
+          "lng": -74.0265
+        },
+        "type": "plan",
+        "title": "¡Bienvenido a OleVeci! Tu Guía Local",
+        "description": "¡Bienvenido a OleVeci.com! Acá encontrarás los mejores planes, promos y experiencias en tu municipio. Descubre lo mejor de Cajicá, Chía, Zipaquirá y Sabana Centro.",
+        "imageUrl": "https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/poster_bienvenida_oli.jpg",
+        "videoUrl": "https://gpdqjihnnjetoxxfsfxh.supabase.co/storage/v1/object/public/oleveci-media/posts/bienvenida_oleveci.mp4",
+        "mediaType": "video",
+        "aspectRatio": "9:16",
+        "imageFit": "cover",
+        "startsAt": "2026-10-26T14:21:07.042+00:00",
+        "expiresAt": "2027-10-27T02:21:07.042+00:00",
+        "expiryLabel": "¡Publicación destacada permanente!",
+        "categoryId": "cat_planes_eventos",
+        "featured": true,
+        "tags": [
+          "oleveci",
+          "bienvenida",
+          "sabana centro",
+          "planes",
+          "rutas",
+          "cajica",
+          "video",
+          "reel"
+        ],
+        "status": "active",
+        "metrics": {
+          "calls": 64,
+          "views": 3820,
+          "shares": 340,
+          "mapsClicks": 285,
+          "dailyMetrics": {
+            "2026-09-12": {
+              "calls": 1,
+              "views": 84,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-09-13": {
+              "calls": 1,
+              "views": 63,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-09-14": {
+              "calls": 1,
+              "views": 42,
+              "shares": 4,
+              "mapsClicks": 3,
+              "qrRedemptions": 0,
+              "whatsappClicks": 5
+            },
+            "2026-09-15": {
+              "calls": 1,
+              "views": 53,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-09-16": {
+              "calls": 1,
+              "views": 68,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-09-17": {
+              "calls": 1,
+              "views": 79,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-09-18": {
+              "calls": 2,
+              "views": 94,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-09-19": {
+              "calls": 2,
+              "views": 95,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-09-20": {
+              "calls": 1,
+              "views": 70,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-09-21": {
+              "calls": 1,
+              "views": 45,
+              "shares": 4,
+              "mapsClicks": 3,
+              "qrRedemptions": 0,
+              "whatsappClicks": 6
+            },
+            "2026-09-22": {
+              "calls": 1,
+              "views": 55,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-09-23": {
+              "calls": 1,
+              "views": 70,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-09-24": {
+              "calls": 1,
+              "views": 84,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-09-25": {
+              "calls": 2,
+              "views": 103,
+              "shares": 9,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 13
+            },
+            "2026-09-26": {
+              "calls": 2,
+              "views": 107,
+              "shares": 10,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 14
+            },
+            "2026-09-27": {
+              "calls": 1,
+              "views": 79,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-09-28": {
+              "calls": 1,
+              "views": 48,
+              "shares": 4,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 6
+            },
+            "2026-09-29": {
+              "calls": 1,
+              "views": 57,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-09-30": {
+              "calls": 1,
+              "views": 72,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-10-01": {
+              "calls": 1,
+              "views": 87,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-10-02": {
+              "calls": 2,
+              "views": 111,
+              "shares": 10,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 14
+            },
+            "2026-10-03": {
+              "calls": 2,
+              "views": 119,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 15
+            },
+            "2026-10-04": {
+              "calls": 1,
+              "views": 88,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 11
+            },
+            "2026-10-05": {
+              "calls": 1,
+              "views": 53,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-10-06": {
+              "calls": 1,
+              "views": 59,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-10-07": {
+              "calls": 1,
+              "views": 73,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-10-08": {
+              "calls": 2,
+              "views": 90,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-10-09": {
+              "calls": 2,
+              "views": 118,
+              "shares": 10,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 15
+            },
+            "2026-10-10": {
+              "calls": 2,
+              "views": 131,
+              "shares": 12,
+              "mapsClicks": 10,
+              "qrRedemptions": 0,
+              "whatsappClicks": 17
+            },
+            "2026-10-11": {
+              "calls": 2,
+              "views": 98,
+              "shares": 9,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 13
+            },
+            "2026-10-12": {
+              "calls": 1,
+              "views": 58,
+              "shares": 5,
+              "mapsClicks": 4,
+              "qrRedemptions": 0,
+              "whatsappClicks": 7
+            },
+            "2026-10-13": {
+              "calls": 1,
+              "views": 63,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-10-14": {
+              "calls": 1,
+              "views": 75,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-10-15": {
+              "calls": 2,
+              "views": 91,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-10-16": {
+              "calls": 2,
+              "views": 123,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 16
+            },
+            "2026-10-17": {
+              "calls": 2,
+              "views": 141,
+              "shares": 13,
+              "mapsClicks": 11,
+              "qrRedemptions": 0,
+              "whatsappClicks": 18
+            },
+            "2026-10-18": {
+              "calls": 2,
+              "views": 109,
+              "shares": 10,
+              "mapsClicks": 8,
+              "qrRedemptions": 0,
+              "whatsappClicks": 14
+            },
+            "2026-10-19": {
+              "calls": 1,
+              "views": 64,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 8
+            },
+            "2026-10-20": {
+              "calls": 1,
+              "views": 67,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            },
+            "2026-10-21": {
+              "calls": 1,
+              "views": 77,
+              "shares": 7,
+              "mapsClicks": 6,
+              "qrRedemptions": 0,
+              "whatsappClicks": 10
+            },
+            "2026-10-22": {
+              "calls": 2,
+              "views": 92,
+              "shares": 8,
+              "mapsClicks": 7,
+              "qrRedemptions": 0,
+              "whatsappClicks": 12
+            },
+            "2026-10-23": {
+              "calls": 2,
+              "views": 126,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 16
+            },
+            "2026-10-24": {
+              "calls": 3,
+              "views": 149,
+              "shares": 13,
+              "mapsClicks": 11,
+              "qrRedemptions": 0,
+              "whatsappClicks": 19
+            },
+            "2026-10-25": {
+              "calls": 2,
+              "views": 119,
+              "shares": 11,
+              "mapsClicks": 9,
+              "qrRedemptions": 0,
+              "whatsappClicks": 15
+            },
+            "2026-10-26": {
+              "calls": 1,
+              "views": 71,
+              "shares": 6,
+              "mapsClicks": 5,
+              "qrRedemptions": 0,
+              "whatsappClicks": 9
+            }
+          },
+          "whatsappClicks": 490
+        },
+        "createdAt": "2026-10-19T21:38:06.546226+00:00",
+        "imagePosition": {
+          "x": 50,
+          "y": 50
+        },
+        "imageScale": 1,
+        "mediaBgFill": "blur",
+        "planCategoryIds": [],
+        "planRoles": [],
+        "targetAudience": [],
+        "isPlan": false,
+        "suspensionHistory": [],
+        "planCategoryId": "plan_tarde_amigos",
+        "planCategoryName": "Tarde de amigos"
+      },
+      {
+        "id": "post_promo_cafe_origen",
+        "businessId": "biz_cafe_sabana",
+        "businessName": "Café & Trigo Artesanal",
+        "businessLogo": "https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=300&auto=format&fit=crop&q=80",
+        "businessCity": "Cajicá",
+        "businessSector": "Centro",
+        "businessWhatsapp": "573108923456",
+        "businessPhone": "3108923456",
+        "businessAddress": "Cl. 3 # 2-15, Parque Principal",
+        "coordinates": {
+          "lat": 4.918,
+          "lng": -74.0252
+        },
+        "type": "promotion",
+        "title": "Tarde de Café: Capuchino Especial + Croissant de Almendras",
+        "description": "Disfruta de la tarde con nuestro capuchino doble shot con notas a chocolate y avellana, acompañado de croissant horneado artesanalmente.",
+        "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
+        "mediaType": "image",
+        "aspectRatio": "9:16",
+        "imageFit": "cover",
+        "originalPrice": 19500,
+        "promotionalPrice": 13900,
+        "startsAt": "2026-10-02T14:41:22.333+00:00",
+        "expiresAt": "2027-10-20T23:59:59+00:00",
+        "expiryLabel": "Válido hoy hasta las 7:00 PM",
+        "categoryId": "cat_cafes_panaderias",
+        "featured": true,
+        "tags": [
+          "café",
+          "panadería",
+          "croissant",
+          "tarde",
+          "postre"
+        ],
+        "status": "active",
+        "metrics": {
+          "calls": 4,
+          "views": 311,
+          "shares": 11,
+          "mapsClicks": 35,
+          "whatsappClicks": 42
+        },
+        "createdAt": "2026-10-19T21:38:06.546226+00:00",
+        "imagePosition": {
+          "x": 50,
+          "y": 50
+        },
+        "imageScale": 1,
+        "mediaBgFill": "blur",
+        "planCategoryIds": [],
+        "planRoles": [],
+        "targetAudience": [],
+        "isPlan": false,
+        "suspensionHistory": [],
+        "planCategoryId": "plan_tomar_algo",
+        "planCategoryName": "Tomar algo"
+      }
+    ],
+    "category": "plan_cita_romantica",
+    "estimatedBudget": 13900,
+    "municipality": "Cajicá",
+    "timeOfDay": "tarde",
+    "dayType": "weekend",
+    "tags": [
+      "cajicá",
+      "plan_cita_romantica"
+    ]
   }
 ]
