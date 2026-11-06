@@ -68,41 +68,6 @@ interface ChatMessage {
   auditTrace?: any;
 }
 
-// Quick starter options for first turn (exactly 4 options)
-const QUICK_OPTIONS = [
-  {
-    id: 'papeleria',
-    icon: BookOpen,
-    iconBg: 'bg-indigo-600',
-    emojiPrefix: '📚',
-    title: 'Buscar papelería en Chía',
-    prompt: 'Buscar una papelería en Chía para comprar útiles escolares e impresiones',
-  },
-  {
-    id: 'polas',
-    icon: Beer,
-    iconBg: 'bg-amber-500',
-    emojiPrefix: '🍺',
-    title: 'Polas y alitas con amigos',
-    prompt: 'Plan de polas, alitas y comida rica con amigos este fin de semana',
-  },
-  {
-    id: 'pizza',
-    icon: UtensilsCrossed,
-    iconBg: 'bg-rose-500',
-    emojiPrefix: '🍕',
-    title: 'Pizza deliciosa en grupo',
-    prompt: 'Plan para comer pizza deliciosa artesanal y compartir en grupo',
-  },
-  {
-    id: 'familiar',
-    icon: Users,
-    iconBg: 'bg-emerald-500',
-    emojiPrefix: '👨‍👩‍👧',
-    title: 'Domingo familiar con niños',
-    prompt: 'Plan familiar para el domingo con niños, almuerzo rico y postres o helados',
-  },
-];
 
 export const OliSection: React.FC<OliSectionProps> = ({
   onSelectPlan,
@@ -144,7 +109,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [currentPlayingText, setCurrentPlayingText] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [visibleQuickCount, setVisibleQuickCount] = useState(0);
   const wasVoicePromptRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -154,22 +118,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
     `chat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
   );
   const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
-
-  // Sequentially reveal quick prompt options one by one
-  useEffect(() => {
-    if (hasStarted) return;
-    setVisibleQuickCount(0);
-    let count = 0;
-    const interval = setInterval(() => {
-      count += 1;
-      setVisibleQuickCount(count);
-      if (count >= QUICK_OPTIONS.length) {
-        clearInterval(interval);
-      }
-    }, 280);
-
-    return () => clearInterval(interval);
-  }, [hasStarted]);
 
   // Mobile virtual keyboard handling via VisualViewport API
   useEffect(() => {
@@ -745,25 +693,25 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
       {/* Main Content Area */}
       <div className="w-full flex-1 flex flex-col relative z-10">
-        {/* INITIAL STATE: Hero presentation & Quick starter options */}
+        {/* INITIAL STATE: Hero presentation & Enlarged Mascot */}
         {!hasStarted && (
-          <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-10">
-            {/* Full Oli Mascot Character (Complete, unclipped, not inside a circle) */}
-            <div className="relative mb-2 sm:mb-3 flex flex-col items-center">
-              <div className="relative w-24 h-24 sm:w-44 sm:h-44 flex items-center justify-center transition-transform hover:scale-105 duration-300">
+          <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col items-center justify-center px-4 py-6 sm:py-12">
+            {/* Full Oli Mascot Character (Enlarged, heroic and prominent) */}
+            <div className="relative mb-3 sm:mb-5 flex flex-col items-center">
+              <div className="relative w-44 h-44 sm:w-60 sm:h-60 md:w-72 md:h-72 flex items-center justify-center transition-transform hover:scale-105 duration-300">
                 {/* Soft ambient aura in background */}
-                <div className="absolute inset-4 bg-gradient-to-tr from-blue-400/20 via-cyan-400/25 to-amber-300/20 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute inset-2 sm:inset-4 bg-gradient-to-tr from-blue-400/25 via-cyan-400/30 to-amber-300/25 rounded-full blur-3xl pointer-events-none" />
 
                 <img
                   src="/assets/aistudio/Oli_sin_Fondo_d51a9103.png"
                   alt="Oli Asistente"
-                  className="w-full h-full object-contain select-none drop-shadow-[0_12px_24px_rgba(0,102,255,0.22)]"
+                  className="w-full h-full object-contain select-none drop-shadow-[0_16px_36px_rgba(0,102,255,0.28)]"
                 />
               </div>
             </div>
 
             {/* Headline */}
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 text-center tracking-tight mb-1.5 sm:mb-3">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 text-center tracking-tight mb-2 sm:mb-3">
               ¡Hola,{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0066FF] via-[#00B4D8] to-[#FB8500]">
                 soy Oli!
@@ -771,37 +719,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-600 text-xs sm:text-base text-center max-w-xl mx-auto mb-3 sm:mb-6 leading-relaxed font-normal px-2">
+            <p className="text-slate-600 text-xs sm:text-base text-center max-w-md sm:max-w-xl mx-auto leading-relaxed font-normal px-2">
               Puedo armarte un plan, buscar cualquier negocio o alguna promoción, en tu municipio.
             </p>
-
-            {/* Quick Prompt Cards in a single row with sequential reveal (ultra compact on mobile) */}
-            <div className="w-full max-w-2xl flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-0.5">
-              {QUICK_OPTIONS.slice(0, visibleQuickCount).map((opt) => {
-                const Icon = opt.icon;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => {
-                      setInputMessage(opt.prompt);
-                      handleSendMessage(opt.prompt);
-                    }}
-                    disabled={isLoading}
-                    className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-blue-50/70 border border-slate-200/90 hover:border-blue-400 shadow-2xs hover:shadow-xs cursor-pointer transition-all duration-300 active:scale-95 text-left group animate-in fade-in slide-in-from-right-4 zoom-in-95 duration-400 disabled:opacity-50"
-                  >
-                    <div
-                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg ${opt.iconBg} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
-                    >
-                      <Icon className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-                    </div>
-                    <span className="text-[10px] sm:text-xs font-semibold text-slate-800 group-hover:text-[#0056d6] whitespace-nowrap transition-colors">
-                      {opt.title}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
         )}
 
