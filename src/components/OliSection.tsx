@@ -1075,18 +1075,18 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         </div>
 
                         {/* Stops List with Timeline Style */}
-                        <div className="p-3 sm:p-5 space-y-3 sm:space-y-3.5">
+                        <div className="p-2.5 sm:p-5 space-y-2.5 sm:space-y-3.5">
                           {/* Punto de Inicio en el Timeline */}
-                          <div className="relative pl-7 pb-2">
+                          <div className="relative pl-6 sm:pl-7 pb-1.5 sm:pb-2">
                             {/* Línea vertical conectora hacia abajo */}
-                            <div className="absolute left-3 top-2.5 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
+                            <div className="absolute left-2.5 sm:left-3 top-2.5 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
 
-                            <div className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
-                              <div className="w-1.5 h-1.5 rounded-full bg-[#007af7]" />
+                            <div className="absolute left-1 sm:left-1.5 top-1 w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
+                              <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#007af7]" />
                             </div>
 
-                            <div className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                              <span className="text-slate-400">Inicio:</span>
+                            <div className="text-[10px] sm:text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                              <span className="text-slate-400 font-medium">Inicio:</span>
                               <span className="text-[#0056d6] font-extrabold truncate">
                                 {plan.stops[0]?.businessName || `Centro de ${currentCity || 'Cajicá'}`}
                               </span>
@@ -1094,7 +1094,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                           </div>
 
                           {/* Lista secuencial de paradas con estilo Timeline */}
-                          <div className="space-y-3">
+                          <div className="space-y-2.5 sm:space-y-3">
                             {plan.stops.map((stop, sIdx) => {
                               const isLast = sIdx === plan.stops.length - 1;
 
@@ -1142,43 +1142,43 @@ export const OliSection: React.FC<OliSectionProps> = ({
                               }`;
 
                               return (
-                                <div key={sIdx} className="relative pl-7 sm:pl-8">
+                                <div key={sIdx} className="relative pl-6 sm:pl-8">
                                   {/* Línea vertical conectora entre paradas */}
                                   {!isLast && (
-                                    <div className="absolute left-3 top-8 bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
+                                    <div className="absolute left-2.5 sm:left-3 top-7 sm:top-8 bottom-[-12px] sm:bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
                                   )}
 
                                   {/* Badge numérico circular del paso en el timeline */}
-                                  <div className="absolute left-0 top-3 w-6 h-6 rounded-full bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-xs font-black shadow-sm ring-2 ring-white">
+                                  <div className="absolute left-0 top-2.5 sm:top-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs ring-2 ring-white">
                                     {sIdx + 1}
                                   </div>
 
                                   {/* Tarjeta de la parada: Clic abre el anuncio */}
                                   <div
                                     onClick={() => onSelectPost?.(matchingPost)}
-                                    className="w-full rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2.5 sm:p-3.5 space-y-2 cursor-pointer group active:scale-[0.99] select-none"
+                                    className="w-full rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 cursor-pointer group active:scale-[0.99] select-none"
                                     title="Toca para ver el anuncio completo"
                                   >
                                     {/* 1. Encabezado: Imagen con precio + Título y Comercio + Botón Quitar */}
-                                    <div className="flex items-start gap-2.5 sm:gap-3">
-                                      {/* Imagen con precio sobrepuesto (estilo OleVeci, ahorra espacio vertical) */}
-                                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
+                                    <div className="flex items-start gap-2 sm:gap-3">
+                                      {/* Imagen con precio sobrepuesto (estilo OleVeci, compacta en móvil) */}
+                                      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
                                         <img
                                           src={displayImage}
                                           alt={displayTitle}
                                           className="w-full h-full object-cover"
                                         />
                                         {displayCost ? (
-                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[10px] sm:text-[11px] font-black text-emerald-400 text-center py-0.5 px-0.5 truncate leading-tight">
+                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[9px] sm:text-[11px] font-black text-emerald-400 text-center py-0.5 px-0.5 truncate leading-tight">
                                             ${Math.round(displayCost).toLocaleString('es-CO')}
                                           </div>
                                         ) : null}
                                       </div>
 
-                                      {/* Título, Comercio y Dirección con máximo espacio horizontal */}
+                                      {/* Título, Comercio y Dirección con tipografía compacta y ordenada */}
                                       <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-                                        <div className="flex items-start justify-between gap-1.5">
-                                          <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
+                                        <div className="flex items-start justify-between gap-1">
+                                          <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words line-clamp-2 sm:line-clamp-none">
                                             {displayTitle}
                                           </h5>
 
@@ -1190,52 +1190,52 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                                 e.stopPropagation();
                                                 handleRemoveStop(index, sIdx);
                                               }}
-                                              className="w-6 h-6 -mr-1 -mt-0.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition shrink-0 cursor-pointer"
+                                              className="w-5 h-5 sm:w-6 sm:h-6 -mr-0.5 -mt-0.5 rounded-md sm:rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition shrink-0 cursor-pointer"
                                               title="Quitar esta parada del plan"
                                             >
-                                              <X className="w-3.5 h-3.5" />
+                                              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                             </button>
                                           )}
                                         </div>
 
-                                        {/* Nombre del comercio con icono y municipio */}
-                                        <p className="text-[11px] sm:text-xs font-semibold text-slate-700 flex items-center gap-1.5 flex-wrap">
-                                          <Store className="w-3.5 h-3.5 text-[#0066FF] shrink-0" />
-                                          <span className="break-words">{displayBusiness}</span>
+                                        {/* Nombre del comercio con icono y municipio (ordenado, sin saltos extraños) */}
+                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
+                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                          <span className="truncate">{displayBusiness}</span>
                                           {displayCity && (
                                             <span className="text-slate-400 font-normal shrink-0">· {displayCity}</span>
                                           )}
-                                        </p>
+                                        </div>
 
-                                        {/* Dirección */}
-                                        <p className="text-[11px] text-slate-500 flex items-center gap-1 break-words">
-                                          <MapPin className="w-3 h-3 text-[#ff7700] shrink-0" />
-                                          <span className="line-clamp-1">{fullAddress}</span>
-                                        </p>
+                                        {/* Dirección compacta */}
+                                        <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] text-slate-500 min-w-0">
+                                          <MapPin className="w-2.5 h-2.5 text-[#ff7700] shrink-0" />
+                                          <span className="truncate">{fullAddress}</span>
+                                        </div>
                                       </div>
                                     </div>
 
                                     {/* 2. Cuerpo: Descripción completa a todo lo ancho de la tarjeta */}
                                     {displayDescription && (
-                                      <div className="bg-white/80 rounded-xl p-2 sm:p-2.5 border border-slate-200/70 shadow-2xs">
-                                        <p className="text-xs text-slate-600 leading-relaxed break-words whitespace-pre-wrap">
+                                      <div className="bg-white/70 sm:bg-white/80 rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 border border-slate-200/60 shadow-2xs">
+                                        <p className="text-[10px] sm:text-xs text-slate-600 leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none">
                                           {displayDescription}
                                         </p>
                                       </div>
                                     )}
 
                                     {/* 3. Pie de tarjeta: Botones de Acción Táctil (WhatsApp y Cómo llegar) */}
-                                    <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center gap-1.5 sm:gap-2 pt-1 border-t border-slate-200/60" onClick={(e) => e.stopPropagation()}>
                                       {waUrl && (
                                         <a
                                           href={waUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex-1 sm:flex-initial h-8 px-3 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center gap-1.5 transition active:scale-95 border border-slate-200 hover:border-emerald-300 shadow-2xs text-xs font-bold"
+                                          className="flex-1 sm:flex-initial h-7 sm:h-8 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center gap-1 sm:gap-1.5 transition active:scale-95 border border-slate-200 hover:border-emerald-300 shadow-2xs text-[10px] sm:text-xs font-bold"
                                           title="Contactar por WhatsApp"
                                           aria-label="WhatsApp"
                                         >
-                                          <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                          <WhatsAppIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
                                           <span>WhatsApp</span>
                                         </a>
                                       )}
@@ -1248,11 +1248,11 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           );
                                           window.open(`https://www.google.com/maps/search/?api=1&query=${encodedQuery}`, '_blank');
                                         }}
-                                        className="flex-1 sm:flex-initial h-8 px-3 rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center gap-1.5 transition active:scale-95 border border-slate-200 hover:border-blue-300 shadow-2xs cursor-pointer text-xs font-bold"
+                                        className="flex-1 sm:flex-initial h-7 sm:h-8 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center gap-1 sm:gap-1.5 transition active:scale-95 border border-slate-200 hover:border-blue-300 shadow-2xs cursor-pointer text-[10px] sm:text-xs font-bold"
                                         title="Ver cómo llegar en Google Maps"
                                         aria-label="Cómo llegar"
                                       >
-                                        <Navigation className="w-3.5 h-3.5 fill-current text-[#0066FF] shrink-0" />
+                                        <Navigation className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-[#0066FF] shrink-0" />
                                         <span>Cómo llegar</span>
                                       </button>
                                     </div>
