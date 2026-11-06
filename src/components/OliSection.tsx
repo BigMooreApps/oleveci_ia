@@ -115,6 +115,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<OliPlanResponse | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const hasStarted = chatHistory.length > 0 || isLoading;
   const [isSaved, setIsSaved] = useState(false);
   const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
   const [editingMessageText, setEditingMessageText] = useState('');
@@ -686,8 +687,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
   };
-
-  const hasStarted = chatHistory.length > 0 || isLoading;
 
   return (
     <div className="w-full flex-1 min-h-[calc(100dvh-4rem)] bg-white text-slate-800 flex flex-col justify-between relative selection:bg-[#0066FF] selection:text-white">
