@@ -771,19 +771,12 @@ export const OliSection: React.FC<OliSectionProps> = ({
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-600 text-xs sm:text-base text-center max-w-xl mx-auto mb-4 sm:mb-8 leading-relaxed font-normal px-2">
+            <p className="text-slate-600 text-xs sm:text-base text-center max-w-xl mx-auto mb-3 sm:mb-6 leading-relaxed font-normal px-2">
               Puedo armarte un plan, buscar cualquier negocio o alguna promoción, en tu municipio.
             </p>
 
-            {/* Section title */}
-            <div className="w-full max-w-2xl mb-2 sm:mb-3 flex items-center justify-between">
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                OPCIONES RÁPIDAS PARA EMPEZAR:
-              </span>
-            </div>
-
-            {/* Quick Prompt Cards in a single row with sequential reveal */}
-            <div className="w-full max-w-2xl flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1">
+            {/* Quick Prompt Cards in a single row with sequential reveal (ultra compact on mobile) */}
+            <div className="w-full max-w-2xl flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-0.5">
               {QUICK_OPTIONS.slice(0, visibleQuickCount).map((opt) => {
                 const Icon = opt.icon;
                 return (
@@ -795,14 +788,14 @@ export const OliSection: React.FC<OliSectionProps> = ({
                       handleSendMessage(opt.prompt);
                     }}
                     disabled={isLoading}
-                    className="shrink-0 inline-flex items-center gap-2 sm:gap-2.5 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white hover:bg-blue-50/70 border border-slate-200/90 hover:border-blue-400 shadow-2xs hover:shadow-sm cursor-pointer transition-all duration-300 active:scale-95 text-left group animate-in fade-in slide-in-from-right-4 zoom-in-95 duration-400 disabled:opacity-50"
+                    className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-blue-50/70 border border-slate-200/90 hover:border-blue-400 shadow-2xs hover:shadow-xs cursor-pointer transition-all duration-300 active:scale-95 text-left group animate-in fade-in slide-in-from-right-4 zoom-in-95 duration-400 disabled:opacity-50"
                   >
                     <div
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl ${opt.iconBg} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg ${opt.iconBg} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
                     >
-                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <Icon className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-[#0056d6] whitespace-nowrap transition-colors">
+                    <span className="text-[10px] sm:text-xs font-semibold text-slate-800 group-hover:text-[#0056d6] whitespace-nowrap transition-colors">
                       {opt.title}
                     </span>
                   </button>
@@ -1592,8 +1585,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
         }}
       >
         <div className="max-w-4xl mx-auto w-full">
-          {/* Action Pills at bottom: Chatear por WhatsApp & Hablar por voz */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-2.5">
+          {/* Action Pill: Chatear en WhatsApp */}
+          <div className="flex items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-2.5">
             {/* WhatsApp button */}
             <button
               type="button"
@@ -1603,31 +1596,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
             >
               <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
               <span>Chatear en WhatsApp</span>
-            </button>
-
-            {/* Voice button */}
-            <button
-              type="button"
-              onClick={toggleListening}
-              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95 ${
-                isListening
-                  ? 'bg-red-50 hover:bg-red-100 border border-red-300 text-red-600 animate-pulse'
-                  : 'bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[#0066FF]'
-              }`}
-              title={isListening ? 'Detener micrófono' : 'Hablar por voz con Oli'}
-            >
-              {isListening ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  <Mic className="w-3.5 h-3.5 text-red-600" />
-                  <span>Escuchando... habla ahora</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="w-3.5 h-3.5 text-[#0066FF]" />
-                  <span>Hablar por voz</span>
-                </>
-              )}
             </button>
           </div>
 
