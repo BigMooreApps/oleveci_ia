@@ -21,7 +21,6 @@ import {
   Wrench,
   BookOpen,
   ArrowRight,
-  Navigation,
   Store,
   Compass,
   Phone,
@@ -1130,13 +1129,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
                               const displayAddress = stop.businessAddress || matchingPost.businessAddress || 'Dirección registrada';
                               const displayCost = stop.cost || matchingPost.promotionalPrice || matchingPost.originalPrice;
 
-                              const waClean = (stop.businessWhatsapp || stop.businessPhone || matchingPost.businessWhatsapp || '').replace(/\D/g, '');
-                              const waUrl = waClean
-                                ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
-                                    `¡Hola! Vi en OleVeci su anuncio "${displayTitle}" en ${displayBusiness}. Quisiera más información.`
-                                  )}`
-                                : null;
-
                               const fullAddress = `${displayAddress}${
                                 displayCity ? `, ${displayCity}` : ''
                               }`;
@@ -1223,39 +1215,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                         </p>
                                       </div>
                                     )}
-
-                                    {/* 3. Pie de tarjeta: Botones de Acción Táctil (WhatsApp y Cómo llegar) */}
-                                    <div className="flex items-center gap-1.5 sm:gap-2 pt-1 border-t border-slate-200/60" onClick={(e) => e.stopPropagation()}>
-                                      {waUrl && (
-                                        <a
-                                          href={waUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex-1 sm:flex-initial h-7 sm:h-8 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center gap-1 sm:gap-1.5 transition active:scale-95 border border-slate-200 hover:border-emerald-300 shadow-2xs text-[10px] sm:text-xs font-bold"
-                                          title="Contactar por WhatsApp"
-                                          aria-label="WhatsApp"
-                                        >
-                                          <WhatsAppIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
-                                          <span>WhatsApp</span>
-                                        </a>
-                                      )}
-
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const encodedQuery = encodeURIComponent(
-                                            `${displayBusiness}, ${displayAddress}, ${displayCity || currentCity || 'Cajicá'}`
-                                          );
-                                          window.open(`https://www.google.com/maps/search/?api=1&query=${encodedQuery}`, '_blank');
-                                        }}
-                                        className="flex-1 sm:flex-initial h-7 sm:h-8 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center gap-1 sm:gap-1.5 transition active:scale-95 border border-slate-200 hover:border-blue-300 shadow-2xs cursor-pointer text-[10px] sm:text-xs font-bold"
-                                        title="Ver cómo llegar en Google Maps"
-                                        aria-label="Cómo llegar"
-                                      >
-                                        <Navigation className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-[#0066FF] shrink-0" />
-                                        <span>Cómo llegar</span>
-                                      </button>
-                                    </div>
                                   </div>
                                 </div>
                               );
