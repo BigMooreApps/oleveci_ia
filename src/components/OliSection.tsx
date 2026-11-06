@@ -142,6 +142,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [currentPlayingText, setCurrentPlayingText] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [visibleQuickCount, setVisibleQuickCount] = useState(0);
+  const wasVoicePromptRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -150,6 +153,22 @@ export const OliSection: React.FC<OliSectionProps> = ({
     `chat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
   );
   const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
+
+  // Sequentially reveal quick prompt options one by one
+  useEffect(() => {
+    if (hasStarted) return;
+    setVisibleQuickCount(0);
+    let count = 0;
+    const interval = setInterval(() => {
+      count += 1;
+      setVisibleQuickCount(count);
+      if (count >= QUICK_OPTIONS.length) {
+        clearInterval(interval);
+      }
+    }, 280);
+
+    return () => clearInterval(interval);
+  }, [hasStarted]);
 
   // Mobile virtual keyboard handling via VisualViewport API
   useEffect(() => {
@@ -323,7 +342,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
   // Speech Recognition
   const toggleListening = () => {
     if (isListening) {
-      recognitionRef.current?.stop();
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
       setIsListening(false);
       return;
     }
@@ -332,6 +353,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
+      alert(
+        'Tu navegador no tiene activado el reconocimiento de voz nativo. Puedes escribirle a Oli en la barra de búsqueda o chatear por WhatsApp.'
+      );
       return;
     }
 
@@ -346,14 +370,16 @@ export const OliSection: React.FC<OliSectionProps> = ({
       };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        const transcript = event.results?.[0]?.[0]?.transcript;
         if (transcript) {
           setInputMessage(transcript);
+          wasVoicePromptRef.current = true;
           handleSendMessage(transcript);
         }
       };
 
-      recognition.onerror = () => {
+      recognition.onerror = (err: any) => {
+        console.warn('Speech recognition error:', err);
         setIsListening(false);
       };
 
@@ -363,7 +389,8 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
       recognitionRef.current = recognition;
       recognition.start();
-    } catch {
+    } catch (err) {
+      console.warn('Failed to start speech recognition:', err);
       setIsListening(false);
     }
   };
@@ -531,6 +558,14 @@ export const OliSection: React.FC<OliSectionProps> = ({
           auditTrace: responseData.auditTrace,
         },
       ]);
+
+      // If user queried with voice, play spoken reply automatically
+      if (wasVoicePromptRef.current && responseData.spokenText) {
+        wasVoicePromptRef.current = false;
+        setTimeout(() => {
+          handleToggleAudio(responseData.spokenText);
+        }, 300);
+      }
     } catch (err: any) {
       console.error('Error generating response with Oli:', err);
       const fallbackText =
@@ -543,6 +578,12 @@ export const OliSection: React.FC<OliSectionProps> = ({
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
+      if (wasVoicePromptRef.current) {
+        wasVoicePromptRef.current = false;
+        setTimeout(() => {
+          handleToggleAudio(fallbackText);
+        }, 300);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -722,18 +763,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
               </div>
             </div>
 
-            {/* Action Pills: WhatsApp */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-2 sm:mb-3">
-              <button
-                type="button"
-                onClick={() => setIsWhatsAppOpen(true)}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[11px] sm:text-xs font-semibold text-emerald-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
-              >
-                <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Chatear en WhatsApp</span>
-              </button>
-            </div>
-
             {/* Headline */}
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 text-center tracking-tight mb-1.5 sm:mb-3">
               ¡Hola,{' '}
@@ -754,9 +783,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
               </span>
             </div>
 
-            {/* Quick Prompt Cards Grid (Compact 2 columns on mobile & desktop so it takes minimal space) */}
-            <div className="w-full max-w-2xl grid grid-cols-2 gap-2 sm:gap-3">
-              {QUICK_OPTIONS.map((opt) => {
+            {/* Quick Prompt Cards in a single row with sequential reveal */}
+            <div className="w-full max-w-2xl flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1">
+              {QUICK_OPTIONS.slice(0, visibleQuickCount).map((opt) => {
                 const Icon = opt.icon;
                 return (
                   <button
@@ -767,18 +796,16 @@ export const OliSection: React.FC<OliSectionProps> = ({
                       handleSendMessage(opt.prompt);
                     }}
                     disabled={isLoading}
-                    className="w-full p-2 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white hover:bg-blue-50/50 border border-slate-200/90 hover:border-blue-400 transition-all duration-200 cursor-pointer flex items-center gap-2 sm:gap-3 text-left group shadow-2xs hover:shadow-md active:scale-98 disabled:opacity-50"
+                    className="shrink-0 inline-flex items-center gap-2 sm:gap-2.5 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-white hover:bg-blue-50/70 border border-slate-200/90 hover:border-blue-400 shadow-2xs hover:shadow-sm cursor-pointer transition-all duration-300 active:scale-95 text-left group animate-in fade-in slide-in-from-right-4 zoom-in-95 duration-400 disabled:opacity-50"
                   >
                     <div
-                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl ${opt.iconBg} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl ${opt.iconBg} text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
                     >
-                      <Icon className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />
+                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[11px] sm:text-sm font-bold text-slate-800 group-hover:text-[#0056d6] transition-colors leading-tight line-clamp-2 block">
-                        {opt.title}
-                      </span>
-                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-[#0056d6] whitespace-nowrap transition-colors">
+                      {opt.title}
+                    </span>
                   </button>
                 );
               })}
@@ -1566,28 +1593,103 @@ export const OliSection: React.FC<OliSectionProps> = ({
         }}
       >
         <div className="max-w-4xl mx-auto w-full">
+          {/* Action Pills at bottom: Chatear por WhatsApp & Hablar por voz */}
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-2.5">
+            {/* WhatsApp button */}
+            <button
+              type="button"
+              onClick={() => setIsWhatsAppOpen(true)}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold text-emerald-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+              title="Chatear con Oli en WhatsApp"
+            >
+              <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Chatear en WhatsApp</span>
+            </button>
+
+            {/* Voice button */}
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95 ${
+                isListening
+                  ? 'bg-red-50 hover:bg-red-100 border border-red-300 text-red-600 animate-pulse'
+                  : 'bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[#0066FF]'
+              }`}
+              title={isListening ? 'Detener micrófono' : 'Hablar por voz con Oli'}
+            >
+              {isListening ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  <Mic className="w-3.5 h-3.5 text-red-600" />
+                  <span>Escuchando... habla ahora</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-3.5 h-3.5 text-[#0066FF]" />
+                  <span>Hablar por voz</span>
+                </>
+              )}
+            </button>
+          </div>
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="w-full bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200/90 hover:border-slate-300 focus-within:border-[#0066FF] focus-within:bg-white focus-within:ring-3 focus-within:ring-blue-500/15 rounded-2xl p-1.5 sm:p-2 flex items-center gap-2 sm:gap-3 shadow-sm hover:shadow transition-all"
+            className="w-full relative bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200/90 hover:border-slate-300 focus-within:border-[#0066FF] focus-within:bg-white focus-within:ring-3 focus-within:ring-blue-500/15 rounded-2xl p-1.5 sm:p-2 flex items-center gap-1.5 sm:gap-2.5 shadow-sm hover:shadow transition-all overflow-hidden"
           >
-            {/* Text input */}
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onFocus={handleInputFocus}
-              placeholder={
-                hasStarted
-                  ? 'Pregúntale a Oli: buscar un taller, una papelería, hacer mercado o un plan...'
-                  : 'Pregúntale a Oli: "buscar una papelería", "donde hacer mercado", "un taller"...'
-              }
-              disabled={isLoading}
-              className="flex-1 min-w-0 bg-transparent border-0 outline-none text-slate-800 placeholder:text-slate-400 text-xs sm:text-sm px-3 sm:px-4 font-medium"
-            />
+            {/* Input wrapper with slow displacement ticker */}
+            <div className="flex-1 min-w-0 relative flex items-center h-10 sm:h-11 overflow-hidden">
+              {/* Animated slow scrolling text ticker when input is empty and not focused */}
+              {!inputMessage && !isInputFocused && (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center select-none">
+                  <div className="animate-oli-marquee flex items-center whitespace-nowrap text-slate-400 font-medium text-xs sm:text-sm">
+                    <span className="inline-block pr-12">
+                      Pregúntale a Oli: "buscar una papelería en Chía" &nbsp;•&nbsp; "¿dónde hacer mercado hoy?" &nbsp;•&nbsp; "taller mecánico de confianza" &nbsp;•&nbsp; "pizza artesanal en grupo" &nbsp;•&nbsp; "veterinaria 24 horas" &nbsp;•&nbsp; "plan familiar con niños el domingo" &nbsp;•&nbsp;
+                    </span>
+                    <span className="inline-block pr-12">
+                      Pregúntale a Oli: "buscar una papelería en Chía" &nbsp;•&nbsp; "¿dónde hacer mercado hoy?" &nbsp;•&nbsp; "taller mecánico de confianza" &nbsp;•&nbsp; "pizza artesanal en grupo" &nbsp;•&nbsp; "veterinaria 24 horas" &nbsp;•&nbsp; "plan familiar con niños el domingo" &nbsp;•&nbsp;
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Text input */}
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onFocus={() => {
+                  setIsInputFocused(true);
+                  handleInputFocus();
+                }}
+                onBlur={() => setIsInputFocused(false)}
+                placeholder={isInputFocused ? 'Escribe aquí tu consulta o plan...' : ''}
+                disabled={isLoading}
+                className="w-full h-full bg-transparent border-0 outline-none text-slate-800 placeholder:text-slate-400 text-xs sm:text-sm px-3 sm:px-4 font-medium relative z-10"
+              />
+            </div>
+
+            {/* Mic button */}
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 shadow-2xs ${
+                isListening
+                  ? 'bg-red-500 text-white animate-pulse shadow-red-200'
+                  : 'bg-slate-200/80 hover:bg-blue-50 text-slate-600 hover:text-[#0066FF]'
+              }`}
+              title={isListening ? 'Detener micrófono' : 'Hablar por micrófono'}
+              aria-label="Hablar por micrófono"
+            >
+              {isListening ? (
+                <MicOff className="w-5 h-5 text-white animate-bounce" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
+            </button>
 
             {/* Send Button */}
             <button

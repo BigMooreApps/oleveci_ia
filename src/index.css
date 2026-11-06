@@ -325,6 +325,26 @@ input[type="number"] {
   animation: pulseHalo 2.2s ease-in-out infinite;
 }
 
+/* Slow horizontal marquee for Oli search input prompt examples */
+@keyframes oliMarqueeSlow {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-oli-marquee {
+  display: inline-flex;
+  animation: oliMarqueeSlow 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-oli-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Recharts Mobile Aesthetics: Prevent black outlines, focus rings, and tap highlight artifacts */
 .recharts-wrapper,
 .recharts-wrapper *,
