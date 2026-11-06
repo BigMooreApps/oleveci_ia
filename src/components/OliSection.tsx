@@ -1372,59 +1372,68 @@ export const OliSection: React.FC<OliSectionProps> = ({
 
                             <div className="grid grid-cols-1 gap-2.5">
                               {/* 1. Prioritize Posts / Anuncios (The Differential Value of OleVeci) */}
-                              {displayedPosts.map((post) => (
-                                <div
-                                  key={post.id}
-                                  className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex items-start gap-3 sm:gap-4 group cursor-pointer active:scale-[0.99]"
-                                  onClick={() => onSelectPost?.(post)}
-                                  title="Toca para ver el anuncio completo"
-                                >
-                                  {/* Imagen con precio */}
-                                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative">
-                                    <img
-                                      src={post.imageUrl || '/Logo_OleVeci.png'}
-                                      alt={post.title}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                    {(post.promotionalPrice || post.originalPrice) && (
-                                      <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[11px] font-black text-emerald-400 text-center py-0.5 px-1 truncate">
-                                        ${(post.promotionalPrice || post.originalPrice || 0).toLocaleString('es-CO')}
-                                      </div>
-                                    )}
-                                  </div>
+                              {displayedPosts.map((post) => {
+                                const fullPostAddress = `${post.businessAddress || 'Dirección registrada'}${
+                                  post.businessCity ? `, ${post.businessCity}` : ''
+                                }`;
+                                const postCost = post.promotionalPrice || post.originalPrice;
 
-                                  {/* Contenido completo del anuncio sin cortes ni elipsis */}
-                                  <div className="min-w-0 flex-1 space-y-1.5 overflow-hidden">
-                                    <div className="flex items-start justify-between gap-2">
-                                      <h4 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
-                                        {post.title}
-                                      </h4>
-                                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#0066FF] flex items-center justify-center shrink-0 group-hover:bg-[#0066FF] group-hover:text-white transition-all shadow-2xs mt-0.5">
-                                        <ArrowRight className="w-3.5 h-3.5" />
+                                return (
+                                  <div
+                                    key={post.id}
+                                    onClick={() => onSelectPost?.(post)}
+                                    className="w-full rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 cursor-pointer group active:scale-[0.99] select-none"
+                                    title="Toca para ver el anuncio completo"
+                                  >
+                                    {/* 1. Encabezado: Imagen con precio + Título y Comercio */}
+                                    <div className="flex items-start gap-2 sm:gap-3">
+                                      {/* Imagen con precio sobrepuesto (estilo OleVeci, compacta en móvil) */}
+                                      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
+                                        <img
+                                          src={post.imageUrl || '/Logo_OleVeci.png'}
+                                          alt={post.title}
+                                          className="w-full h-full object-cover"
+                                        />
+                                        {postCost ? (
+                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[9px] sm:text-[11px] font-black text-emerald-400 text-center py-0.5 px-0.5 truncate leading-tight">
+                                            ${Math.round(postCost).toLocaleString('es-CO')}
+                                          </div>
+                                        ) : null}
+                                      </div>
+
+                                      {/* Título, Comercio y Dirección con tipografía compacta y ordenada */}
+                                      <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                                        <div className="flex items-start justify-between gap-1">
+                                          <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words line-clamp-2 sm:line-clamp-none">
+                                            {post.title}
+                                          </h5>
+                                        </div>
+
+                                        {/* Nombre del comercio con icono (ordenado, sin redundancia de municipio) */}
+                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
+                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                          <span className="truncate">{post.businessName}</span>
+                                        </div>
+
+                                        {/* Dirección compacta */}
+                                        <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] text-slate-500 min-w-0">
+                                          <MapPin className="w-2.5 h-2.5 text-[#ff7700] shrink-0" />
+                                          <span className="truncate">{fullPostAddress}</span>
+                                        </div>
                                       </div>
                                     </div>
 
-                                    <p className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 flex-wrap">
-                                      <Store className="w-3.5 h-3.5 text-[#0066FF] shrink-0" />
-                                      <span className="break-words">{post.businessName}</span>
-                                      <span className="text-slate-400 font-normal shrink-0">· {post.businessCity}</span>
-                                    </p>
-
-                                    {post.businessAddress && (
-                                      <p className="text-[11px] text-slate-500 flex items-center gap-1.5 break-words">
-                                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                        <span>{post.businessAddress}</span>
-                                      </p>
-                                    )}
-
+                                    {/* 2. Cuerpo: Descripción completa a todo lo ancho de la tarjeta */}
                                     {post.description && (
-                                      <p className="text-xs text-slate-600 leading-relaxed break-words whitespace-pre-wrap pt-0.5">
-                                        {post.description}
-                                      </p>
+                                      <div className="bg-white/70 sm:bg-white/80 rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 border border-slate-200/60 shadow-2xs">
+                                        <p className="text-[10px] sm:text-xs text-slate-600 leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none">
+                                          {post.description}
+                                        </p>
+                                      </div>
                                     )}
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
 
                               {/* 2. Directory-Only Businesses (Only for businesses without active promotions) */}
                               {displayedBusinesses.length > 0 && postsList.length > 0 && (
@@ -1434,56 +1443,64 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   </span>
                                 </div>
                               )}
-                              {displayedBusinesses.map((biz) => (
-                                <div
-                                  key={biz.id}
-                                  className="w-full max-w-full overflow-hidden bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 p-3 sm:p-4 shadow-xs hover:shadow-md transition-all flex items-start gap-3 sm:gap-4 group cursor-pointer active:scale-[0.99]"
-                                  onClick={() => onSelectBusiness?.(biz.id)}
-                                  title="Toca para ver el perfil del comercio"
-                                >
-                                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs">
-                                    <img
-                                      src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
-                                      alt={biz.name}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                  </div>
+                              {displayedBusinesses.map((biz) => {
+                                const fullBizAddress = `${biz.address || 'Dirección registrada'}${
+                                  biz.city ? `, ${biz.city}` : ''
+                                }`;
 
-                                  <div className="min-w-0 flex-1 space-y-1.5 overflow-hidden">
-                                    <div className="flex items-start justify-between gap-2">
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors break-words">
-                                          {biz.name}
-                                        </h3>
-                                        {biz.verified && (
-                                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                        )}
-                                        {biz.subCategory && (
-                                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">
-                                            {biz.subCategory}
-                                          </span>
-                                        )}
+                                return (
+                                  <div
+                                    key={biz.id}
+                                    className="w-full rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 cursor-pointer group active:scale-[0.99] select-none"
+                                    onClick={() => onSelectBusiness?.(biz.id)}
+                                    title="Toca para ver el perfil del comercio"
+                                  >
+                                    <div className="flex items-start gap-2 sm:gap-3">
+                                      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
+                                        <img
+                                          src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
+                                          alt={biz.name}
+                                          className="w-full h-full object-cover"
+                                        />
                                       </div>
-                                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#0066FF] flex items-center justify-center shrink-0 group-hover:bg-[#0066FF] group-hover:text-white transition-all shadow-2xs mt-0.5">
-                                        <ArrowRight className="w-3.5 h-3.5" />
-                                      </div>
-                                    </div>
 
-                                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 break-words flex-wrap">
-                                      <MapPin className="w-3.5 h-3.5 text-[#0066FF] shrink-0" />
-                                      <span>
-                                        {biz.city} · {biz.address}
-                                      </span>
+                                      <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                                        <div className="flex items-start justify-between gap-1">
+                                          <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
+                                            {biz.name}
+                                          </h5>
+                                          {biz.subCategory && (
+                                            <span className="text-[9.5px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200 shrink-0">
+                                              {biz.subCategory}
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
+                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
+                                          <span className="truncate">{biz.name}</span>
+                                          {biz.verified && (
+                                            <CheckCircle2 className="w-3 h-3 text-blue-500 shrink-0" />
+                                          )}
+                                        </div>
+
+                                        <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] text-slate-500 min-w-0">
+                                          <MapPin className="w-2.5 h-2.5 text-[#ff7700] shrink-0" />
+                                          <span className="truncate">{fullBizAddress}</span>
+                                        </div>
+                                      </div>
                                     </div>
 
                                     {biz.description && (
-                                      <p className="text-xs text-slate-600 leading-relaxed break-words whitespace-pre-wrap pt-0.5">
-                                        {biz.description}
-                                      </p>
+                                      <div className="bg-white/70 sm:bg-white/80 rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 border border-slate-200/60 shadow-2xs">
+                                        <p className="text-[10px] sm:text-xs text-slate-600 leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none">
+                                          {biz.description}
+                                        </p>
+                                      </div>
                                     )}
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
 
                             {/* Expand / Collapse Button at bottom when there are more items */}
