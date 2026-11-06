@@ -1074,137 +1074,165 @@ export const OliSection: React.FC<OliSectionProps> = ({
                           </div>
                         </div>
 
-                        {/* Stops List */}
-                        <div className="p-3.5 sm:p-5 space-y-3">
-                          {plan.stops.map((stop, sIdx) => {
-                            const isLast = sIdx === plan.stops.length - 1;
-                            const waClean = (stop.businessWhatsapp || stop.businessPhone || '').replace(/\D/g, '');
-                            const waUrl = waClean
-                              ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
-                                  `¡Hola! Vi en OleVeci su parada "${stop.activity}" en ${stop.businessName}. Quisiera más información.`
-                                )}`
-                              : null;
+                        {/* Stops List with Timeline Style */}
+                        <div className="p-3.5 sm:p-5 space-y-3.5">
+                          {/* Punto de Inicio en el Timeline */}
+                          <div className="relative pl-7 pb-2">
+                            {/* Línea vertical conectora hacia abajo */}
+                            <div className="absolute left-3 top-2.5 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-blue-200 border-dashed" />
 
-                            const fullAddress = `${stop.businessAddress || 'Dirección registrada'}${
-                              stop.businessCity ? `, ${stop.businessCity}` : ''
-                            }`;
+                            <div className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#007af7] shadow-xs flex items-center justify-center">
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#007af7]" />
+                            </div>
 
-                            const matchingPost = (posts || []).find((p) => p.id === stop.postId) ||
-                              (posts || []).find((p) => p.businessId === stop.businessId) || {
-                                id: stop.postId || `stop-post-${stop.businessId || sIdx}`,
-                                businessId: stop.businessId,
-                                businessName: stop.businessName,
-                                businessLogo: stop.imageUrl || '/Logo_OleVeci.png',
-                                businessCity: stop.businessCity || currentCity || 'Sabana Centro',
-                                businessSector: '',
-                                businessWhatsapp: stop.businessWhatsapp || stop.businessPhone || '',
-                                businessPhone: stop.businessPhone || '',
-                                businessAddress: stop.businessAddress || '',
-                                coordinates: { lat: 4.93, lng: -74.03 },
-                                type: 'promo' as const,
-                                title: stop.postTitle || stop.activity || stop.businessName,
-                                description: stop.whySelected || stop.activity || '',
-                                imageUrl: stop.imageUrl || '/Logo_OleVeci.png',
-                                promotionalPrice: stop.cost,
-                                startsAt: new Date().toISOString(),
-                                categoryId: 'general',
-                                tags: ['itinerario', 'oli'],
-                                status: 'active' as const,
-                              };
+                            <div className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                              <span className="text-slate-400">Inicio:</span>
+                              <span className="text-[#0056d6] font-extrabold truncate">
+                                {plan.stops[0]?.businessName || `Centro de ${currentCity || 'Cajicá'}`}
+                              </span>
+                            </div>
+                          </div>
 
-                            return (
-                              <div
-                                key={sIdx}
-                                onClick={() => onSelectPost?.(matchingPost)}
-                                className="w-full rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3 sm:p-3.5 space-y-2.5 cursor-pointer group active:scale-[0.99] select-none"
-                                title="Toca para ver el anuncio completo"
-                              >
-                                {/* Encabezado: Comercio e Imagen */}
-                                <div className="flex items-start justify-between gap-2.5">
-                                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                                    <img
-                                      src={stop.imageUrl || '/Logo_OleVeci.png'}
-                                      alt=""
-                                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:scale-105 transition-transform shadow-2xs bg-white"
-                                    />
+                          {/* Lista secuencial de paradas con estilo Timeline */}
+                          <div className="space-y-3">
+                            {plan.stops.map((stop, sIdx) => {
+                              const isLast = sIdx === plan.stops.length - 1;
+                              const waClean = (stop.businessWhatsapp || stop.businessPhone || '').replace(/\D/g, '');
+                              const waUrl = waClean
+                                ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
+                                    `¡Hola! Vi en OleVeci su parada "${stop.activity}" en ${stop.businessName}. Quisiera más información.`
+                                  )}`
+                                : null;
 
-                                    <div className="min-w-0 flex-1 space-y-0.5">
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-[10px] font-black text-[#007af7] uppercase tracking-wider">
-                                          {isLast ? 'DESTINO FINAL' : 'PARADA'}
-                                        </span>
+                              const fullAddress = `${stop.businessAddress || 'Dirección registrada'}${
+                                stop.businessCity ? `, ${stop.businessCity}` : ''
+                              }`;
+
+                              const matchingPost = (posts || []).find((p) => p.id === stop.postId) ||
+                                (posts || []).find((p) => p.businessId === stop.businessId) || {
+                                  id: stop.postId || `stop-post-${stop.businessId || sIdx}`,
+                                  businessId: stop.businessId,
+                                  businessName: stop.businessName,
+                                  businessLogo: stop.imageUrl || '/Logo_OleVeci.png',
+                                  businessCity: stop.businessCity || currentCity || 'Sabana Centro',
+                                  businessSector: '',
+                                  businessWhatsapp: stop.businessWhatsapp || stop.businessPhone || '',
+                                  businessPhone: stop.businessPhone || '',
+                                  businessAddress: stop.businessAddress || '',
+                                  coordinates: { lat: 4.93, lng: -74.03 },
+                                  type: 'promo' as const,
+                                  title: stop.postTitle || stop.activity || stop.businessName,
+                                  description: stop.whySelected || stop.activity || '',
+                                  imageUrl: stop.imageUrl || '/Logo_OleVeci.png',
+                                  promotionalPrice: stop.cost,
+                                  startsAt: new Date().toISOString(),
+                                  categoryId: 'general',
+                                  tags: ['itinerario', 'oli'],
+                                  status: 'active' as const,
+                                };
+
+                              return (
+                                <div key={sIdx} className="relative pl-7 sm:pl-8">
+                                  {/* Línea vertical conectora entre paradas */}
+                                  {!isLast && (
+                                    <div className="absolute left-3 top-8 bottom-[-14px] w-0.5 bg-gradient-to-b from-blue-300 via-indigo-200 to-slate-200" />
+                                  )}
+
+                                  {/* Badge numérico circular del paso en el timeline */}
+                                  <div className="absolute left-0 top-3 w-6 h-6 rounded-full bg-gradient-to-br from-[#0056d6] to-[#041f5e] text-white flex items-center justify-center text-xs font-black shadow-sm ring-2 ring-white">
+                                    {sIdx + 1}
+                                  </div>
+
+                                  {/* Tarjeta de la parada: Clic abre el anuncio */}
+                                  <div
+                                    onClick={() => onSelectPost?.(matchingPost)}
+                                    className="w-full rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3 sm:p-3.5 space-y-2.5 cursor-pointer group active:scale-[0.99] select-none"
+                                    title="Toca para ver el anuncio completo"
+                                  >
+                                    {/* Encabezado: Comercio e Imagen (Sin etiqueta de "parada" sobre el nombre) */}
+                                    <div className="flex items-start justify-between gap-2.5">
+                                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <img
+                                          src={stop.imageUrl || '/Logo_OleVeci.png'}
+                                          alt=""
+                                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:scale-105 transition-transform shadow-2xs bg-white"
+                                        />
+
+                                        <div className="min-w-0 flex-1 space-y-0.5">
+                                          <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
+                                            {stop.businessName}
+                                          </h5>
+                                          <p className="text-[11px] text-slate-500 font-medium leading-relaxed break-words">
+                                            {stop.activity || stop.whySelected}
+                                          </p>
+                                        </div>
                                       </div>
-                                      <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
-                                        {stop.businessName}
-                                      </h5>
-                                      <p className="text-[11px] text-slate-500 font-medium leading-relaxed break-words">
-                                        {stop.activity || stop.whySelected}
-                                      </p>
+
+                                      {/* Botones de acción rápida: WhatsApp y Cómo Llegar */}
+                                      <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        {waUrl && (
+                                          <a
+                                            href={waUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs"
+                                            title="Contactar por WhatsApp"
+                                            aria-label="WhatsApp"
+                                          >
+                                            <WhatsAppIcon className="w-3.5 h-3.5" />
+                                          </a>
+                                        )}
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const encodedQuery = encodeURIComponent(
+                                              `${stop.businessName}, ${stop.businessAddress || ''}, ${stop.businessCity || currentCity || 'Cajicá'}`
+                                            );
+                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodedQuery}`, '_blank');
+                                          }}
+                                          className="w-8 h-8 rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs cursor-pointer"
+                                          title="Ver cómo llegar en Google Maps"
+                                          aria-label="Cómo llegar"
+                                        >
+                                          <Navigation className="w-3.5 h-3.5 fill-current" />
+                                        </button>
+
+                                        {/* Remove stop button */}
+                                        {plan.stops && plan.stops.length > 1 && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRemoveStop(index, sIdx)}
+                                            className="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer"
+                                            title="Quitar esta parada del plan"
+                                          >
+                                            <X className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Dirección y Costo de la parada (Sin etiqueta de distancia) */}
+                                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 text-[11px] text-slate-500">
+                                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                        <MapPin className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />
+                                        <span className="text-[11px] text-slate-600 break-words">{fullAddress}</span>
+                                      </div>
+
+                                      {stop.cost ? (
+                                        <span className="font-black text-emerald-600 text-[11px] sm:text-xs shrink-0 whitespace-nowrap">
+                                          {formatPriceCOP(stop.cost)}
+                                        </span>
+                                      ) : null}
                                     </div>
                                   </div>
-
-                                  {/* Botones de acción rápida: WhatsApp y Cómo Llegar */}
-                                  <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                    {waUrl && (
-                                      <a
-                                        href={waUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="w-8 h-8 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs"
-                                        title="Contactar por WhatsApp"
-                                        aria-label="WhatsApp"
-                                      >
-                                        <WhatsAppIcon className="w-3.5 h-3.5" />
-                                      </a>
-                                    )}
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const encodedQuery = encodeURIComponent(
-                                          `${stop.businessName}, ${stop.businessAddress || ''}, ${stop.businessCity || currentCity || 'Cajicá'}`
-                                        );
-                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodedQuery}`, '_blank');
-                                      }}
-                                      className="w-8 h-8 rounded-xl bg-white hover:bg-blue-50 text-[#0056d6] flex items-center justify-center transition active:scale-95 border border-slate-200 shadow-2xs cursor-pointer"
-                                      title="Ver cómo llegar en Google Maps"
-                                      aria-label="Cómo llegar"
-                                    >
-                                      <Navigation className="w-3.5 h-3.5 fill-current" />
-                                    </button>
-
-                                    {/* Remove stop button */}
-                                    {plan.stops && plan.stops.length > 1 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleRemoveStop(index, sIdx)}
-                                        className="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer"
-                                        title="Quitar esta parada del plan"
-                                      >
-                                        <X className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                  </div>
                                 </div>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-                                {/* Dirección y Costo de la parada (Sin etiqueta de distancia) */}
-                                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 text-[11px] text-slate-500">
-                                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                    <MapPin className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />
-                                    <span className="text-[11px] text-slate-600 break-words">{fullAddress}</span>
-                                  </div>
-
-                                  {stop.cost ? (
-                                    <span className="font-black text-emerald-600 text-[11px] sm:text-xs shrink-0 whitespace-nowrap">
-                                      {formatPriceCOP(stop.cost)}
-                                    </span>
-                                  ) : null}
-                                </div>
-                              </div>
-                            );
-                          })}
-
-                          {/* Footer Actions */}
+                        {/* Footer Actions */}
                           <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
                             <div className="flex items-center gap-2">
                               <button
@@ -1241,7 +1269,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
                             </button>
                           </div>
                         </div>
-                      </div>
                     ) : (
                       /* SEARCH / RECOMMENDATION MODE: POST-FIRST UNIFIED RESULTS (NO DUPLICATES) */
                       (() => {
