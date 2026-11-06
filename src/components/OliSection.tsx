@@ -966,62 +966,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         {msg.text}
                       </p>
 
-                      {/* Chips de Respuestas Rápidas Inteligentes */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-100">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mr-1 flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-amber-500" /> Opciones rápidas:
-                        </span>
-                        {plan && plan.stops && plan.stops.length > 0 ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleSendMessage('Quiero agregar una parada para tomar café')}
-                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
-                            >
-                              ☕ Agregar café
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleSendMessage('Haz el plan con un presupuesto más económico')}
-                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
-                            >
-                              💰 Más económico
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleSendMessage('Mejor armemos un plan similar pero en Chía')}
-                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
-                            >
-                              📍 Cambiar a Chía
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleSendMessage(`Ármame un plan completo que incluya este lugar en ${currentCity || 'Cajicá'}`)}
-                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
-                            >
-                              🗺️ Armar plan con esto
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleSendMessage(`¿Qué otros comercios similares hay en ${currentCity || 'Cajicá'}?`)}
-                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
-                            >
-                              🔍 Ver más opciones
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleSendMessage('Buscar también en Chía y Zipaquirá')}
-                              className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0066FF] hover:border-blue-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition-all cursor-pointer active:scale-95"
-                            >
-                              🏙️ Otros municipios
-                            </button>
-                          </>
-                        )}
-                      </div>
-
                       {msg.timestamp && (
                         <div className="flex justify-end pt-0.5">
                           <span className="text-[10px] text-slate-400 font-medium">
