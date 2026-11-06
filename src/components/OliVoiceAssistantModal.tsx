@@ -798,7 +798,7 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
                               </p>
                               <p className="text-xs text-slate-200 mt-1 line-clamp-2">
                                 <span className="font-semibold text-white">{stop.postTitle}:</span>{' '}
-                                {stop.activity}
+                                {stop.postDescription || stop.activity}
                               </p>
                             </div>
                           </div>

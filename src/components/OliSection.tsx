@@ -1097,18 +1097,9 @@ export const OliSection: React.FC<OliSectionProps> = ({
                           <div className="space-y-3">
                             {plan.stops.map((stop, sIdx) => {
                               const isLast = sIdx === plan.stops.length - 1;
-                              const waClean = (stop.businessWhatsapp || stop.businessPhone || '').replace(/\D/g, '');
-                              const waUrl = waClean
-                                ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
-                                    `¡Hola! Vi en OleVeci su parada "${stop.activity}" en ${stop.businessName}. Quisiera más información.`
-                                  )}`
-                                : null;
-
-                              const fullAddress = `${stop.businessAddress || 'Dirección registrada'}${
-                                stop.businessCity ? `, ${stop.businessCity}` : ''
-                              }`;
 
                               const matchingPost = (posts || []).find((p) => p.id === stop.postId) ||
+                                (stop.postTitle ? (posts || []).find((p) => p.title.toLowerCase().trim() === stop.postTitle.toLowerCase().trim()) : undefined) ||
                                 (posts || []).find((p) => p.businessId === stop.businessId) || {
                                   id: stop.postId || `stop-post-${stop.businessId || sIdx}`,
                                   businessId: stop.businessId,
@@ -1122,7 +1113,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   coordinates: { lat: 4.93, lng: -74.03 },
                                   type: 'promo' as const,
                                   title: stop.postTitle || stop.activity || stop.businessName,
-                                  description: stop.whySelected || stop.activity || '',
+                                  description: stop.postDescription || stop.whySelected || stop.activity || '',
                                   imageUrl: stop.imageUrl || '/Logo_OleVeci.png',
                                   promotionalPrice: stop.cost,
                                   startsAt: new Date().toISOString(),
@@ -1130,6 +1121,25 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   tags: ['itinerario', 'oli'],
                                   status: 'active' as const,
                                 };
+
+                              const displayTitle = matchingPost.title || stop.postTitle || stop.businessName;
+                              const displayDescription = matchingPost.description || stop.postDescription || stop.whySelected || stop.activity || '';
+                              const displayImage = matchingPost.imageUrl || stop.imageUrl || '/Logo_OleVeci.png';
+                              const displayBusiness = stop.businessName || matchingPost.businessName;
+                              const displayCity = stop.businessCity || matchingPost.businessCity;
+                              const displayAddress = stop.businessAddress || matchingPost.businessAddress || 'Dirección registrada';
+                              const displayCost = stop.cost || matchingPost.promotionalPrice || matchingPost.originalPrice;
+
+                              const waClean = (stop.businessWhatsapp || stop.businessPhone || matchingPost.businessWhatsapp || '').replace(/\D/g, '');
+                              const waUrl = waClean
+                                ? `https://wa.me/${waClean.startsWith('57') ? waClean : `57${waClean}`}?text=${encodeURIComponent(
+                                    `¡Hola! Vi en OleVeci su anuncio "${displayTitle}" en ${displayBusiness}. Quisiera más información.`
+                                  )}`
+                                : null;
+
+                              const fullAddress = `${displayAddress}${
+                                displayCity ? `, ${displayCity}` : ''
+                              }`;
 
                               return (
                                 <div key={sIdx} className="relative pl-7 sm:pl-8">
@@ -1149,22 +1159,36 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                     className="w-full rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3 sm:p-3.5 space-y-2.5 cursor-pointer group active:scale-[0.99] select-none"
                                     title="Toca para ver el anuncio completo"
                                   >
-                                    {/* Encabezado: Comercio e Imagen (Sin etiqueta de "parada" sobre el nombre) */}
+                                    {/* Encabezado: Imagen, Título del Anuncio y Comercio */}
                                     <div className="flex items-start justify-between gap-2.5">
-                                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                      <div className="flex items-start gap-2.5 min-w-0 flex-1">
                                         <img
-                                          src={stop.imageUrl || '/Logo_OleVeci.png'}
-                                          alt=""
-                                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:scale-105 transition-transform shadow-2xs bg-white"
+                                          src={displayImage}
+                                          alt={displayTitle}
+                                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:scale-105 transition-transform shadow-2xs bg-white"
                                         />
 
-                                        <div className="min-w-0 flex-1 space-y-0.5">
+                                        <div className="min-w-0 flex-1 space-y-1">
+                                          {/* Título idéntico al del anuncio */}
                                           <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
-                                            {stop.businessName}
+                                            {displayTitle}
                                           </h5>
-                                          <p className="text-[11px] text-slate-500 font-medium leading-relaxed break-words">
-                                            {stop.activity || stop.whySelected}
+
+                                          {/* Nombre del comercio con icono y municipio */}
+                                          <p className="text-[11px] sm:text-xs font-semibold text-slate-700 flex items-center gap-1.5 flex-wrap">
+                                            <Store className="w-3.5 h-3.5 text-[#0066FF] shrink-0" />
+                                            <span className="break-words">{displayBusiness}</span>
+                                            {displayCity && (
+                                              <span className="text-slate-400 font-normal shrink-0">· {displayCity}</span>
+                                            )}
                                           </p>
+
+                                          {/* Descripción idéntica a la del anuncio, completa y sin truncar */}
+                                          {displayDescription && (
+                                            <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed break-words whitespace-pre-wrap pt-0.5">
+                                              {displayDescription}
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
 
@@ -1187,7 +1211,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           type="button"
                                           onClick={() => {
                                             const encodedQuery = encodeURIComponent(
-                                              `${stop.businessName}, ${stop.businessAddress || ''}, ${stop.businessCity || currentCity || 'Cajicá'}`
+                                              `${displayBusiness}, ${displayAddress}, ${displayCity || currentCity || 'Cajicá'}`
                                             );
                                             window.open(`https://www.google.com/maps/search/?api=1&query=${encodedQuery}`, '_blank');
                                           }}
@@ -1212,16 +1236,16 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                       </div>
                                     </div>
 
-                                    {/* Dirección y Costo de la parada (Sin etiqueta de distancia) */}
+                                    {/* Dirección y Costo de la parada */}
                                     <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 text-[11px] text-slate-500">
                                       <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                         <MapPin className="w-3.5 h-3.5 text-[#ff7700] shrink-0" />
                                         <span className="text-[11px] text-slate-600 break-words">{fullAddress}</span>
                                       </div>
 
-                                      {stop.cost ? (
+                                      {displayCost ? (
                                         <span className="font-black text-emerald-600 text-[11px] sm:text-xs shrink-0 whitespace-nowrap">
-                                          {formatPriceCOP(stop.cost)}
+                                          {formatPriceCOP(displayCost)}
                                         </span>
                                       ) : null}
                                     </div>

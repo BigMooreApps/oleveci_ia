@@ -31,6 +31,7 @@ export interface OliPlanStop {
   time: string;
   activity: string;
   postTitle: string;
+  postDescription?: string;
   imageUrl: string;
   cost: number;
   isUnconfirmedPrice?: boolean;
@@ -1075,6 +1076,7 @@ export function handleRefinementPlan(
         time: stopTime,
         activity: generateActivityFromPost(newPost, newBiz),
         postTitle: newPost.title,
+        postDescription: newPost.description || '',
         imageUrl: newPost.imageUrl || newBiz?.coverImage || newBiz?.logo || '/Logo_OleVeci.png',
         cost: newPost.promotionalPrice || newPost.originalPrice || newPost.approximatePrice || 25000,
         whySelected: `Añadida al plan: ${newPost.title}`,
@@ -1275,6 +1277,7 @@ export function handleRefinementPlan(
       time: stopTime,
       activity: activityDesc,
       postTitle: replacementPost.title,
+      postDescription: replacementPost.description || '',
       imageUrl: replacementPost.imageUrl || biz.coverImage || biz.logo || '/Logo_OleVeci.png',
       cost,
       whySelected: `Opción seleccionada especialmente para cumplir con tu antojo de ${topic || 'comida local'}.`,
@@ -1607,6 +1610,7 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
       time: stopTime,
       activity: activityDesc,
       postTitle: post.title,
+      postDescription: post.description || '',
       imageUrl: finalImage,
       cost,
       whySelected: `Opción destacada en ${biz.city || targetCity} con excelente atención y especialidad comprobada.`,
@@ -3123,6 +3127,7 @@ function fillMissingPromptStops(
         time: concept.defaultTime,
         activity: candidatePost.title,
         postTitle: candidatePost.title,
+        postDescription: candidatePost.description || '',
         imageUrl: candidatePost.imageUrl || b?.coverImage || b?.logo || '/Logo_OleVeci.png',
         cost: candidatePost.promotionalPrice || candidatePost.originalPrice || candidatePost.approximatePrice || 25000,
         whySelected: `Actividad solicitada: ${candidatePost.title}`,
@@ -3388,6 +3393,7 @@ ${catalogSummaryText}`;
                 businessCity: { type: Type.STRING },
                 postId: { type: Type.STRING },
                 postTitle: { type: Type.STRING },
+                postDescription: { type: Type.STRING },
                 cost: { type: Type.INTEGER },
                 address: { type: Type.STRING },
                 phone: { type: Type.STRING },
@@ -3511,6 +3517,7 @@ ${catalogSummaryText}`;
                 businessCity: b?.city,
                 postId: pId,
                 postTitle: p?.title,
+                postDescription: p?.description,
                 cost: p?.promotionalPrice || p?.originalPrice || p?.approximatePrice || 25000,
                 whySelected: p?.title,
               };
@@ -3553,6 +3560,7 @@ ${catalogSummaryText}`;
                 time: rawStop.time || '5:00 PM',
                 activity: rawStop.activity || altPost.title,
                 postTitle: altPost.title,
+                postDescription: altPost.description || '',
                 imageUrl: altPost.imageUrl || altBiz?.coverImage || altBiz?.logo || '/Logo_OleVeci.png',
                 cost: altPost.promotionalPrice || altPost.originalPrice || altPost.approximatePrice || 25000,
                 whySelected: `Opción para ${rawStop.activity || 'el plan'}: ${altPost.title}`,
@@ -3579,6 +3587,7 @@ ${catalogSummaryText}`;
             time: rawStop.time || '10:00 AM',
             activity: rawStop.activity || post.title,
             postTitle: post.title,
+            postDescription: post.description || '',
             imageUrl: post.imageUrl || biz?.coverImage || biz?.logo || '/Logo_OleVeci.png',
             cost: post.promotionalPrice || post.originalPrice || post.approximatePrice || rawStop.cost || 25000,
             whySelected: rawStop.whySelected || post.title,

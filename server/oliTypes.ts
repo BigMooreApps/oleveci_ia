@@ -11,6 +11,7 @@ export interface OliPlanStop {
   time: string;
   activity: string;
   postTitle: string;
+  postDescription?: string;
   imageUrl: string;
   cost: number;
   isUnconfirmedPrice?: boolean;
