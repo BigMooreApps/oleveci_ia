@@ -653,7 +653,7 @@ const ReelItem = React.memo<ReelItemProps>(({
 
       {/* RIGHT-HAND ACTION RAIL (WhatsApp, Llamar, Cómo llegar, Compartir y Negocio) */}
       <div
-        className="absolute right-2.5 sm:right-3.5 bottom-16 sm:bottom-18 z-30 flex flex-col items-center gap-2.5 sm:gap-3 pointer-events-auto"
+        className="absolute right-2 sm:right-3 bottom-16 sm:bottom-18 z-30 flex flex-col items-center gap-2 sm:gap-2.5 pointer-events-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. Icono del Negocio o Itinerario */}
@@ -666,7 +666,7 @@ const ReelItem = React.memo<ReelItemProps>(({
                 onSelectBusiness(post.businessId);
               }
             }}
-            className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full border-2 border-white ring-2 ring-cyan-400/70 shadow-2xl overflow-hidden bg-neutral-900 cursor-pointer active:scale-90 transition group hover:ring-cyan-300"
+            className="relative w-9.5 h-9.5 sm:w-10 sm:h-10 rounded-full border-2 border-white ring-2 ring-cyan-400/70 shadow-2xl overflow-hidden bg-neutral-900 cursor-pointer active:scale-90 transition group hover:ring-cyan-300"
             title={post.isPlan ? `Ver plan: ${post.title}` : `Ver perfil del comercio: ${post.businessName}`}
           >
             <img
@@ -677,7 +677,7 @@ const ReelItem = React.memo<ReelItemProps>(({
               decoding="async"
             />
           </div>
-          <span className="text-[10px] font-extrabold text-white mt-1 drop-shadow-md text-center max-w-[60px] truncate leading-tight">
+          <span className="text-[9px] sm:text-[9.5px] font-extrabold text-white mt-0.5 drop-shadow-md text-center max-w-[54px] truncate leading-tight">
             {post.isPlan ? 'Itinerario' : 'Veci'}
           </span>
         </div>
@@ -691,10 +691,10 @@ const ReelItem = React.memo<ReelItemProps>(({
             title="Contactar al comercio por WhatsApp"
             aria-label="WhatsApp"
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg shadow-[#25D366]/40 border border-emerald-300/40 hover:bg-[#20ba5a] transition">
-              <WhatsAppIcon className="w-5 h-5" size={20} />
+            <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg shadow-[#25D366]/40 border border-emerald-300/40 hover:bg-[#20ba5a] transition">
+              <WhatsAppIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5" size={17} />
             </div>
-            <span className="text-[9px] font-bold text-white mt-0.5 drop-shadow-md">
+            <span className="text-[8px] sm:text-[8.5px] font-bold text-white mt-0.5 drop-shadow-md">
               WhatsApp
             </span>
           </button>
@@ -709,10 +709,10 @@ const ReelItem = React.memo<ReelItemProps>(({
             title={`Llamar a ${post.businessName}`}
             aria-label="Llamar"
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#007af7] text-white flex items-center justify-center border border-blue-300/40 shadow-lg shadow-blue-600/30 hover:bg-[#0066d6] transition">
-              <Phone className="w-5 h-5 fill-current" />
+            <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-[#007af7] text-white flex items-center justify-center border border-blue-300/40 shadow-lg shadow-blue-600/30 hover:bg-[#0066d6] transition">
+              <Phone className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current" />
             </div>
-            <span className="text-[9px] font-bold text-white mt-0.5 drop-shadow-md">
+            <span className="text-[8px] sm:text-[8.5px] font-bold text-white mt-0.5 drop-shadow-md">
               Llamar
             </span>
           </button>
@@ -726,10 +726,10 @@ const ReelItem = React.memo<ReelItemProps>(({
           title="Cómo llegar y ver ubicación"
           aria-label="Cómo llegar"
         >
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#0098b8] text-white flex items-center justify-center border border-cyan-300/40 shadow-lg shadow-cyan-600/30 hover:bg-cyan-500 transition">
-            <Navigation className="w-5 h-5 fill-current -rotate-45" />
+          <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-[#0098b8] text-white flex items-center justify-center border border-cyan-300/40 shadow-lg shadow-cyan-600/30 hover:bg-cyan-500 transition">
+            <Navigation className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current -rotate-45" />
           </div>
-          <span className="text-[9px] font-bold text-white mt-0.5 drop-shadow-md text-center leading-none">
+          <span className="text-[8px] sm:text-[8.5px] font-bold text-white mt-0.5 drop-shadow-md text-center leading-none">
             Cómo llegar
           </span>
         </button>
@@ -742,10 +742,10 @@ const ReelItem = React.memo<ReelItemProps>(({
           title="Compartir anuncio"
           aria-label="Compartir"
         >
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-neutral-900/90 text-white flex items-center justify-center border border-white/25 shadow-xl hover:bg-neutral-800 transition">
-            <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-neutral-900/90 text-white flex items-center justify-center border border-white/25 shadow-xl hover:bg-neutral-800 transition">
+            <Share2 className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 transition-transform" />
           </div>
-          <span className="text-[9px] font-bold text-white mt-0.5 drop-shadow-md">
+          <span className="text-[8px] sm:text-[8.5px] font-bold text-white mt-0.5 drop-shadow-md">
             Compartir
           </span>
         </button>
