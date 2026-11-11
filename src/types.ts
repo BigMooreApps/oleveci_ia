@@ -524,3 +524,21 @@ export interface OliPlanResponse {
   targetMunicipality?: string;
   auditTrace?: OliAuditTrace;
 }
+
+export type NavMenuItemId =
+  | 'home'
+  | 'explorer'
+  | 'plans'
+  | 'directory'
+  | 'maps'
+  | 'oli'
+  | 'notifications'
+  | 'merchant';
+
+export interface NavMenuItemConfig {
+  id: NavMenuItemId;
+  label: string;
+  subtitle: string;
+  visible: boolean;
+  order: number;
+}

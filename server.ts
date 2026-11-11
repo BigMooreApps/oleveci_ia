@@ -783,6 +783,34 @@ app.post('/api/oli/rules/reset', (_req, res) => {
   }
 });
 
+// Navigation Menu Visibility Configuration Endpoints
+const NAV_MENU_FILE = path.join(process.cwd(), 'server', 'db_nav_menu_config.json');
+
+app.get('/api/navigation-menu/config', (_req, res) => {
+  try {
+    if (fs.existsSync(NAV_MENU_FILE)) {
+      const data = JSON.parse(fs.readFileSync(NAV_MENU_FILE, 'utf-8'));
+      return res.json({ success: true, items: data });
+    }
+    return res.json({ success: true, items: null });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Error leyendo configuración de menú' });
+  }
+});
+
+app.post('/api/navigation-menu/config', (req, res) => {
+  try {
+    const { items } = req.body;
+    if (Array.isArray(items)) {
+      fs.writeFileSync(NAV_MENU_FILE, JSON.stringify(items, null, 2), 'utf-8');
+      return res.json({ success: true, items });
+    }
+    return res.status(400).json({ error: 'Lista de items inválida' });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Error guardando configuración de menú' });
+  }
+});
+
 // ==============================================================================
 // WhatsApp Bot Integration - Meta Cloud API Webhook & Live Simulator
 // ==============================================================================

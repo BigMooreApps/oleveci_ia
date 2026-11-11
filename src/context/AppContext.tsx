@@ -19,6 +19,8 @@ import {
   PlanRoleMaster,
   TargetAudienceMaster,
   PriceScopeMaster,
+  NavMenuItemId,
+  NavMenuItemConfig,
 } from '../types';
 import { getTodayKey, generateDailyMetricsForPost } from '../utils/metricsUtils';
 import {
@@ -238,7 +240,24 @@ interface AppContextType {
   logoutAdmin: () => void;
   updateAdminProfile: (profile: Partial<SuperAdminProfile>) => void;
   resetAdminProfileToDefault: () => void;
+
+  // Navigation Menu Visibility Configuration
+  navMenuItems: NavMenuItemConfig[];
+  setNavMenuItems: (items: NavMenuItemConfig[]) => void;
+  updateNavMenuItemVisibility: (id: NavMenuItemId, visible: boolean) => void;
+  resetNavMenuItems: () => void;
 }
+
+export const DEFAULT_NAV_MENU_ITEMS: NavMenuItemConfig[] = [
+  { id: 'home', label: 'Home', subtitle: 'Página principal', visible: true, order: 1 },
+  { id: 'explorer', label: 'Descubrir', subtitle: 'Explorar publicaciones', visible: true, order: 2 },
+  { id: 'plans', label: 'Itinerarios', subtitle: 'Itinerarios armados', visible: true, order: 3 },
+  { id: 'directory', label: 'Directorio', subtitle: 'Comercios y servicios locales', visible: true, order: 4 },
+  { id: 'maps', label: 'Vecis en Maps', subtitle: 'Todos los negocios en el mapa', visible: true, order: 5 },
+  { id: 'oli', label: 'Asistente OLI', subtitle: 'Planes y recomendaciones con IA', visible: true, order: 6 },
+  { id: 'notifications', label: 'Notificaciones', subtitle: 'Alertas y novedades', visible: true, order: 7 },
+  { id: 'merchant', label: 'Mi Espacio', subtitle: 'Acceso comercial', visible: true, order: 8 },
+];
 
 export const DEFAULT_SUPERADMIN_PROFILE: SuperAdminProfile = {
   username: 'Admin',
@@ -274,6 +293,7 @@ const STORAGE_KEYS = {
   ADMIN_PROFILE: 'oleveci_admin_profile_v1',
   DELETED_BUSINESS_IDS: 'oleveci_deleted_business_ids_v1',
   DELETED_POST_IDS: 'oleveci_deleted_post_ids_v1',
+  NAV_MENU_CONFIG: 'oleveci_nav_menu_config_v1',
 };
 
 const getDeletedBusinessIds = (): string[] => {
@@ -967,6 +987,85 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
     return INITIAL_PRICE_SCOPES;
   });
+
+  // Navigation Menu Visibility state
+  const [navMenuItems, setNavMenuItemsState] = useState<NavMenuItemConfig[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.NAV_MENU_CONFIG);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return DEFAULT_NAV_MENU_ITEMS.map((def) => {
+            const match = parsed.find((p: any) => p.id === def.id);
+            return match ? { ...def, ...match } : def;
+          });
+        }
+      }
+    } catch {}
+    return DEFAULT_NAV_MENU_ITEMS;
+  });
+
+  // Sync navigation menu visibility with server on mount
+  useEffect(() => {
+    fetch('/api/navigation-menu/config')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.items) && data.items.length > 0) {
+          setNavMenuItemsState(() => {
+            const merged = DEFAULT_NAV_MENU_ITEMS.map((def) => {
+              const match = data.items.find((p: any) => p.id === def.id);
+              return match ? { ...def, ...match } : def;
+            });
+            try {
+              localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const updateNavMenuItemVisibility = (id: NavMenuItemId, visible: boolean) => {
+    setNavMenuItemsState((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, visible } : item));
+      try {
+        localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(updated));
+      } catch {}
+      fetch('/api/navigation-menu/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: updated }),
+      }).catch(() => {});
+      return updated;
+    });
+  };
+
+  const resetNavMenuItems = () => {
+    setNavMenuItemsState(() => {
+      try {
+        localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(DEFAULT_NAV_MENU_ITEMS));
+      } catch {}
+      fetch('/api/navigation-menu/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: DEFAULT_NAV_MENU_ITEMS }),
+      }).catch(() => {});
+      return DEFAULT_NAV_MENU_ITEMS;
+    });
+  };
+
+  const setNavMenuItems = (items: NavMenuItemConfig[]) => {
+    setNavMenuItemsState(items);
+    try {
+      localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(items));
+    } catch {}
+    fetch('/api/navigation-menu/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    }).catch(() => {});
+  };
 
   // Filter & Search states
   const [currentCity, setCurrentCityState] = useState<string>(APP_CONFIG.defaultCity);
@@ -3642,6 +3741,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logoutAdmin,
     updateAdminProfile,
     resetAdminProfileToDefault,
+    navMenuItems,
+    setNavMenuItems,
+    updateNavMenuItemVisibility,
+    resetNavMenuItems,
   }), [
     businesses,
     posts,
@@ -3674,6 +3777,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     readyPlans,
     isAdminAuthenticated,
     adminProfile,
+    navMenuItems,
   ]);
 
   return (

@@ -11,6 +11,7 @@ import { AdminReadyPlansTab } from './admin/AdminReadyPlansTab';
 import { AdminProfileTab } from './admin/AdminProfileTab';
 import { AdminMasterTablesTab } from './admin/AdminMasterTablesTab';
 import { AdminOliTab } from './admin/AdminOliTab';
+import { AdminNavMenuTab } from './admin/AdminNavMenuTab';
 import { NotificationsModal, NotificationItemData } from './common/NotificationsModal';
 import {
   Building2,
@@ -35,6 +36,7 @@ import {
   Crown,
   ChevronLeft,
   ChevronRight,
+  Menu,
 } from 'lucide-react';
 
 type AdminTab =
@@ -44,6 +46,7 @@ type AdminTab =
   | 'ready_plans'
   | 'oli'
   | 'master_tables'
+  | 'nav_menu'
   | 'municipalities'
   | 'categories'
   | 'post_types'
@@ -297,6 +300,11 @@ export const AdminDashboard: React.FC = () => {
       icon: Database,
     },
     {
+      id: 'nav_menu',
+      label: 'Menú Público',
+      icon: Menu,
+    },
+    {
       id: 'superadmin',
       label: 'Admin',
       icon: UserCog,
@@ -466,6 +474,8 @@ export const AdminDashboard: React.FC = () => {
             }
           />
         )}
+
+        {activeTab === 'nav_menu' && <AdminNavMenuTab />}
 
         {activeTab === 'superadmin' && <AdminProfileTab />}
       </div>

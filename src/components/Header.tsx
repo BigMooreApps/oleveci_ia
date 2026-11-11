@@ -43,7 +43,14 @@ export const Header: React.FC<HeaderProps> = ({
     notificationPrefs,
     authenticatedBusinessId,
     isAdminAuthenticated,
+    navMenuItems,
   } = useApp();
+
+  const isNavVisible = (id: string) => {
+    if (!navMenuItems || navMenuItems.length === 0) return true;
+    const match = navMenuItems.find((item) => item.id === id);
+    return match ? match.visible : true;
+  };
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -117,7 +124,17 @@ export const Header: React.FC<HeaderProps> = ({
     },
   };
 
-    const handleSelectRole = (role: RoleMode) => {
+  const getFirstVisibleRole = (): RoleMode => {
+    if (isNavVisible('home')) return 'home';
+    if (isNavVisible('explorer')) return 'explorer';
+    if (isNavVisible('plans')) return 'plans';
+    if (isNavVisible('directory')) return 'directory';
+    if (isNavVisible('maps')) return 'maps';
+    if (isNavVisible('oli')) return 'oli';
+    return 'explorer';
+  };
+
+  const handleSelectRole = (role: RoleMode) => {
     setCurrentRole(role);
     onCloseNotifications?.();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -135,7 +152,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center shrink-0">
             <button
               onClick={() => {
-                handleSelectRole('home');
+                handleSelectRole(getFirstVisibleRole());
               }}
               className="flex items-center text-left focus:outline-hidden group cursor-pointer"
               title="OleVeci - Ir a Home"
@@ -243,301 +260,317 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Opción 1: Home */}
-                    <button
-                      id="tab-role-home"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => handleSelectRole('home')}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                        currentRole === 'home'
-                          ? 'bg-blue-50/80 text-[#0056d6] font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                            currentRole === 'home'
-                              ? 'bg-[#007af7] text-white shadow-2xs'
-                              : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
-                          }`}
-                        >
-                          <Home className="w-4 h-4" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Home
+                    {isNavVisible('home') && (
+                      <button
+                        id="tab-role-home"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => handleSelectRole('home')}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'home'
+                            ? 'bg-blue-50/80 text-[#0056d6] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'home'
+                                ? 'bg-[#007af7] text-white shadow-2xs'
+                                : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
+                            }`}
+                          >
+                            <Home className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Página principal
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Home
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Página principal
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      {currentRole === 'home' && (
-                        <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
-                      )}
-                    </button>
+                        {currentRole === 'home' && (
+                          <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
+                        )}
+                      </button>
+                    )}
 
                     {/* Opción 2: Descubrir */}
-                    <button
-                      id="tab-role-explorer"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => handleSelectRole('explorer')}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                        currentRole === 'explorer'
-                          ? 'bg-blue-50/80 text-[#0056d6] font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                            currentRole === 'explorer'
-                              ? 'bg-[#007af7] text-white shadow-2xs'
-                              : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
-                          }`}
-                        >
-                          <Compass className="w-4 h-4" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Descubrir
+                    {isNavVisible('explorer') && (
+                      <button
+                        id="tab-role-explorer"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => handleSelectRole('explorer')}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'explorer'
+                            ? 'bg-blue-50/80 text-[#0056d6] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'explorer'
+                                ? 'bg-[#007af7] text-white shadow-2xs'
+                                : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
+                            }`}
+                          >
+                            <Compass className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Explorar publicaciones
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Descubrir
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Explorar publicaciones
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      {currentRole === 'explorer' && (
-                        <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
-                      )}
-                    </button>
+                        {currentRole === 'explorer' && (
+                          <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
+                        )}
+                      </button>
+                    )}
 
                     {/* Opción: Itinerarios Listos */}
-                    <button
-                      id="tab-role-plans"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => handleSelectRole('plans')}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                        currentRole === 'plans'
-                          ? 'bg-blue-50/80 text-[#0056d6] font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                            currentRole === 'plans'
-                              ? 'bg-[#007af7] text-white shadow-2xs'
-                              : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
-                          }`}
-                        >
-                          <Route className="w-4 h-4" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Itinerarios
+                    {isNavVisible('plans') && (
+                      <button
+                        id="tab-role-plans"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => handleSelectRole('plans')}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'plans'
+                            ? 'bg-blue-50/80 text-[#0056d6] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'plans'
+                                ? 'bg-[#007af7] text-white shadow-2xs'
+                                : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
+                            }`}
+                          >
+                            <Route className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Itinerarios armados
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Itinerarios
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Itinerarios armados
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      {currentRole === 'plans' && (
-                        <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
-                      )}
-                    </button>
+                        {currentRole === 'plans' && (
+                          <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
+                        )}
+                      </button>
+                    )}
 
                     {/* Opción 3: Directorio */}
-                    <button
-                      id="tab-role-directory"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => handleSelectRole('directory')}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                        currentRole === 'directory'
-                          ? 'bg-blue-50/80 text-[#0056d6] font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                            currentRole === 'directory'
-                              ? 'bg-[#007af7] text-white shadow-2xs'
-                              : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
-                          }`}
-                        >
-                          <BookOpen className="w-4 h-4" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Directorio
+                    {isNavVisible('directory') && (
+                      <button
+                        id="tab-role-directory"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => handleSelectRole('directory')}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'directory'
+                            ? 'bg-blue-50/80 text-[#0056d6] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'directory'
+                                ? 'bg-[#007af7] text-white shadow-2xs'
+                                : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
+                            }`}
+                          >
+                            <BookOpen className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Comercios y servicios locales
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Directorio
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Comercios y servicios locales
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      {currentRole === 'directory' && (
-                        <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
-                      )}
-                    </button>
+                        {currentRole === 'directory' && (
+                          <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
+                        )}
+                      </button>
+                    )}
 
                     {/* Opción: Vecis en Maps */}
-                    <button
-                      id="tab-role-maps"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => handleSelectRole('maps')}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                        currentRole === 'maps'
-                          ? 'bg-blue-50/80 text-[#0056d6] font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                            currentRole === 'maps'
-                              ? 'bg-[#007af7] text-white shadow-2xs'
-                              : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
-                          }`}
-                        >
-                          <MapPin className="w-4 h-4" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Vecis en Maps
+                    {isNavVisible('maps') && (
+                      <button
+                        id="tab-role-maps"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => handleSelectRole('maps')}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'maps'
+                            ? 'bg-blue-50/80 text-[#0056d6] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'maps'
+                                ? 'bg-[#007af7] text-white shadow-2xs'
+                                : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
+                            }`}
+                          >
+                            <MapPin className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Todos los negocios en el mapa
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Vecis en Maps
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Todos los negocios en el mapa
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      {currentRole === 'maps' && (
-                        <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
-                      )}
-                    </button>
+                        {currentRole === 'maps' && (
+                          <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
+                        )}
+                      </button>
+                    )}
 
                     {/* Opción: Asistente OLI */}
-                    <button
-                      id="tab-role-oli"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => handleSelectRole('oli')}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                        currentRole === 'oli'
-                          ? 'bg-blue-50/80 text-[#0056d6] font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                            currentRole === 'oli'
-                              ? 'bg-[#007af7] text-white shadow-2xs'
-                              : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
-                          }`}
-                        >
-                          <Bot className="w-4 h-4" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Asistente OLI
+                    {isNavVisible('oli') && (
+                      <button
+                        id="tab-role-oli"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => handleSelectRole('oli')}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'oli'
+                            ? 'bg-blue-50/80 text-[#0056d6] font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'oli'
+                                ? 'bg-[#007af7] text-white shadow-2xs'
+                                : 'bg-blue-50 text-[#007af7] group-hover:bg-blue-100'
+                            }`}
+                          >
+                            <Bot className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Planes y recomendaciones con IA
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Asistente OLI
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Planes y recomendaciones con IA
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      {currentRole === 'oli' && (
-                        <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
-                      )}
-                    </button>
+                        {currentRole === 'oli' && (
+                          <Check className="w-4 h-4 text-[#007af7] shrink-0 ml-2" />
+                        )}
+                      </button>
+                    )}
 
                     {/* Opción: Notificaciones */}
-                    <button
-                      id="tab-role-notifications"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => {
-                        onOpenNotifications();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group text-slate-700 hover:bg-slate-50"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="relative w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-blue-50 text-[#007af7] group-hover:bg-blue-100">
-                          <Bell className="w-4 h-4" />
-                          {notificationPrefs.enabled && (
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00d8a5] ring-2 ring-white shadow-2xs animate-pulse" />
-                          )}
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                            <span>Notificaciones</span>
+                    {isNavVisible('notifications') && (
+                      <button
+                        id="tab-role-notifications"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => {
+                          onOpenNotifications();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group text-slate-700 hover:bg-slate-50"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="relative w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-blue-50 text-[#007af7] group-hover:bg-blue-100">
+                            <Bell className="w-4 h-4" />
                             {notificationPrefs.enabled && (
-                              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
-                                Activas
-                              </span>
+                              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#00d8a5] ring-2 ring-white shadow-2xs animate-pulse" />
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            Alertas y novedades
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                              <span>Notificaciones</span>
+                              {notificationPrefs.enabled && (
+                                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                                  Activas
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              Alertas y novedades
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </button>
+                      </button>
+                    )}
 
                     {/* Separador hacia el área de gestión y administración */}
                     <div className="my-1 border-t border-slate-100" />
 
                     {/* Opción 4: Mi Espacio */}
-                    <button
-                      id="tab-role-business"
-                      role="menuitem"
-                      type="button"
-                      onClick={() => {
-                        onCloseNotifications?.();
-                        if (onOpenBusinessAuth && !authenticatedBusinessId) {
-                          onOpenBusinessAuth('login');
-                        } else {
-                          setCurrentRole('business');
-                        }
-                        setIsMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                        currentRole === 'business'
-                          ? 'bg-orange-50/80 text-orange-800 font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                            currentRole === 'business'
-                              ? 'bg-[#ff7700] text-white shadow-2xs'
-                              : 'bg-orange-50 text-[#ff7700] group-hover:bg-orange-100'
-                          }`}
-                        >
-                          <Store className="w-4 h-4" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                            Mi Espacio
+                    {isNavVisible('merchant') && (
+                      <button
+                        id="tab-role-business"
+                        role="menuitem"
+                        type="button"
+                        onClick={() => {
+                          onCloseNotifications?.();
+                          if (onOpenBusinessAuth && !authenticatedBusinessId) {
+                            onOpenBusinessAuth('login');
+                          } else {
+                            setCurrentRole('business');
+                          }
+                          setIsMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                          currentRole === 'business'
+                            ? 'bg-orange-50/80 text-orange-800 font-bold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              currentRole === 'business'
+                                ? 'bg-[#ff7700] text-white shadow-2xs'
+                                : 'bg-orange-50 text-[#ff7700] group-hover:bg-orange-100'
+                            }`}
+                          >
+                            <Store className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal">
-                            {authenticatedBusinessId ? 'Gestionar negocio' : 'Acceso comercial'}
+                          <div className="truncate">
+                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                              Mi Espacio
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-normal">
+                              {authenticatedBusinessId ? 'Gestionar negocio' : 'Acceso comercial'}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      {currentRole === 'business' && (
-                        <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
-                      )}
-                    </button>
+                        {currentRole === 'business' && (
+                          <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
+                        )}
+                      </button>
+                    )}
 
                     {/* Opción 5: Admin (si está autenticado como admin) */}
                     {isAdminAuthenticated && (
