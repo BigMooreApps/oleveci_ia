@@ -11,13 +11,8 @@ import {
   Bell,
   Store,
   Menu,
-  Eye,
-  EyeOff,
-  RotateCcw,
   Check,
   CheckCircle2,
-  Info,
-  Sparkles,
   UserCog,
 } from 'lucide-react';
 
@@ -44,7 +39,7 @@ const MENU_COLOR_CLASSES: Record<NavMenuItemId, { bg: string; text: string; bord
 };
 
 export const AdminNavMenuTab: React.FC = () => {
-  const { navMenuItems, updateNavMenuItemVisibility, resetNavMenuItems } = useApp();
+  const { navMenuItems, updateNavMenuItemVisibility } = useApp();
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -63,73 +58,23 @@ export const AdminNavMenuTab: React.FC = () => {
     );
   };
 
-  const handleEnableAll = () => {
-    navMenuItems.forEach((item) => {
-      if (!item.visible) {
-        updateNavMenuItemVisibility(item.id, true);
-      }
-    });
-    showToast('Todas las opciones del menú han sido habilitadas.');
-  };
-
-  const handleResetDefaults = () => {
-    resetNavMenuItems();
-    showToast('Menú restablecido a la configuración predeterminada.');
-  };
-
-  const visibleCount = navMenuItems.filter((i) => i.visible).length;
+  const hasVisibleItems = navMenuItems.some((i) => i.visible);
 
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {/* Header Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#0066FF] flex items-center justify-center shrink-0 shadow-2xs">
-              <Menu className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                  Control de Menú de Navegación
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-[#0066FF] border border-blue-200">
-                  {visibleCount} de {navMenuItems.length} visibles
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Activa o desactiva qué secciones del menú desplegable superior estarán visibles para los vecinos.
-              </p>
-            </div>
+      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#0066FF] flex items-center justify-center shrink-0 shadow-2xs">
+            <Menu className="w-5 h-5" />
           </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={handleEnableAll}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-[#0066FF] hover:text-[#0052cc] border border-slate-200 hover:border-blue-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
-              title="Mostrar todas las opciones"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              <span>Mostrar todos</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleResetDefaults}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
-              title="Restablecer opciones predeterminadas"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Restablecer</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Info Banner */}
-        <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-start gap-2.5 text-xs text-blue-900 leading-relaxed">
-          <Info className="w-4 h-4 text-[#0066FF] shrink-0 mt-0.5" />
-          <div className="space-y-0.5">
-            <span className="font-bold">Sincronización instantánea:</span> Los cambios se guardan y aplican de inmediato en la barra superior. El botón de <strong>Panel Admin</strong> siempre permanecerá accesible para los administradores.
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+              Control de Menú de Navegación
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Activa o desactiva qué secciones del menú desplegable superior estarán visibles para los vecinos.
+            </p>
           </div>
         </div>
       </div>
@@ -171,22 +116,9 @@ export const AdminNavMenuTab: React.FC = () => {
                     </div>
 
                     <div className="min-w-0 truncate">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                          {item.label}
-                        </span>
-                        {item.visible ? (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/80 px-2 py-0.2 rounded-full inline-flex items-center gap-1">
-                            <Eye className="w-2.5 h-2.5" />
-                            Visible
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.2 rounded-full inline-flex items-center gap-1">
-                            <EyeOff className="w-2.5 h-2.5" />
-                            Oculto
-                          </span>
-                        )}
-                      </div>
+                      <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
+                        {item.label}
+                      </span>
                       <p className="text-[11px] text-slate-500 truncate mt-0.5">
                         {item.subtitle}
                       </p>
@@ -213,12 +145,8 @@ export const AdminNavMenuTab: React.FC = () => {
 
         {/* Right Column: Live Interactive Preview (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
-          <div className="px-1 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
+          <div className="px-1 text-xs font-bold uppercase tracking-wider text-slate-500">
             <span>Vista previa del Menú</span>
-            <span className="text-[10px] font-semibold text-blue-600 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[#0066FF]" />
-              En vivo
-            </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-gradient-to-b from-slate-100 to-slate-200/60 border border-slate-200/80 shadow-inner flex flex-col items-center">
@@ -267,7 +195,7 @@ export const AdminNavMenuTab: React.FC = () => {
                 );
               })}
 
-              {visibleCount === 0 && (
+              {!hasVisibleItems && (
                 <div className="py-4 text-center text-xs text-slate-400">
                   Todas las opciones están ocultas
                 </div>
