@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { RoleMode } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
 import { OleVeciLogo } from './OleVeciLogo';
 import {

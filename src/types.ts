@@ -517,6 +517,7 @@ export interface OliPlanResponse {
   alternativeNotice?: string;
   requestedTopic?: string;
   searchQuery?: string;
+  searchFocus?: 'business' | 'post';
   matchedBusinesses?: Business[];
   matchedPosts?: Post[];
   searchCategory?: string;

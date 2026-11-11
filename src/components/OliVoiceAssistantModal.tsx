@@ -31,6 +31,7 @@ import {
   MessageCircle,
   Trash2,
   Check,
+  Tag,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Post, Business } from '../types';
@@ -38,12 +39,14 @@ import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
 import type { OliPlanResponse, OliPlanStop } from '../types';
+import { detectSearchFocus } from '../utils/oliPlanClientUtils';
 
 interface OliVoiceAssistantModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenItineraryBuilder?: (plan: SimulatedReadyPlan) => void;
   initialPrompt?: string;
+  onSelectBusiness?: (businessId: string) => void;
 }
 
 // Quick suggested prompts
@@ -68,6 +71,7 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
   onClose,
   onOpenItineraryBuilder,
   initialPrompt,
+  onSelectBusiness,
 }) => {
   const { currentCity, posts, businesses, addReadyPlan } = useApp();
 
@@ -856,117 +860,256 @@ export const OliVoiceAssistantModal: React.FC<OliVoiceAssistantModalProps> = ({
               )}
 
               {/* Render Search & Recommendation Card if query was a specific food/service request */}
-              {msg.plan && (msg.plan.type === 'search' || (msg.plan.matchedBusinesses && msg.plan.matchedBusinesses.length > 0)) && (
-                <div className="w-full mt-2 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-2xl p-4 sm:p-5 space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                          Recomendaciones Directas
-                        </span>
-                        {msg.plan.targetMunicipality && (
-                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                            {msg.plan.targetMunicipality}
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="text-base font-extrabold text-white mt-1">
-                        Comercios destacados encontrados en OleVeci
-                      </h4>
-                    </div>
-                  </div>
+              {msg.plan && (msg.plan.type === 'search' || (msg.plan.matchedBusinesses && msg.plan.matchedBusinesses.length > 0)) && (() => {
+                const postsList = msg.plan.matchedPosts || [];
+                const matchedBiz = msg.plan.matchedBusinesses || [];
+                const searchFocus: 'business' | 'post' =
+                  msg.plan.searchFocus ||
+                  (msg.text ? detectSearchFocus(msg.text) : (matchedBiz.length > 0 && postsList.length === 0 ? 'business' : 'post'));
 
-                  {/* Business cards */}
-                  <div className="space-y-3">
-                    {(msg.plan.matchedBusinesses || []).map((b) => {
-                      const relatedPosts = (msg.plan?.matchedPosts || []).filter((p) => p.businessId === b.id);
-                      return (
-                        <div
-                          key={b.id}
-                          className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-2.5"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <img
-                                src={b.coverImage || b.logo || '/Logo_OleVeci.png'}
-                                alt={b.name}
-                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-700 bg-slate-800"
-                              />
-                              <div className="min-w-0">
-                                <h5 className="text-sm font-bold text-white truncate">{b.name}</h5>
-                                <p className="text-xs text-cyan-200/80 flex items-center gap-1 mt-0.5">
-                                  <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
-                                  {b.city} · {b.address}
-                                </p>
-                              </div>
-                            </div>
+                const isBusinessFocus = searchFocus === 'business' && matchedBiz.length > 0;
 
-                            {b.whatsapp && (
-                              <a
-                                href={`https://api.whatsapp.com/send?phone=${b.whatsapp.replace(/\D/g, '')}&text=${encodeURIComponent(`¡Hola ${b.name}! Vi su perfil en OleVeci y me gustaría saber más.`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors shadow-xs"
-                              >
-                                <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
-                                <span>WhatsApp</span>
-                              </a>
+                // 1. BUSINESS-FOCUSED VIEW IN VOICE ASSISTANT MODAL
+                if (isBusinessFocus) {
+                  return (
+                    <div className="w-full mt-2 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-2xl p-4 sm:p-5 space-y-4">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                              Comercios Encontrados
+                            </span>
+                            {msg.plan.targetMunicipality && (
+                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                {msg.plan.targetMunicipality}
+                              </span>
                             )}
                           </div>
+                          <h4 className="text-base font-extrabold text-white mt-1">
+                            Comercios destacados en OleVeci
+                          </h4>
+                        </div>
+                      </div>
 
-                          {b.description && (
-                            <p className="text-xs text-slate-300 leading-relaxed">{b.description}</p>
-                          )}
+                      <div className="space-y-3">
+                        {matchedBiz.map((b) => {
+                          const relatedPosts = postsList.filter((p) => p.businessId === b.id);
 
-                          {/* Related Posts for this business */}
-                          {relatedPosts.length > 0 && (
-                            <div className="space-y-1.5 pt-1 border-t border-slate-800/80">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                                Publicaciones y Especialidades activas:
-                              </span>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {relatedPosts.map((p) => (
-                                  <div
-                                    key={p.id}
-                                    className="p-2 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center gap-2"
-                                  >
-                                    <img
-                                      src={p.imageUrl || '/Logo_OleVeci.png'}
-                                      alt={p.title}
-                                      className="w-10 h-10 rounded-md object-cover shrink-0 bg-slate-800"
-                                    />
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-semibold text-white truncate">{p.title}</p>
-                                      <p className="text-[11px] font-bold text-emerald-400">
-                                        ${(p.promotionalPrice || p.originalPrice || p.approximatePrice || 0).toLocaleString('es-CO')} COP
-                                      </p>
-                                    </div>
+                          return (
+                            <div
+                              key={b.id}
+                              onClick={() => {
+                                onSelectBusiness?.(b.id);
+                                onClose();
+                              }}
+                              className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-2.5 cursor-pointer"
+                              title="Toca para ver el perfil del comercio"
+                            >
+                              <div className="flex items-start gap-3 min-w-0">
+                                <img
+                                  src={b.coverImage || b.logo || '/Logo_OleVeci.png'}
+                                  alt={b.name}
+                                  className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-700 bg-slate-800"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <h5 className="text-sm font-bold text-white truncate">{b.name}</h5>
                                   </div>
-                                ))}
+                                  <p className="text-xs text-cyan-200/80 flex items-center gap-1 mt-0.5">
+                                    <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
+                                    {b.city} · {b.address}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {b.description && (
+                                <p className="text-xs text-slate-300 leading-relaxed">{b.description}</p>
+                              )}
+
+                              {/* Related Posts for this business */}
+                              {relatedPosts.length > 0 && (
+                                <div className="space-y-1.5 pt-1 border-t border-slate-800/80">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                                    Ofertas o productos destacados en este comercio:
+                                  </span>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {relatedPosts.map((p) => {
+                                      const pCost = p.promotionalPrice || p.originalPrice;
+                                      return (
+                                        <div
+                                          key={p.id}
+                                          className="p-2 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center gap-2"
+                                        >
+                                          <img
+                                            src={p.imageUrl || '/Logo_OleVeci.png'}
+                                            alt={p.title}
+                                            className="w-10 h-10 rounded-md object-cover shrink-0 bg-slate-800"
+                                          />
+                                          <div className="min-w-0 flex-1">
+                                            <p className="text-xs font-semibold text-white truncate">{p.title}</p>
+                                            {pCost ? (
+                                              <p className="text-[11px] font-bold text-emerald-400">
+                                                ${Math.round(pCost).toLocaleString('es-CO')} COP
+                                              </p>
+                                            ) : null}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Quick Plan Generator CTA */}
+                              <div className="pt-1 flex justify-end">
+                                <button
+                                  onClick={() => {
+                                    const promptText = `Armame un plan en ${b.city} que empiece en ${b.name}`;
+                                    setInputMessage(promptText);
+                                    handleSendMessage(promptText);
+                                  }}
+                                  className="text-xs text-cyan-300 hover:text-white font-bold flex items-center gap-1 px-2.5 py-1 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-all cursor-pointer"
+                                >
+                                  <Sparkles className="w-3 h-3 text-cyan-400" />
+                                  <span>Armar plan completo con este local</span>
+                                </button>
                               </div>
                             </div>
-                          )}
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
 
-                          {/* Quick Plan Generator CTA */}
-                          <div className="pt-1 flex justify-end">
-                            <button
-                              onClick={() => {
-                                const promptText = `Armame un plan en ${b.city} que empiece en ${b.name}`;
-                                setInputMessage(promptText);
-                                handleSendMessage(promptText);
-                              }}
-                              className="text-xs text-cyan-300 hover:text-white font-bold flex items-center gap-1 px-2.5 py-1 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-all cursor-pointer"
-                            >
-                              <Sparkles className="w-3 h-3 text-cyan-400" />
-                              <span>Armar plan completo con este local</span>
-                            </button>
-                          </div>
+                // 2. POST-FOCUSED VIEW IN VOICE ASSISTANT MODAL (Dishes, promos, cravings: pizza, burgers, wings)
+                const businessesWithPosts = new Set(postsList.map((p) => p.businessId));
+                const directoryBusinesses = matchedBiz.filter((b) => !businessesWithPosts.has(b.id));
+
+                return (
+                  <div className="w-full mt-2 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-2xl p-4 sm:p-5 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                            Opciones y Anuncios Disponibles
+                          </span>
+                          {msg.plan.targetMunicipality && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                              {msg.plan.targetMunicipality}
+                            </span>
+                          )}
                         </div>
-                      );
-                    })}
+                        <h4 className="text-base font-extrabold text-white mt-1">
+                          Platos y ofertas encontradas en OleVeci
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {postsList.map((post) => {
+                        const postBiz = matchedBiz.find((b) => b.id === post.businessId);
+                        const whatsappClean = (post.businessWhatsapp || postBiz?.whatsapp || postBiz?.phone || '').replace(/\D/g, '');
+                        const postCost = post.promotionalPrice || post.originalPrice;
+
+                        return (
+                          <div
+                            key={post.id}
+                            className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 transition-all space-y-2.5"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-800 shrink-0 relative border border-slate-700">
+                                <img
+                                  src={post.imageUrl || '/Logo_OleVeci.png'}
+                                  alt={post.title}
+                                  className="w-full h-full object-cover"
+                                />
+                                {postCost ? (
+                                  <div className="absolute bottom-0 inset-x-0 bg-slate-950/90 text-[9px] font-black text-emerald-400 text-center py-0.5 truncate">
+                                    ${Math.round(postCost).toLocaleString('es-CO')}
+                                  </div>
+                                ) : null}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <h5 className="text-sm font-bold text-white leading-snug">{post.title}</h5>
+                                <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                                  <Store className="w-3 h-3 text-cyan-400 shrink-0" />
+                                  <span className="truncate">{post.businessName}</span>
+                                </p>
+                                <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                                  <MapPin className="w-3 h-3 text-amber-500 shrink-0" />
+                                  <span className="truncate">{post.businessAddress || postBiz?.address || 'Sabana Centro'}</span>
+                                </p>
+                              </div>
+
+                              {whatsappClean && (
+                                <a
+                                  href={`https://api.whatsapp.com/send?phone=${whatsappClean}&text=${encodeURIComponent(
+                                    `¡Hola ${post.businessName}! Vi su anuncio "${post.title}" en OleVeci y me gustaría pedirlo o consultar más.`
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shrink-0 transition-colors shadow-xs"
+                                >
+                                  <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
+                                  <span className="hidden sm:inline">WhatsApp</span>
+                                </a>
+                              )}
+                            </div>
+
+                            {post.description && (
+                              <p className="text-xs text-slate-300 leading-relaxed">{post.description}</p>
+                            )}
+
+                            {/* Quick Plan Generator CTA */}
+                            <div className="pt-1 flex justify-end">
+                              <button
+                                onClick={() => {
+                                  const promptText = `Armame un plan en ${post.businessCity || 'Cajicá'} que empiece en ${post.businessName} con ${post.title}`;
+                                  setInputMessage(promptText);
+                                  handleSendMessage(promptText);
+                                }}
+                                className="text-xs text-cyan-300 hover:text-white font-bold flex items-center gap-1 px-2.5 py-1 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-all cursor-pointer"
+                              >
+                                <Sparkles className="w-3 h-3 text-cyan-400" />
+                                <span>Armar plan completo con esta oferta</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Directory Businesses without posts if any */}
+                      {directoryBusinesses.length > 0 && (
+                        <div className="pt-2 space-y-2 border-t border-slate-800">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            Otros comercios recomendados:
+                          </span>
+                          {directoryBusinesses.map((b) => (
+                            <div
+                              key={b.id}
+                              className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-3"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <img
+                                  src={b.coverImage || b.logo || '/Logo_OleVeci.png'}
+                                  alt={b.name}
+                                  className="w-10 h-10 rounded-lg object-cover shrink-0 bg-slate-800"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-white truncate">{b.name}</p>
+                                  <p className="text-[11px] text-slate-400 truncate">{b.city} · {b.address}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Refinement Suggestions Chips for Itinerary */}
               {msg.plan && msg.plan.stops && msg.plan.stops.length > 0 && (

@@ -2363,7 +2363,7 @@ export const ItineraryBuilderModal: React.FC<ItineraryBuilderModalProps> = ({
 
   const getOrSaveCurrentItinerary = (): SimulatedReadyPlan => {
     if (!sharedPlanIdRef.current) {
-      sharedPlanIdRef.current = initialPlan?.id || `itin_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      sharedPlanIdRef.current = currentSurprisePlan?.id || `itin_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     }
     const currentThemeConfig = THEMES[selectedTheme] || THEMES.nordic_light;
     const tags = [

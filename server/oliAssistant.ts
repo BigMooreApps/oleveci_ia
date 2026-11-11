@@ -64,6 +64,7 @@ export interface OliPlanResponse {
   requestedTopic?: string;
   // Search & info capabilities:
   searchQuery?: string;
+  searchFocus?: 'business' | 'post';
   matchedBusinesses?: Business[];
   matchedPosts?: Post[];
   searchCategory?: string;
@@ -157,7 +158,7 @@ export function normalizeText(text: string): string {
  * 3. Mentions ALL stops in order without skipping any
  * 4. Clear communication of alternatives or missing catalog items
  */
-import { sanitizeSpokenText } from './oliCatalogEngine';
+import { sanitizeSpokenText, detectSearchFocus } from './oliCatalogEngine';
 export { sanitizeSpokenText };
 
 export const SUPPORTED_MUNICIPALITIES = [
@@ -2443,6 +2444,10 @@ ${catalogSummaryText}`;
         properties: {
           understanding: { type: Type.STRING },
           exactMatchInRequestedCity: { type: Type.BOOLEAN },
+          searchFocus: {
+            type: Type.STRING,
+            description: "'business' si busca un comercio, tienda, local, lugar, oficio o establecimiento (ej: papelería, taller, fruver, verduras, veterinaria, peluquería); 'post' si busca un plato, antojo, oferta o producto específico (ej: pizza, alitas, hamburguesa, combo).",
+          },
           selectedBusinessIds: { type: Type.ARRAY, items: { type: Type.STRING } },
           selectedPostIds: { type: Type.ARRAY, items: { type: Type.STRING } },
           spokenText: { type: Type.STRING },
@@ -2460,15 +2465,18 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
    - Un lavadero / autospa / estética automotriz NO es un taller mecánico. No confundas lavar el carro con arreglarlo o hacerle mecánica.
    - Una veterinaria NO es una tienda de mascotas general si lo que piden es atención médica.
    - Un té o una torta NO es un capuchino.
-2. MUNICIPIO Y TRANSPARENCIA:
+2. ENFOQUE SEMÁNTICO EN BÚSQUEDAS ('searchFocus'):
+   - 'business': Si el usuario busca un establecimiento, comercio, tienda, local, lugar, oficio o servicio profesional (ej: "una papelería", "un lugar donde ir a comprar verduras", "un fruver", "un taller", "una veterinaria", "peluquería", "dónde comprar repuestos", "dónde lavo el carro", "un sitio para...").
+   - 'post': Si el usuario busca un plato específico, antojo de comida, combo o promoción puntual de producto (ej: "comer pizza", "hamburguesa doble", "alitas 2x1", "combo", "promociones de hoy", "postres").
+3. MUNICIPIO Y TRANSPARENCIA:
    - Si en el municipio solicitado (${targetMunicipality}) NO existe un comercio que ofrezca ese servicio exacto, indícalo con total amabilidad y honestidad en spokenText.
    - Si en un municipio vecino cercano (ej: Chía si pidieron Cajicá) sí existe un comercio que ofrece exactamente ese servicio, selecciónalo en 'selectedBusinessIds' y cuéntaselo al usuario amablemente en 'spokenText'.
-3. CONSISTENCIA DE PUBLICACIONES:
+4. CONSISTENCIA DE PUBLICACIONES:
    - En 'selectedPostIds' pon ÚNICAMENTE publicaciones que REALMENTE correspondan a lo solicitado. Si ninguna publicación aplica o no hay publicaciones del servicio específico, 'selectedPostIds' DEBE ser un arreglo vacío []. NUNCA incluyas ofertas de lavado cuando pidieron mecánica, ni ofertas de té cuando pidieron café.
-4. SPOKENTEXT:
+5. SPOKENTEXT:
    - Comienza obligatoriamente con "¡Listo veci!".
    - Sé breve y directo (máximo 2 a 3 oraciones, estilo WhatsApp).
-   - Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directamente.
+   - Menciona que puede tocar la tarjeta para ver los detalles del comercio.
    - PROHIBIDO TOTALMENTE el signo '$'.`;
 
       try {
@@ -2505,6 +2513,7 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
 
           return {
             type: 'search',
+            searchFocus: (parsed.searchFocus === 'business' || parsed.searchFocus === 'post') ? parsed.searchFocus : detectSearchFocus(userPrompt),
             spokenText: spokenClean,
             searchQuery: userPrompt,
             targetMunicipality,
@@ -2582,7 +2591,7 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
     if (ai) {
       try {
         const noMatchRes = await ai.models.generateContent({
-          model: 'gemini-2.0-flash',
+          model: 'gemini-3.8-flash',
           contents: `El usuario preguntó en OleVeci: "${userPrompt}" para el municipio "${targetMunicipality}".
 No hay comercios registrados exactamente para esa búsqueda.
 Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
@@ -2602,6 +2611,7 @@ Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
     const fallbackText = sanitizeSpokenText(noMatchText, [], false, true);
     return {
       type: 'search',
+      searchFocus: detectSearchFocus(userPrompt),
       spokenText: fallbackText,
       searchQuery: userPrompt,
       targetMunicipality,
@@ -2648,11 +2658,11 @@ Genera la respuesta hablada de Oli:
 1. DEBE comenzar estrictamente con "¡Listo veci!".
 2. Responde directamente a lo que preguntó el usuario de forma cálida, cercana y entusiasta.
 3. Menciona el comercio más relevante (${firstBiz.name}), su municipio (${firstBiz.city}), dirección (${firstBiz.address}) y el servicio o precio destacado si aplica.
-4. Menciona que en pantalla puede tocar el botón de WhatsApp para contactarlos directo o ver su ficha.
+4. Menciona que puede tocar la tarjeta del comercio para ver su ficha completa y detalles.
 5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
 6. Máximo 2 o 3 oraciones directas.`;
 
-      for (const modelName of ['gemini-2.0-flash', 'gemini-1.5-flash']) {
+      for (const modelName of ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']) {
         try {
           const aiResponse = await ai.models.generateContent({
             model: modelName,
@@ -2764,6 +2774,7 @@ Genera la respuesta hablada de Oli:
 
   return {
     type: 'search',
+    searchFocus: detectSearchFocus(userPrompt),
     spokenText,
     searchQuery: userPrompt,
     targetMunicipality,
@@ -2785,6 +2796,8 @@ async function callGroqWithFallback(
   if (!key || key.trim().length === 0) return null;
 
   const candidateModels = [
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
   ];
@@ -2856,6 +2869,8 @@ async function callGeminiWithModelFallback(
 ): Promise<{ text: string; modelUsed: string }> {
   // Candidate models: cascade from fastest active models to resilient fallbacks
   const candidateModels = [
+    'gemini-3.8-flash',
+    'gemini-2.5-flash',
     'gemini-2.0-flash',
     'gemini-1.5-flash',
     'gemini-1.5-pro',
@@ -3295,7 +3310,7 @@ Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin li
      * Si es cambio/refinamiento: "¡Listo veci! Ya cambié la [parada X] por [comercio o actividad solicitada]."
      * Si es agregar paradas: "¡Listo veci! Tu plan fue actualizado y ahora tiene [N] paradas."
      * Si es eliminar parada: "¡Listo veci! Ya eliminé esa parada de tu plan."
-     * Si es búsqueda puntual de comercio o servicio: "¡Listo veci! En [municipio] te recomiendo [Comercio], en pantalla tienes su botón de WhatsApp."
+     * Si es búsqueda puntual de comercio o servicio: "¡Listo veci! En [municipio] te recomiendo [Comercio], puedes tocar su tarjeta para ver todos los detalles."
    - PROHIBIDO TERMINANTEMENTE recitar el itinerario o repetir las paradas una por una en este texto; las paradas ya se muestran en las tarjetas visuales de abajo.
    - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.
 
@@ -3360,6 +3375,10 @@ ${catalogSummaryText}`;
           intent: {
             type: Type.STRING,
             description: "Tipo de intención: 'search' (busca un comercio, producto, servicio específico o recomendación puntual), 'plan' (pide armar un plan/itinerario con varias paradas), 'refinement' (modificar un plan previo), 'general_qa' (pregunta general).",
+          },
+          searchFocus: {
+            type: Type.STRING,
+            description: "'business' si busca un comercio, tienda, local, lugar, oficio o establecimiento (ej: papelería, taller, fruver, verduras, veterinaria, peluquería); 'post' si busca una comida, plato, antojo, oferta o producto específico (ej: pizza, alitas, hamburguesa, combo, promoción).",
           },
           understanding: { type: Type.STRING },
           targetMunicipality: { type: Type.STRING },
@@ -3444,6 +3463,7 @@ ${catalogSummaryText}`;
 
           return returnAndCache({
             type: 'search',
+            searchFocus: (parsed.searchFocus === 'business' || parsed.searchFocus === 'post') ? parsed.searchFocus : detectSearchFocus(userPrompt),
             spokenText: spokenClean,
             searchQuery: userPrompt,
             targetMunicipality: parsed.targetMunicipality || targetCity,
@@ -3696,7 +3716,7 @@ ${catalogSummaryText}`;
 
   // Fallback determinista si Gemini está desconectado o sin cuota
   if (!isRefinement && detectSearchIntent(userPrompt)) {
-    return returnAndCache(generateOliSearchResponse(input));
+    return returnAndCache(await generateOliSearchResponse(input));
   }
   return returnAndCache(generateFallbackOliPlan(input));
 }
@@ -3712,16 +3732,13 @@ export async function generateOliSpeechAudio(spokenText: string): Promise<Buffer
     const cleanText = sanitizeCurrencyText(spokenText).trim();
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.8-flash',
       contents: [
         {
           role: 'user',
           parts: [
             {
               text: cleanText,
-              speechMetadata: {
-                style: 'Warm, friendly, enthusiastic Colombian neighborhood guide',
-              },
             },
           ],
         },

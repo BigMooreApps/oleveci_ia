@@ -39,7 +39,7 @@ import { SimulatedReadyPlan } from '../data/readyPlansData';
 import { THEMES } from './InvitationCardPreview';
 import { WhatsAppIcon } from './WhatsAppIcon';
 import { OliPlanResponse, OliPlanStop } from '../types';
-import { removeStopAndRecalculatePlan } from '../utils/oliPlanClientUtils';
+import { removeStopAndRecalculatePlan, detectSearchFocus } from '../utils/oliPlanClientUtils';
 import { OliWhatsAppModal } from './OliWhatsAppModal';
 import { PlanRouteSection } from './PlanRouteSection';
 
@@ -1245,28 +1245,175 @@ export const OliSection: React.FC<OliSectionProps> = ({
                         );
                       })()
                     ) : (
-                      /* SEARCH / RECOMMENDATION MODE: POST-FIRST UNIFIED RESULTS (NO DUPLICATES) */
+                      /* SEARCH / RECOMMENDATION MODE: SEMANTIC DIFFERENTIATION (BUSINESS vs POST) */
                       (() => {
                         const postsList = matchedP || [];
+                        const prevUserMsg = (index > 0 && chatHistory[index - 1]?.sender === 'user')
+                          ? chatHistory[index - 1].text
+                          : '';
+
+                        const searchFocus: 'business' | 'post' =
+                          msg.plan?.searchFocus ||
+                          (prevUserMsg ? detectSearchFocus(prevUserMsg) : (matchedBiz.length > 0 && postsList.length === 0 ? 'business' : 'post'));
+
+                        const isBusinessFocus = searchFocus === 'business' && matchedBiz.length > 0;
+
+                        // 1. BUSINESS-FOCUSED VIEW (When user asks for places, establishments, trades, stores, fruvers, etc.)
+                        if (isBusinessFocus) {
+                          const totalCount = matchedBiz.length;
+                          if (totalCount === 0) return null;
+
+                          const isExpanded = expandedResults[index] !== undefined ? expandedResults[index] : false;
+                          const INITIAL_LIMIT = 4;
+                          const displayedBusinesses = isExpanded ? matchedBiz : matchedBiz.slice(0, INITIAL_LIMIT);
+                          const canExpand = totalCount > INITIAL_LIMIT;
+                          const totalRendered = displayedBusinesses.length;
+
+                          return (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between px-1">
+                                <div className="flex items-center gap-2">
+                                  <Store className="w-4 h-4 text-[#0066FF]" />
+                                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                    Comercios Encontrados
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[11px] text-slate-400 font-medium">
+                                    {totalCount} {totalCount === 1 ? 'comercio' : 'comercios'}
+                                  </span>
+                                  {canExpand && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedResults((prev) => ({ ...prev, [index]: !isExpanded }))}
+                                      className="text-xs font-bold text-[#0066FF] hover:text-[#0052cc] bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
+                                      title={isExpanded ? 'Mostrar menos comercios' : `Ver todos los ${totalCount} comercios`}
+                                    >
+                                      <span>{isExpanded ? 'Ver menos' : `Ver todos (${totalCount})`}</span>
+                                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-3">
+                                {displayedBusinesses.map((biz) => {
+                                  const fullBizAddress = `${biz.address || 'Dirección registrada'}${
+                                    biz.city ? `, ${biz.city}` : ''
+                                  }`;
+                                  const bizPosts = postsList.filter((p) => p.businessId === biz.id);
+
+                                  return (
+                                    <div
+                                      key={biz.id}
+                                      onClick={() => onSelectBusiness?.(biz.id)}
+                                      className="w-full rounded-xl sm:rounded-2xl bg-white hover:bg-slate-50/80 border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3 sm:p-4 space-y-2.5 group select-none cursor-pointer"
+                                      title="Toca para ver el perfil del comercio"
+                                    >
+                                      {/* Header: Logo, Name, Category, Address */}
+                                      <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
+                                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
+                                          <img
+                                            src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
+                                            alt={biz.name}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        </div>
+
+                                        <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
+                                              {biz.name}
+                                            </h5>
+                                            {biz.verified && (
+                                              <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                            )}
+                                          </div>
+
+                                          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-500 min-w-0">
+                                            <MapPin className="w-3 h-3 text-[#ff7700] shrink-0" />
+                                            <span className="truncate">{fullBizAddress}</span>
+                                          </div>
+
+                                          {biz.description && (
+                                            <p className="text-[10.5px] sm:text-xs text-slate-600 line-clamp-2 leading-relaxed pt-0.5">
+                                              {biz.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Related Products or Promotions if available for this merchant */}
+                                      {bizPosts.length > 0 && (
+                                        <div className="pt-2.5 border-t border-slate-200/80 space-y-1.5">
+                                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                                            Ofertas o especialidades de este comercio:
+                                          </span>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {bizPosts.map((p) => {
+                                              const pCost = p.promotionalPrice || p.originalPrice;
+                                              return (
+                                                <div
+                                                  key={p.id}
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onSelectPost?.(p);
+                                                  }}
+                                                  className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-300/80 hover:border-blue-400 transition-all flex items-center gap-2.5 cursor-pointer group/post shadow-2xs"
+                                                  title="Toca para ver el anuncio completo"
+                                                >
+                                                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-white shrink-0 relative border border-slate-300/90 shadow-2xs">
+                                                    <img
+                                                      src={p.imageUrl || '/Logo_OleVeci.png'}
+                                                      alt={p.title}
+                                                      className="w-full h-full object-cover group-hover/post:scale-105 transition-transform"
+                                                    />
+                                                    {pCost ? (
+                                                      <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 text-[8.5px] font-black text-emerald-400 text-center py-0.5 truncate leading-none">
+                                                        ${Math.round(pCost).toLocaleString('es-CO')}
+                                                      </div>
+                                                    ) : null}
+                                                  </div>
+                                                  <div className="min-w-0 flex-1">
+                                                    <p className="text-xs font-bold text-slate-900 group-hover/post:text-[#0056d6] truncate">
+                                                      {p.title}
+                                                    </p>
+                                                    {p.description && (
+                                                      <p className="text-[10px] text-slate-600 line-clamp-1">
+                                                        {p.description}
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // 2. POST-FOCUSED VIEW (When user asks for a dish, craving, combo, or promo: pizza, burgers, wings, etc.)
                         const businessesWithPosts = new Set(postsList.map((p) => p.businessId));
                         const directoryBusinesses = (matchedBiz || []).filter((b) => !businessesWithPosts.has(b.id));
 
                         const totalCount = postsList.length + directoryBusinesses.length;
                         if (totalCount === 0) return null;
 
-                        const prevUserMsg = (index > 0 && chatHistory[index - 1]?.sender === 'user')
-                          ? chatHistory[index - 1].text.toLowerCase()
-                          : '';
-
                         const userAskedForAll =
-                          prevUserMsg.includes('toda') ||
-                          prevUserMsg.includes('todo') ||
-                          prevUserMsg.includes('completo') ||
-                          prevUserMsg.includes('completa') ||
-                          prevUserMsg.includes('promocion') ||
-                          prevUserMsg.includes('oferta') ||
-                          prevUserMsg.includes('anuncio') ||
-                          prevUserMsg.includes('descuento');
+                          prevUserMsg.toLowerCase().includes('toda') ||
+                          prevUserMsg.toLowerCase().includes('todo') ||
+                          prevUserMsg.toLowerCase().includes('completo') ||
+                          prevUserMsg.toLowerCase().includes('completa') ||
+                          prevUserMsg.toLowerCase().includes('promocion') ||
+                          prevUserMsg.toLowerCase().includes('oferta') ||
+                          prevUserMsg.toLowerCase().includes('anuncio') ||
+                          prevUserMsg.toLowerCase().includes('descuento');
 
                         const isExpanded = expandedResults[index] !== undefined
                           ? expandedResults[index]
@@ -1310,7 +1457,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                             </div>
 
                             <div className="grid grid-cols-1 gap-2.5">
-                              {/* 1. Prioritize Posts / Anuncios (The Differential Value of OleVeci) */}
+                              {/* 1. Prioritize Posts / Anuncios */}
                               {displayedPosts.map((post) => {
                                 const fullPostAddress = `${post.businessAddress || 'Dirección registrada'}${
                                   post.businessCity ? `, ${post.businessCity}` : ''
@@ -1408,11 +1555,6 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                           <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
                                             {biz.name}
                                           </h5>
-                                          {biz.subCategory && (
-                                            <span className="text-[9.5px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200 shrink-0">
-                                              {biz.subCategory}
-                                            </span>
-                                          )}
                                         </div>
 
                                         <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">

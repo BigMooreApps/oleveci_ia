@@ -502,6 +502,90 @@ export function detectSearchIntent(prompt: string): boolean {
   return standaloneServices.some((kw) => norm.includes(kw));
 }
 
+/**
+ * Distinguishes whether the user search is focused on discovering a merchant / establishment ('business')
+ * or on finding a specific dish / combo / craving / offer announcement ('post').
+ */
+export function detectSearchFocus(prompt: string): 'business' | 'post' {
+  const norm = normalizeText(prompt);
+
+  const postSignals = [
+    'promo', 'promocion', 'promociones', 'promoción',
+    'descuento', 'descuentos', 'oferta', 'ofertas',
+    '2x1', 'combo', 'combos', 'plato', 'platos', 'menu', 'carta',
+    'antojo', 'antojos', 'tengo ganas de', 'se me antoja',
+    'comer pizza', 'quiero pizza', 'pizza familiar',
+    'comer hamburguesa', 'quiero hamburguesa', 'smash burger',
+    'comer alitas', 'alitas bbq', 'alitas picantes',
+    'comer sushi', 'comer empanada', 'comer arepa',
+    'tomar capuchino', 'tomar cafe', 'tomar un cafe', 'tomar cafecito',
+    'un postre', 'un croissant', 'un helado',
+    'unas polas', 'unas cervezas', 'unos tragos', 'unos cocteles',
+  ];
+
+  const businessSignals = [
+    'comercio', 'comercios', 'negocio', 'negocios',
+    'tienda', 'tiendas', 'local', 'locales', 'establecimiento', 'establecimientos',
+    'lugar', 'lugares', 'sitio', 'sitios',
+    'donde comprar', 'donde ir a comprar', 'donde puedo comprar', 'donde consigo', 'donde conseguir',
+    'donde venden', 'donde arregl', 'donde lav', 'donde atiend', 'donde queda', 'donde hay',
+    'recomiendame un', 'recomiendame una', 'recomienda un', 'recomienda una',
+    'papeleria', 'papelerias', 'papelería', 'miscelanea', 'miscelaneas', 'miscelánea',
+    'fruver', 'fruvers', 'verdura', 'verduras', 'legumbre', 'legumbres', 'frutas y verduras',
+    'supermercado', 'mercado campesino', 'tienda de barrio',
+    'taller', 'talleres', 'talle', 'mecanic', 'mecanica', 'serviteca', 'llanteria', 'llantería',
+    'autospa', 'lavadero', 'car wash',
+    'veterinari', 'veterinaria', 'veterinario', 'clinica veterinaria', 'pet shop',
+    'peluqueri', 'peluqueria', 'peluquería', 'barberi', 'barberia', 'barbería', 'salon de belleza', 'estetica', 'spa',
+    'ferreteria', 'ferreterias', 'ferretería', 'drogueria', 'droguerias', 'droguería', 'farmacia', 'farmacias',
+    'odontolog', 'dentista', 'consultorio', 'clinica',
+    'gimnasio', 'gym', 'crossfit',
+    'hotel', 'glamping', 'hostal',
+    'restaurante', 'restaurantes', 'pizzeria', 'pizzerias', 'pizzería', 'hamburgueseria', 'cafeteria', 'cafeterias',
+    'panaderia', 'panaderias', 'pasteleria', 'pastelerias',
+    'gastrobar', 'bar artesanal',
+  ];
+
+  const hasBusinessSignal = businessSignals.some((sig) => norm.includes(sig));
+  const hasPostSignal = postSignals.some((sig) => norm.includes(sig));
+
+  if (hasBusinessSignal && !hasPostSignal) {
+    return 'business';
+  }
+
+  if (hasPostSignal && !hasBusinessSignal) {
+    return 'post';
+  }
+
+  if (hasBusinessSignal && hasPostSignal) {
+    if (
+      norm.includes('un lugar') ||
+      norm.includes('un sitio') ||
+      norm.includes('una tienda') ||
+      norm.includes('un negocio') ||
+      norm.includes('un comercio') ||
+      norm.includes('donde ir a') ||
+      norm.includes('donde comprar') ||
+      norm.includes('donde venden') ||
+      norm.includes('recomiendame un restaurante') ||
+      norm.includes('recomiendame una pizzeria') ||
+      norm.includes('recomiendame una papeleria') ||
+      norm.includes('recomiendame un fruver') ||
+      norm.includes('recomiendame un taller')
+    ) {
+      return 'business';
+    }
+    return 'post';
+  }
+
+  const standaloneFood = ['pizza', 'hamburguesa', 'burger', 'alitas', 'sushi', 'empanada', 'arepa', 'postre', 'croissant', 'cafe', 'capuchino'];
+  if (standaloneFood.some((f) => norm.includes(f))) {
+    return 'post';
+  }
+
+  return 'business';
+}
+
 export function extractRequestedTopic(prompt: string): {
   topic: string;
   isSpecificFoodOrActivity: boolean;

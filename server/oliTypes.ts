@@ -44,6 +44,7 @@ export interface OliPlanResponse {
   requestedTopic?: string;
   // Search & info capabilities:
   searchQuery?: string;
+  searchFocus?: 'business' | 'post';
   matchedBusinesses?: Business[];
   matchedPosts?: Post[];
   matchedBusinessIds?: string[];
