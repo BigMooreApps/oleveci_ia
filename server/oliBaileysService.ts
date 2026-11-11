@@ -396,8 +396,86 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
   // Stop typing indicator and send response
   try {
     await sock.sendPresenceUpdate('paused', remoteJid);
-    await sock.sendMessage(remoteJid, { text: replyMarkdown });
-    console.log(`[OLI WhatsApp Web] 🚀 Respuesta enviada exitosamente a +${senderPhone}`);
+
+    // Option D: Prepare native interactive buttons if commerce data is available
+    const firstBiz = (oliResponse.matchedBusinesses && oliResponse.matchedBusinesses[0]) || null;
+    const cleanWa = firstBiz ? (firstBiz.whatsapp || firstBiz.phone || '').replace(/\D/g, '') : '';
+    const mapQuery = firstBiz ? encodeURIComponent(`${firstBiz.name} ${firstBiz.address || ''} ${firstBiz.city || ''}`.trim()) : '';
+
+    const buttons: any[] = [];
+    if (cleanWa) {
+      buttons.push({
+        name: 'cta_url',
+        buttonParamsJson: JSON.stringify({
+          display_text: '💬 Contactar Comercio',
+          url: `https://wa.me/${cleanWa}`,
+          merchant_url: `https://wa.me/${cleanWa}`,
+        }),
+      });
+    }
+    if (firstBiz) {
+      buttons.push({
+        name: 'cta_url',
+        buttonParamsJson: JSON.stringify({
+          display_text: '📍 Ver Ubicación',
+          url: `https://www.google.com/maps/search/?api=1&query=${mapQuery}`,
+          merchant_url: `https://www.google.com/maps/search/?api=1&query=${mapQuery}`,
+        }),
+      });
+      buttons.push({
+        name: 'quick_reply',
+        buttonParamsJson: JSON.stringify({
+          display_text: '🎁 Ver Ofertas',
+          id: `ofertas_${firstBiz.id}`,
+        }),
+      });
+    }
+
+    let sentSuccessfully = false;
+    const generateWAMessage =
+      (Baileys as any).generateWAMessageFromContent ||
+      (Baileys as any).default?.generateWAMessageFromContent;
+
+    if (buttons.length > 0 && typeof generateWAMessage === 'function') {
+      try {
+        const interactiveMsg = generateWAMessage(
+          remoteJid,
+          {
+            viewOnceMessage: {
+              message: {
+                interactiveMessage: {
+                  body: { text: replyMarkdown },
+                  footer: { text: 'OleVeci · Sabana Centro' },
+                  header: {
+                    title: firstBiz?.name || 'OleVeci',
+                    hasMediaAttachment: false,
+                  },
+                  nativeFlowMessage: {
+                    buttons,
+                  },
+                },
+              },
+            },
+          },
+          { userJid: sock.user?.id }
+        );
+
+        if (sock.relayMessage && interactiveMsg?.message) {
+          await sock.relayMessage(remoteJid, interactiveMsg.message, {
+            messageId: interactiveMsg.key?.id,
+          });
+          sentSuccessfully = true;
+          console.log(`[OLI WhatsApp Web] 🚀 Tarjeta interactiva con botones enviada exitosamente a +${senderPhone}`);
+        }
+      } catch (interactiveErr) {
+        console.warn('[OLI WhatsApp Web] Fallback a mensaje estándar de texto:', interactiveErr);
+      }
+    }
+
+    if (!sentSuccessfully) {
+      await sock.sendMessage(remoteJid, { text: replyMarkdown });
+      console.log(`[OLI WhatsApp Web] 🚀 Respuesta con tarjeta de texto enviada a +${senderPhone}`);
+    }
 
     // Record session conversation log
     if (onLogConversationFn) {

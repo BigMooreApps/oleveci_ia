@@ -117,50 +117,95 @@ export function getOrCreateSession(phoneNumber: string): WhatsAppUserSession {
   return session;
 }
 
+function getCategoryEmoji(bizName: string, subCategory?: string, category?: string): string {
+  const text = `${bizName} ${subCategory || ''} ${category || ''}`.toLowerCase();
+  if (/barber|corte|peluquer|estil|peinado/.test(text)) return '💈';
+  if (/pizza/.test(text)) return '🍕';
+  if (/hamburg|burger/.test(text)) return '🍔';
+  if (/caf[eé]|coffee|panader|postre|helad/.test(text)) return '☕';
+  if (/restaurante|comida|almuerzo|cena|asador|parrilla/.test(text)) return '🍽️';
+  if (/cerveza|bar|pub|trago|cocktail|licor/.test(text)) return '🍺';
+  if (/auto|carro|lavad|mecanic|moto|detailing/.test(text)) return '🚗';
+  if (/veterinari|mascota|pet|perr|canin/.test(text)) return '🐾';
+  if (/mercado|fruta|verdura|supermercado|abastos/.test(text)) return '🍎';
+  if (/hotel|glamping|hostal|cabaña/.test(text)) return '🏡';
+  if (/artesani|papeler|tienda|comercio/.test(text)) return '🛍️';
+  return '🏢';
+}
+
 /**
- * Formats Oli's response into WhatsApp-friendly markdown (*bold*, _italic_, clean emojis)
+ * Formats Oli's response into structured "Text Cards" for WhatsApp
+ * with ASCII frame borders, bold headers, highlighted offers, and interactive links.
  */
 export function formatOliResponseForWhatsApp(response: OliPlanResponse): string {
   const parts: string[] = [];
 
   if (response.type === 'search') {
     parts.push(`🤖 *OLI · Asistente Oficial OleVeci*\n`);
-    parts.push(response.spokenText);
+    if (response.spokenText) {
+      parts.push(`${response.spokenText}\n`);
+    }
 
     if (response.matchedBusinesses && response.matchedBusinesses.length > 0) {
-      parts.push(`\n🏢 *Comercios Recomendados:*`);
-      response.matchedBusinesses.forEach((biz, idx) => {
-        parts.push(`\n*${idx + 1}. ${biz.name}*`);
-        if (biz.city || biz.address) {
-          parts.push(`📍 ${biz.address || ''}${biz.city ? ` (${biz.city})` : ''}`);
+      response.matchedBusinesses.forEach((biz) => {
+        const emoji = getCategoryEmoji(biz.name, biz.subCategory, biz.categoryId);
+        const verifiedTag = biz.verified ? ' (Verificado ✅)' : '';
+        const addressLine = biz.address || (biz.city ? `Sabana Centro (${biz.city})` : 'Sabana Centro');
+        const cleanWa = (biz.whatsapp || biz.phone || '').replace(/\D/g, '');
+        const mapQuery = encodeURIComponent(`${biz.name} ${biz.address || ''} ${biz.city || ''}`.trim());
+
+        // Structured Box Card
+        parts.push(`┌────────────────────────────────┐`);
+        parts.push(`${emoji} *${biz.name.toUpperCase()}*${verifiedTag}`);
+        parts.push(`📍 ${addressLine}`);
+        if (biz.description) {
+          parts.push(`✂️ ${biz.description}`);
         }
-        if (biz.subCategory) {
-          parts.push(`🏷️ ${biz.subCategory}`);
+        parts.push(`└────────────────────────────────┘`);
+
+        // Related or highlighted offers for this business
+        const bizPosts = (response.matchedPosts || []).filter((p) => p.businessId === biz.id);
+        const topPost = bizPosts[0] || (response.matchedPosts && response.matchedPosts.length > 0 ? response.matchedPosts[0] : null);
+
+        if (topPost) {
+          const price = topPost.promotionalPrice || topPost.originalPrice || topPost.approximatePrice;
+          parts.push(`🎁 *OFERTA DESTACADA:*`);
+          parts.push(`• *${topPost.title}:* ${price ? `${formatPriceCOP(price)} COP` : 'Consultar precio'}`);
+          if (topPost.description && topPost.description !== topPost.title) {
+            parts.push(`  _${topPost.description.slice(0, 110)}..._`);
+          }
         }
-        if (biz.hours) {
-          parts.push(`⏰ ${biz.hours}`);
+
+        // Action links
+        if (cleanWa) {
+          parts.push(`💬 *Contactar al negocio:*`);
+          parts.push(`https://wa.me/${cleanWa}`);
         }
-        if (biz.whatsapp) {
-          const cleanWa = biz.whatsapp.replace(/\D/g, '');
-          parts.push(`💬 WhatsApp directo: https://wa.me/${cleanWa}`);
+        parts.push(`📍 *Ver ubicación:*`);
+        parts.push(`https://www.google.com/maps/search/?api=1&query=${mapQuery}\n`);
+      });
+    } else if (response.matchedPosts && response.matchedPosts.length > 0) {
+      response.matchedPosts.forEach((post) => {
+        const price = post.promotionalPrice || post.originalPrice || post.approximatePrice;
+        parts.push(`┌────────────────────────────────┐`);
+        parts.push(`🎁 *${post.title.toUpperCase()}*`);
+        parts.push(`🏢 *${post.businessName || 'Comercio Local'}*`);
+        if (price) {
+          parts.push(`💰 Precio: ${formatPriceCOP(price)} COP`);
         }
-        if (biz.phone && biz.phone !== biz.whatsapp) {
-          parts.push(`📞 Teléfono: ${biz.phone}`);
+        if (post.description) {
+          parts.push(`📝 ${post.description}`);
+        }
+        parts.push(`└────────────────────────────────┘`);
+
+        if (post.businessWhatsapp) {
+          const cleanWa = post.businessWhatsapp.replace(/\D/g, '');
+          parts.push(`💬 *Contactar:* https://wa.me/${cleanWa}\n`);
         }
       });
     }
 
-    if (response.matchedPosts && response.matchedPosts.length > 0) {
-      const topPromo = response.matchedPosts[0];
-      const price = topPromo.promotionalPrice || topPromo.originalPrice || topPromo.approximatePrice;
-      parts.push(`\n🎁 *Oferta destacada en OleVeci:*`);
-      parts.push(`• *${topPromo.title}*`);
-      if (price) {
-        parts.push(`  Precio: *${formatPriceCOP(price)}*`);
-      }
-    }
-
-    parts.push(`\n_Escríbeme si quieres buscar otro comercio o armar un plan en la Sabana._`);
+    parts.push(`_Escríbeme si quieres buscar otro comercio o armar un plan en la Sabana._`);
   } else {
     // Plan response
     parts.push(`🤖 *OLI · Tu Plan en OleVeci*\n`);
@@ -168,47 +213,59 @@ export function formatOliResponseForWhatsApp(response: OliPlanResponse): string 
     parts.push(`📅 ${response.day || 'Fin de semana'} · 👥 ${response.targetAudience || 'En pareja'} (${response.personCount || 1} pers.)\n`);
 
     if (response.spokenText) {
-      parts.push(response.spokenText);
+      parts.push(`${response.spokenText}\n`);
     }
 
     if (response.stops && response.stops.length > 0) {
-      parts.push(`\n📍 *ITINERARIO PASO A PASO:*`);
+      parts.push(`📍 *ITINERARIO PASO A PASO:*\n`);
       response.stops.forEach((stop, idx) => {
-        parts.push(`\n*Parada ${idx + 1} (${stop.time || 'Horario sugerido'}):*`);
+        const cleanWa = (stop.businessWhatsapp || stop.businessPhone || '').replace(/\D/g, '');
+        const mapQuery = encodeURIComponent(`${stop.businessName} ${stop.businessAddress || ''} ${stop.businessCity || ''}`.trim());
+
+        parts.push(`┌────────────────────────────────┐`);
+        parts.push(`${idx + 1}️⃣ *PARADA ${idx + 1} (${stop.time || 'Horario sugerido'})*`);
         parts.push(`🏢 *${stop.businessName}* (${stop.businessCity})`);
         parts.push(`✨ ${stop.postTitle || stop.activity}`);
-        parts.push(`💰 Costo: *${formatPriceCOP(stop.cost)}*`);
+        parts.push(`💰 Costo: ${formatPriceCOP(stop.cost)} COP`);
         if (stop.businessAddress) {
-          parts.push(`📌 Dirección: ${stop.businessAddress}`);
+          parts.push(`📍 ${stop.businessAddress}`);
         }
-        if (stop.businessWhatsapp) {
-          const cleanWa = stop.businessWhatsapp.replace(/\D/g, '');
-          parts.push(`💬 Contacto WhatsApp: https://wa.me/${cleanWa}`);
+        parts.push(`└────────────────────────────────┘`);
+        if (cleanWa) {
+          parts.push(`💬 *WhatsApp:* https://wa.me/${cleanWa}`);
         }
+        parts.push(`📍 *Ubicación:* https://www.google.com/maps/search/?api=1&query=${mapQuery}\n`);
       });
     }
 
     if (response.totalEstimatedCost) {
-      parts.push(`\n💵 *Presupuesto total estimado:* *${formatPriceCOP(response.totalEstimatedCost)}*`);
+      parts.push(`💵 *Presupuesto total estimado:* *${formatPriceCOP(response.totalEstimatedCost)} COP*`);
       if (response.personCount && response.personCount > 1 && response.costPerPerson) {
-        parts.push(`👤 *Por persona:* *${formatPriceCOP(response.costPerPerson)}*`);
+        parts.push(`👤 *Por persona:* *${formatPriceCOP(response.costPerPerson)} COP*`);
       }
     }
 
-    parts.push(`\n_Toca el enlace de WhatsApp de cada comercio para confirmar tu visita o reservar._`);
+    parts.push(`\n_Toca el enlace de cada comercio para contactar o reservar directamente._`);
   }
 
   return parts.join('\n');
 }
 
+export interface WhatsAppInteractiveButton {
+  id: string;
+  title: string;
+}
+
 /**
  * Sends a message back to the user via Meta's WhatsApp Cloud API
+ * Supports both standard text and native interactive buttons (Option D)
  */
 export async function sendWhatsAppMessage(
   toPhoneNumber: string,
   text: string,
   phoneNumberId?: string,
-  accessToken?: string
+  accessToken?: string,
+  buttons?: WhatsAppInteractiveButton[]
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   const token = accessToken || process.env.WHATSAPP_TOKEN;
   const phoneId = phoneNumberId || process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -222,19 +279,45 @@ export async function sendWhatsAppMessage(
 
   try {
     const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
+
+    let bodyPayload: any;
+    if (buttons && buttons.length > 0) {
+      bodyPayload = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: toPhoneNumber,
+        type: 'interactive',
+        interactive: {
+          type: 'button',
+          body: { text },
+          action: {
+            buttons: buttons.slice(0, 3).map((b) => ({
+              type: 'reply',
+              reply: {
+                id: b.id,
+                title: b.title.slice(0, 20),
+              },
+            })),
+          },
+        },
+      };
+    } else {
+      bodyPayload = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: toPhoneNumber,
+        type: 'text',
+        text: { preview_url: true, body: text },
+      };
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: toPhoneNumber,
-        type: 'text',
-        text: { preview_url: true, body: text },
-      }),
+      body: JSON.stringify(bodyPayload),
     });
 
     const data = await response.json();
