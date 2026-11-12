@@ -238,6 +238,87 @@ export function isPlanRefinementIntent(prompt: string, previousPlan?: any): bool
   return refinementSignals.some((sig) => norm.includes(sig));
 }
 
+export function isPureGreeting(prompt: string): boolean {
+  if (!prompt) return false;
+  const clean = prompt
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!clean) return false;
+
+  const exactGreetings = new Set([
+    'hola',
+    'hola veci',
+    'hola oli',
+    'hola oleveci',
+    'buenos dias',
+    'buen dia',
+    'buenas tardes',
+    'buenas noches',
+    'buenas',
+    'buena',
+    'que mas',
+    'que tal',
+    'quiubo',
+    'quiubos',
+    'q mas',
+    'oli',
+    'hey',
+    'alo',
+    'saludos',
+    'como vas',
+    'como estas',
+    'como te va',
+    'hola como estas',
+    'hola como vas',
+    'hola buen dia',
+    'hola buenas tardes',
+    'hola buenas noches',
+    'hola buenas',
+    'buenos dias como estas',
+    'buenas tardes como estas',
+    'buenas noches como estas',
+  ]);
+
+  if (exactGreetings.has(clean)) return true;
+
+  // Si contiene palabras clave de consulta de productos/servicios o planes, no es saludo puro
+  const queryIndicators = [
+    'donde', 'dónde', 'plan', 'parche', 'ruta', 'itinerario', 'comer', 'almorzar',
+    'cenar', 'desayunar', 'tardear', 'tomar', 'pizza', 'hamburguesa', 'cafe',
+    'bar', 'cerveza', 'lavar', 'auto', 'carro', 'taller', 'mecanic', 'barber',
+    'peluquer', 'veterinar', 'postre', 'hotel', 'glamping', 'parque', 'precio',
+    'cuanto', 'cuánto', 'presupuesto', 'recomiend', 'sugier', 'quiero', 'necesito', 'tienen',
+    'hay', 'busco', 'buscar', 'abren', 'horario', 'ubicacion', 'direccion'
+  ];
+
+  const words = clean.split(' ');
+  const hasQueryIndicator = words.some((w) => queryIndicators.some((qi) => w.includes(qi)));
+  if (hasQueryIndicator) return false;
+
+  const startsWithGreeting = Array.from(exactGreetings).some((g) => clean.startsWith(g));
+  if (startsWithGreeting && words.length <= 4) {
+    return true;
+  }
+
+  return false;
+}
+
+export function createGreetingResponse(cityName: string = 'Cajicá'): OliPlanResponse {
+  return {
+    type: 'search',
+    planTitle: '¡Bienvenido a OleVeci!',
+    spokenText: `¡Hola veci! 👋 Soy OLI, tu asistente en OleVeci para Sabana Centro (${cityName}, Chía, Cota, Zipaquirá y más).\n\n¿En qué te puedo ayudar hoy?\n• 🍽️ *Gastronomía y café:* Dónde comer, tardear o pedir a domicilio\n• 🛠️ *Servicios y comercio:* Talleres, barberías, veterinarias o tiendas locales\n• 🗺️ *Planes a tu medida:* Armar un recorrido completo con paradas y presupuesto\n\nCuéntame qué se te antoja o qué buscas hoy y te ayudo al instante.`,
+    matchedBusinesses: [],
+    matchedPosts: [],
+    stops: [],
+  };
+}
+
 export function detectSearchIntent(prompt: string): boolean {
   const norm = normalizeText(prompt);
 

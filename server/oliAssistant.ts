@@ -158,7 +158,7 @@ export function normalizeText(text: string): string {
  * 3. Mentions ALL stops in order without skipping any
  * 4. Clear communication of alternatives or missing catalog items
  */
-import { sanitizeSpokenText, detectSearchFocus } from './oliCatalogEngine';
+import { sanitizeSpokenText, detectSearchFocus, isPureGreeting, createGreetingResponse } from './oliCatalogEngine';
 export { sanitizeSpokenText };
 
 export const SUPPORTED_MUNICIPALITIES = [
@@ -1334,6 +1334,12 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
     catalogBusinesses,
     referenceDate = new Date(),
   } = input;
+
+  // Si el usuario únicamente saluda ("Hola", "Buenas tardes", etc.), responder con bienvenida y opciones claras
+  // sin forzar ni inventar un itinerario o plan no solicitado
+  if (isPureGreeting(userPrompt)) {
+    return createGreetingResponse(currentCity);
+  }
 
   let resolvedBudget = 0;
   const promptBudget = extractBudgetFromPrompt(userPrompt, -1);
@@ -3210,6 +3216,12 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
     catalogBusinesses,
     referenceDate = new Date(),
   } = input;
+
+  // Si el usuario únicamente saluda ("Hola", "Buenas tardes", etc.), responder con bienvenida y opciones claras
+  // sin forzar ni inventar un itinerario o plan no solicitado
+  if (isPureGreeting(userPrompt)) {
+    return createGreetingResponse(currentCity);
+  }
 
   let resolvedBudget = 0;
   const promptBudget = extractBudgetFromPrompt(userPrompt, -1);

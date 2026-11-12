@@ -20,6 +20,7 @@ export interface WhatsAppUserSession {
   lastInteraction: number;
   messageHistory: Array<{ sender: 'user' | 'oli'; text: string }>;
   preferences?: UserPreferences;
+  isClosed?: boolean;
 }
 
 const DB_SESSIONS_FILE = path.join(process.cwd(), 'server', 'db_oli_sessions.json');
@@ -97,18 +98,26 @@ setInterval(() => {
 
 export function getOrCreateSession(phoneNumber: string): WhatsAppUserSession {
   let session = userSessions.get(phoneNumber);
+  const now = Date.now();
   if (!session) {
     session = {
       phoneNumber,
       previousPlan: null,
       lastCity: 'Cajicá',
-      lastInteraction: Date.now(),
+      lastInteraction: now,
       messageHistory: [],
       preferences: {},
+      isClosed: false,
     };
     userSessions.set(phoneNumber, session);
   } else {
-    session.lastInteraction = Date.now();
+    // Si pasaron más de 60 segundos de inactividad, cerramos el contexto anterior
+    if (now - session.lastInteraction > 60 * 1000) {
+      session.previousPlan = null;
+      session.messageHistory = [];
+      session.isClosed = true;
+    }
+    session.lastInteraction = now;
     if (!session.preferences) {
       session.preferences = {};
     }
@@ -185,7 +194,12 @@ export function formatOliResponseForWhatsApp(response: OliPlanResponse): string 
       });
     }
 
-    parts.push(`\n_Escríbeme si quieres buscar otro comercio o armar un plan en la Sabana._`);
+    if (
+      (response.matchedBusinesses && response.matchedBusinesses.length > 0) ||
+      (response.matchedPosts && response.matchedPosts.length > 0)
+    ) {
+      parts.push(`\n_Escríbeme si quieres buscar otro comercio o armar un plan en la Sabana._`);
+    }
   } else {
     // Plan response
     parts.push(`🤖 *OLI · Tu Plan en OleVeci*\n`);

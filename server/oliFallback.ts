@@ -22,6 +22,8 @@ import {
   removeStopAndRecalculatePlan,
   isPlanRefinementIntent,
   createAuditTrace,
+  isPureGreeting,
+  createGreetingResponse,
 } from './oliCatalogEngine';
 
 export function handleRefinementPlan(
@@ -321,6 +323,10 @@ export function generateFallbackOliPlan(input: GenerateOliPlanInput): OliPlanRes
     }
     return true;
   });
+
+  if (isPureGreeting(userPrompt)) {
+    return createGreetingResponse(targetCity);
+  }
 
   if (isRefinement && previousPlan && previousPlan.stops && previousPlan.stops.length > 0) {
     return handleRefinementPlan(input, businessMap, eligiblePosts);

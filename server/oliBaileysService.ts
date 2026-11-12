@@ -3,7 +3,13 @@ import QRCode from 'qrcode';
 import path from 'path';
 import fs from 'fs';
 import { generateOliPlan } from './oliAssistant';
-import { formatOliResponseForWhatsApp, getOrCreateSession, extractAndApplyUserPreferences } from './oliWhatsAppService';
+import {
+  formatOliResponseForWhatsApp,
+  getOrCreateSession,
+  extractAndApplyUserPreferences,
+  debouncedSaveSessions,
+} from './oliWhatsAppService';
+import { isPureGreeting } from './oliCatalogEngine';
 import { Business, Post } from '../src/types';
 
 type WASocket = Baileys.WASocket;
@@ -44,6 +50,45 @@ let isConnecting = false;
 let autoReconnect = true;
 let reconnectTimer: NodeJS.Timeout | null = null;
 let watchdogInterval: NodeJS.Timeout | null = null;
+
+const userInactivityTimers = new Map<string, NodeJS.Timeout>();
+const INACTIVITY_TIMEOUT_MS = 60 * 1000; // 1 minuto de inactividad
+
+function scheduleSessionCloseTimer(remoteJid: string, senderPhone: string) {
+  const prevTimer = userInactivityTimers.get(remoteJid);
+  if (prevTimer) {
+    clearTimeout(prevTimer);
+    userInactivityTimers.delete(remoteJid);
+  }
+
+  const timer = setTimeout(async () => {
+    userInactivityTimers.delete(remoteJid);
+    if (!sock || state.status !== 'connected') return;
+
+    try {
+      const session = getOrCreateSession(senderPhone);
+      if (session.isClosed) return;
+
+      const farewellText =
+        `🤖 *OLI · OleVeci*\n\n` +
+        `¿Sigues por allí, veci? 😊 Por ahora cerraré esta consulta para no incomodarte.\n\n` +
+        `Si necesitas otro plan, buscar un comercio o cualquier dato en la Sabana Centro, solo escríbeme y con gusto iniciamos una nueva consulta. ¡Que tengas un excelente día! 👋`;
+
+      await sock.sendMessage(remoteJid, { text: farewellText });
+      console.log(`[OLI WhatsApp Web] ⏱️ Sesión de +${senderPhone} cerrada por inactividad tras 1 min. Mensaje enviado.`);
+
+      session.isClosed = true;
+      session.previousPlan = null;
+      session.messageHistory = [];
+      session.lastInteraction = Date.now();
+      debouncedSaveSessions();
+    } catch (err) {
+      console.warn(`[OLI WhatsApp Web] Error enviando mensaje de cierre por inactividad a +${senderPhone}:`, err);
+    }
+  }, INACTIVITY_TIMEOUT_MS);
+
+  userInactivityTimers.set(remoteJid, timer);
+}
 
 function scheduleReconnect(delayMs = 3000) {
   if (reconnectTimer) clearTimeout(reconnectTimer);
@@ -348,6 +393,13 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
 
   console.log(`[OLI WhatsApp Web] 📩 Mensaje de +${senderPhone}${isVoiceNote ? ' (Nota de voz)' : ''}: "${cleanText}"`);
 
+  // Cancelar temporizador de inactividad previo si el usuario continuó la conversación
+  const activeTimer = userInactivityTimers.get(remoteJid);
+  if (activeTimer) {
+    clearTimeout(activeTimer);
+    userInactivityTimers.delete(remoteJid);
+  }
+
   // Simulate typing indicator in WhatsApp
   try {
     await sock.readMessages([msg.key]);
@@ -356,6 +408,15 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
 
   // Get or initialize conversational session
   const session = getOrCreateSession(senderPhone);
+
+  // Si la sesión fue cerrada previamente o si el usuario saluda ("hola", etc.),
+  // limpiamos el contexto y planes anteriores para empezar completamente de cero
+  if (session.isClosed || isPureGreeting(cleanText)) {
+    session.previousPlan = null;
+    session.messageHistory = [];
+    session.isClosed = false;
+  }
+
   extractAndApplyUserPreferences(session, cleanText);
 
   const businesses = getBusinessesFn();
@@ -378,6 +439,8 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
   }
   if (oliResponse.stops && oliResponse.stops.length > 0) {
     session.previousPlan = oliResponse;
+  } else if (oliResponse.type === 'search') {
+    session.previousPlan = null;
   }
 
   // Format into WhatsApp markdown
@@ -401,6 +464,9 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
     // (WhatsApp descarta silenciosamente nativeFlowMessage/interactiveMessage en sesiones Baileys MD no oficiales)
     await sock.sendMessage(remoteJid, { text: replyMarkdown });
     console.log(`[OLI WhatsApp Web] 🚀 Respuesta enviada exitosamente a +${senderPhone}`);
+
+    // Programar cierre automático tras 1 minuto de inactividad
+    scheduleSessionCloseTimer(remoteJid, senderPhone);
 
     // Record session conversation log
     if (onLogConversationFn) {
@@ -427,6 +493,10 @@ export async function disconnectBaileys(): Promise<BaileysState> {
     clearTimeout(reconnectTimer);
     reconnectTimer = null;
   }
+  for (const timer of userInactivityTimers.values()) {
+    clearTimeout(timer);
+  }
+  userInactivityTimers.clear();
   if (sock) {
     try {
       await sock.logout();

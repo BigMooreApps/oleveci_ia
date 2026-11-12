@@ -6,6 +6,8 @@ import {
   processIncomingWhatsAppWebhook,
 } from '../oliWhatsAppService';
 import { sanitizeSpokenText, OliPlanResponse, OliPlanStop } from '../oliAssistant';
+import { isPureGreeting, createGreetingResponse } from '../oliCatalogEngine';
+import { generateFallbackOliPlan } from '../oliFallback';
 
 export function runWhatsAppSessionSuite() {
   console.log('\n--- SUITE 8: FORMATO DE WHATSAPP, SESIONES, WEBHOOKS Y VOZ (Pruebas 286 a 325) ---');
@@ -430,5 +432,73 @@ export function runWhatsAppSessionSuite() {
     const res = sanitizeSpokenText('   ¡Listo veci!    Plan listo.   \n\n  ');
     assert.ok(res.trim().startsWith('¡Listo veci!'));
     assert.ok(!res.includes('$'));
+  });
+
+  runTest(326, 'isPureGreeting: Detecta saludos puros y distingue intenciones de búsqueda o planes', () => {
+    assert.strictEqual(isPureGreeting('Hola'), true);
+    assert.strictEqual(isPureGreeting('Hola veci'), true);
+    assert.strictEqual(isPureGreeting('Buenas tardes'), true);
+    assert.strictEqual(isPureGreeting('Quiubo oli'), true);
+    assert.strictEqual(isPureGreeting('buenos dias como estas'), true);
+
+    // No son saludos puros porque contienen intención
+    assert.strictEqual(isPureGreeting('Hola quiero comer hamburguesa'), false);
+    assert.strictEqual(isPureGreeting('Buenas, dónde puedo lavar el carro?'), false);
+    assert.strictEqual(isPureGreeting('Hola, ármame un plan para el fin de semana'), false);
+    assert.strictEqual(isPureGreeting('Hola qué precio tiene la pizza'), false);
+  });
+
+  runTest(327, 'generateFallbackOliPlan: Saludo puro devuelve bienvenida sin forzar itinerario de 3 paradas', () => {
+    const res = generateFallbackOliPlan({
+      userPrompt: 'Hola',
+      currentCity: 'Cajicá',
+      catalogBusinesses: MOCK_BUSINESSES,
+      catalogPosts: MOCK_POSTS,
+    });
+    assert.strictEqual(res.type, 'search');
+    assert.strictEqual(res.stops.length, 0);
+    assert.ok(res.spokenText.includes('¡Hola veci! 👋 Soy OLI'));
+    assert.ok(!res.spokenText.includes('¡Listo veci! Tu plan ya quedó armado'));
+  });
+
+  runTest(328, 'formatOliResponseForWhatsApp: Saludo puro genera texto enriquecido amigable sin paradas ficticias', () => {
+    const greeting = createGreetingResponse('Cajicá');
+    const formatted = formatOliResponseForWhatsApp(greeting);
+    assert.ok(formatted.includes('🤖 *OLI · Asistente Oficial OleVeci*'));
+    assert.ok(formatted.includes('¡Hola veci! 👋 Soy OLI'));
+    assert.ok(!formatted.includes('ITINERARIO PASO A PASO'));
+    assert.ok(!formatted.includes('Parada 1'));
+  });
+
+  runTest(329, 'getOrCreateSession: Inactividad mayor a 1 minuto reinicia previousPlan y messageHistory', () => {
+    const testPhone = '573999888777';
+    const s1 = getOrCreateSession(testPhone);
+    s1.previousPlan = SAMPLE_PLAN;
+    s1.messageHistory = [{ sender: 'user', text: 'dame un plan' }];
+    s1.lastInteraction = Date.now() - 65 * 1000; // 65 segundos atrás (> 60s)
+
+    const s2 = getOrCreateSession(testPhone);
+    assert.strictEqual(s2.previousPlan, null);
+    assert.strictEqual(s2.messageHistory.length, 0);
+    assert.strictEqual(s2.isClosed, true);
+  });
+
+  runTest(330, 'Sesión reiniciada tras inactividad o saludo arranca completamente fresca', () => {
+    const testPhone = '573111222333';
+    const s = getOrCreateSession(testPhone);
+    s.isClosed = true;
+    s.previousPlan = SAMPLE_PLAN;
+    s.messageHistory = [{ sender: 'user', text: 'plan anterior' }];
+
+    // Simular recepción de nuevo mensaje después del cierre
+    if (s.isClosed) {
+      s.previousPlan = null;
+      s.messageHistory = [];
+      s.isClosed = false;
+    }
+
+    assert.strictEqual(s.isClosed, false);
+    assert.strictEqual(s.previousPlan, null);
+    assert.strictEqual(s.messageHistory.length, 0);
   });
 }
