@@ -82,6 +82,26 @@ function scheduleSessionCloseTimer(remoteJid: string, senderPhone: string) {
       session.messageHistory = [];
       session.lastInteraction = Date.now();
       debouncedSaveSessions();
+
+      if (onLogConversationFn) {
+        try {
+          onLogConversationFn({
+            sessionId: `wa_${senderPhone}`,
+            city: session.lastCity || 'Cajicá',
+            userPrompt: '*(Cierre automático por inactividad tras 1 minuto)*',
+            budget: 100000,
+            plan: {
+              type: 'search',
+              spokenText: farewellText,
+              matchedBusinesses: [],
+              matchedPosts: [],
+              stops: [],
+            },
+            replyText: farewellText,
+            channel: 'whatsapp',
+          });
+        } catch {}
+      }
     } catch (err) {
       console.warn(`[OLI WhatsApp Web] Error enviando mensaje de cierre por inactividad a +${senderPhone}:`, err);
     }
@@ -431,6 +451,7 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
     messageHistory: session.messageHistory,
     catalogBusinesses: businesses,
     catalogPosts: posts,
+    channel: 'whatsapp',
   });
 
   // Update session state
@@ -477,6 +498,8 @@ async function handleIncomingMessage(msg: Baileys.proto.IWebMessageInfo) {
           userPrompt: cleanText,
           budget: 100000,
           plan: oliResponse,
+          replyText: replyMarkdown,
+          channel: 'whatsapp',
         });
       } catch (logErr) {
         console.warn('Error recording WhatsApp conversation log:', logErr);

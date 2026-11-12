@@ -127,11 +127,32 @@ export function getOrCreateSession(phoneNumber: string): WhatsAppUserSession {
 }
 
 /**
+ * Cleans spoken text specifically for WhatsApp by replacing UI references (like tapping visual cards)
+ * with natural WhatsApp references (like WhatsApp links, addresses, etc.)
+ */
+export function cleanSpokenTextForWhatsApp(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/[¡!]?puedes tocar la tarjeta( del comercio)? para ver( su ficha completa y)? todos los detalles[\.!]/gi, '¡Abajo tienes su contacto directo de WhatsApp y los detalles para escribirles!')
+    .replace(/[¡!]?puedes tocar la tarjeta( del comercio)? para ver( todos)? los detalles[\.!]/gi, '¡Abajo tienes su contacto directo de WhatsApp!')
+    .replace(/[¡!]?puedes tocar la tarjeta( del comercio)?[\.!]/gi, '¡Abajo encuentras todos los datos!')
+    .replace(/[¡!]?toca la tarjeta( del comercio)? para ver.*?[!\.]/gi, '¡Abajo encuentras todos los datos!')
+    .replace(/las paradas ya se muestran en las tarjetas visuales de abajo\.?/gi, 'abajo tienes el itinerario paso a paso.')
+    .replace(/en pantalla tienes todos los detalles para contactar a cada veci\.?/gi, 'abajo tienes todos los detalles y enlaces de WhatsApp para contactar a cada veci.')
+    .replace(/en pantalla tienes todos los detalles/gi, 'abajo tienes todos los detalles')
+    .replace(/tarjetas? visuales?/gi, 'opciones')
+    .replace(/tarjetas?/gi, 'opciones')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+/**
  * Formats Oli's response into clean, natural WhatsApp rich text (*bold*, _italic_, clean emojis)
  * Avoids broken ASCII boxes and ugly, cluttered URL search parameters.
  */
 export function formatOliResponseForWhatsApp(response: OliPlanResponse): string {
   const parts: string[] = [];
+  const cleanSpoken = cleanSpokenTextForWhatsApp(response.spokenText || '');
 
   if (response.type === 'search') {
     const hasItems =
@@ -142,8 +163,8 @@ export function formatOliResponseForWhatsApp(response: OliPlanResponse): string 
       parts.push(`🤖 *OLI · Asistente Oficial OleVeci*\n`);
     }
 
-    if (response.spokenText) {
-      parts.push(hasItems ? `${response.spokenText}\n` : response.spokenText);
+    if (cleanSpoken) {
+      parts.push(hasItems ? `${cleanSpoken}\n` : cleanSpoken);
     }
 
     if (response.matchedBusinesses && response.matchedBusinesses.length > 0) {
@@ -213,8 +234,8 @@ export function formatOliResponseForWhatsApp(response: OliPlanResponse): string 
     parts.push(`🎉 *${response.planTitle || 'Plan Personalizado en Sabana Centro'}*`);
     parts.push(`📅 ${response.day || 'Fin de semana'} · 👥 ${response.targetAudience || 'En pareja'} (${response.personCount || 1} pers.)\n`);
 
-    if (response.spokenText) {
-      parts.push(`${response.spokenText}\n`);
+    if (cleanSpoken) {
+      parts.push(`${cleanSpoken}\n`);
     }
 
     if (response.stops && response.stops.length > 0) {
@@ -364,6 +385,7 @@ export async function processIncomingWhatsAppWebhook(
       catalogPosts,
       catalogBusinesses,
       messageHistory: session.messageHistory,
+      channel: 'whatsapp',
     });
 
     // Update session state

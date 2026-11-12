@@ -197,6 +197,7 @@ function recordConversationLog(params: {
   userPrompt: string;
   userBudget?: number;
   plan: any;
+  replyText?: string;
 }) {
   try {
     const {
@@ -206,6 +207,7 @@ function recordConversationLog(params: {
       userPrompt,
       userBudget = 0,
       plan,
+      replyText,
     } = params;
 
     const nowIso = new Date().toISOString();
@@ -217,15 +219,18 @@ function recordConversationLog(params: {
       timestamp: nowIso,
     };
 
+    // Para WhatsApp o cuando se suministre replyText, se almacena exactamente todo el texto entregado al usuario
+    const effectiveReply = replyText || plan?.spokenText || '';
+
     const oliMessage = {
       id: `msg_o_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
       sender: 'oli' as const,
-      text: plan.spokenText || '',
+      text: effectiveReply,
       timestamp: nowIso,
-      responseType: plan.type || (plan.stops && plan.stops.length > 0 ? 'plan' : 'search'),
-      stopsCount: plan.stops?.length || 0,
-      stops: plan.stops || [],
-      matchedBusinesses: (plan.matchedBusinesses || []).map((b: any) => ({
+      responseType: plan?.type || (plan?.stops && plan.stops.length > 0 ? 'plan' : 'search'),
+      stopsCount: plan?.stops?.length || 0,
+      stops: plan?.stops || [],
+      matchedBusinesses: (plan?.matchedBusinesses || []).map((b: any) => ({
         id: b.id,
         name: b.name,
         city: b.city,
@@ -240,10 +245,10 @@ function recordConversationLog(params: {
       chatLog.currentCity = currentCity || chatLog.currentCity;
       if (typeof userBudget === 'number' && userBudget > 0) chatLog.userBudget = userBudget;
       chatLog.latestPrompt = userPrompt;
-      chatLog.latestResponse = plan.spokenText || '';
+      chatLog.latestResponse = effectiveReply;
       chatLog.latestResponseType = oliMessage.responseType;
-      chatLog.totalStops = plan.stops?.length || 0;
-      chatLog.matchedBusinessesCount = plan.matchedBusinesses?.length || 0;
+      chatLog.totalStops = plan?.stops?.length || 0;
+      chatLog.matchedBusinessesCount = plan?.matchedBusinesses?.length || 0;
       if (!Array.isArray(chatLog.messages)) chatLog.messages = [];
       chatLog.messages.push(userMessage, oliMessage);
       chatLog.totalTurns = Math.ceil(chatLog.messages.length / 2);
@@ -254,13 +259,13 @@ function recordConversationLog(params: {
         startedAt: nowIso,
         lastUpdatedAt: nowIso,
         currentCity: currentCity || 'Cajicá',
-        userBudget: typeof plan.userBudget === 'number' ? plan.userBudget : (typeof userBudget === 'number' ? userBudget : 0),
+        userBudget: typeof plan?.userBudget === 'number' ? plan.userBudget : (typeof userBudget === 'number' ? userBudget : 0),
         totalTurns: 1,
         latestPrompt: userPrompt,
-        latestResponse: plan.spokenText || '',
+        latestResponse: effectiveReply,
         latestResponseType: oliMessage.responseType,
-        totalStops: plan.stops?.length || 0,
-        matchedBusinessesCount: plan.matchedBusinesses?.length || 0,
+        totalStops: plan?.stops?.length || 0,
+        matchedBusinessesCount: plan?.matchedBusinesses?.length || 0,
         messages: [userMessage, oliMessage],
       };
       conversationLogs.unshift(chatLog);
@@ -837,7 +842,20 @@ app.post(['/api/whatsapp/webhook', '/webhook/whatsapp'], async (req, res) => {
 
     const posts = Array.from(postStore.values());
     const businesses = Array.from(businessStore.values());
-    await processIncomingWhatsAppWebhook(req.body, posts, businesses);
+    const result = await processIncomingWhatsAppWebhook(req.body, posts, businesses);
+    if (result && result.processed && result.replyText && result.recipientPhone) {
+      recordConversationLog({
+        sessionId: `wa_${result.recipientPhone}`,
+        channel: 'whatsapp',
+        currentCity: 'Cajicá',
+        userPrompt: req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body || '',
+        plan: {
+          type: 'search',
+          spokenText: result.replyText,
+        },
+        replyText: result.replyText,
+      });
+    }
   } catch (err) {
     console.error('[WhatsApp Webhook Error]:', err);
   }
@@ -875,6 +893,19 @@ app.post('/api/whatsapp/simulate', async (req, res) => {
     };
 
     const result = await processIncomingWhatsAppWebhook(mockPayload, posts, businesses);
+    if (result && result.processed && result.replyText) {
+      recordConversationLog({
+        sessionId: `wa_${phoneNumber}`,
+        channel: 'whatsapp',
+        currentCity: 'Cajicá',
+        userPrompt: userPrompt.trim(),
+        plan: {
+          type: 'search',
+          spokenText: result.replyText,
+        },
+        replyText: result.replyText,
+      });
+    }
     return res.json(result);
   } catch (err: any) {
     console.error('Error en simulador de WhatsApp:', err);
@@ -1954,11 +1985,12 @@ async function startServer() {
       (record: any) => {
         recordConversationLog({
           sessionId: record.sessionId,
-          channel: 'whatsapp',
+          channel: record.channel || 'whatsapp',
           currentCity: record.city,
           userPrompt: record.userPrompt,
           userBudget: record.budget,
           plan: record.plan,
+          replyText: record.replyText,
         });
       }
     );

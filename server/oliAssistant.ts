@@ -124,6 +124,7 @@ export interface GenerateOliPlanInput {
   referenceDate?: Date;
   apiKey?: string;
   groqApiKey?: string;
+  channel?: 'web' | 'whatsapp';
 }
 
 export function getGenAI(customKey?: string): GoogleGenAI | null {
@@ -2408,7 +2409,7 @@ export function searchBusinessesAndPosts(
 export async function generateOliSearchResponse(
   input: GenerateOliPlanInput
 ): Promise<OliPlanResponse> {
-  const { userPrompt, catalogBusinesses, catalogPosts, currentCity = 'Cajicá', messageHistory = [] } = input;
+  const { userPrompt, catalogBusinesses, catalogPosts, currentCity = 'Cajicá', messageHistory = [], channel = 'web' } = input;
   const targetMunicipality = extractMunicipality(userPrompt, currentCity);
 
   // 1. Prioritize autonomous LLM semantic search via Groq / Gemini cascade
@@ -2482,7 +2483,7 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
 5. SPOKENTEXT:
    - Comienza obligatoriamente con "¡Listo veci!".
    - Sé breve y directo (máximo 2 a 3 oraciones, estilo WhatsApp).
-   - Menciona que puede tocar la tarjeta para ver los detalles del comercio.
+   - ${channel === 'whatsapp' ? 'IMPORTANTE WHATSAPP: NO menciones tarjetas ni pulsar elementos de pantalla (en WhatsApp no existen tarjetas). Puedes decir: "¡Abajo tienes su contacto directo de WhatsApp y los detalles para escribirles!".' : 'Menciona que puede tocar la tarjeta para ver los detalles del comercio.'}
    - PROHIBIDO TOTALMENTE el signo '$'.`;
 
       try {
@@ -2664,7 +2665,7 @@ Genera la respuesta hablada de Oli:
 1. DEBE comenzar estrictamente con "¡Listo veci!".
 2. Responde directamente a lo que preguntó el usuario de forma cálida, cercana y entusiasta.
 3. Menciona el comercio más relevante (${firstBiz.name}), su municipio (${firstBiz.city}), dirección (${firstBiz.address}) y el servicio o precio destacado si aplica.
-4. Menciona que puede tocar la tarjeta del comercio para ver su ficha completa y detalles.
+4. ${channel === 'whatsapp' ? 'IMPORTANTE WHATSAPP: NO menciones tarjetas ni pulsar pantallas (en WhatsApp no existen tarjetas). Indica que abajo encontrará el contacto de WhatsApp y dirección para comunicarse.' : 'Menciona que puede tocar la tarjeta del comercio para ver su ficha completa y detalles.'}
 5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
 6. Máximo 2 o 3 oraciones directas.`;
 
@@ -3215,6 +3216,7 @@ export async function generateOliPlan(input: GenerateOliPlanInput): Promise<OliP
     catalogPosts,
     catalogBusinesses,
     referenceDate = new Date(),
+    channel = 'web',
   } = input;
 
   // Si el usuario únicamente saluda ("Hola", "Buenas tardes", etc.), responder con bienvenida y opciones claras
@@ -3314,12 +3316,12 @@ Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin li
 5. SPOKENTEXT (ESTILO ULTRA-CORTO Y CONCISO):
    - Comienza obligatoriamente con "¡Listo veci!".
    - MÁXIMO 1 A 2 ORACIONES CORTAS (estilo WhatsApp directo y ejecutivo):
-     * Si es plan nuevo: "¡Listo veci! Tu plan ya quedó armado con [N] paradas en [municipio]. En pantalla tienes todos los detalles para contactar a cada veci."
+     * Si es plan nuevo: "${channel === 'whatsapp' ? '¡Listo veci! Tu plan ya quedó armado con [N] paradas en [municipio]. Abajo te dejo el itinerario y los enlaces directos de WhatsApp para contactar a cada veci.' : '¡Listo veci! Tu plan ya quedó armado con [N] paradas en [municipio]. En pantalla tienes todos los detalles para contactar a cada veci.'}"
      * Si es cambio/refinamiento: "¡Listo veci! Ya cambié la [parada X] por [comercio o actividad solicitada]."
      * Si es agregar paradas: "¡Listo veci! Tu plan fue actualizado y ahora tiene [N] paradas."
      * Si es eliminar parada: "¡Listo veci! Ya eliminé esa parada de tu plan."
-     * Si es búsqueda puntual de comercio o servicio: "¡Listo veci! En [municipio] te recomiendo [Comercio], puedes tocar su tarjeta para ver todos los detalles."
-   - PROHIBIDO TERMINANTEMENTE recitar el itinerario o repetir las paradas una por una en este texto; las paradas ya se muestran en las tarjetas visuales de abajo.
+     * Si es búsqueda puntual de comercio o servicio: "${channel === 'whatsapp' ? '¡Listo veci! En [municipio] te recomiendo [Comercio], abajo tienes su contacto directo de WhatsApp y detalles para escribirles.' : '¡Listo veci! En [municipio] te recomiendo [Comercio], puedes tocar su tarjeta para ver todos los detalles.'}"
+   - PROHIBIDO TERMINANTEMENTE recitar el itinerario o repetir las paradas una por una en este texto; las paradas ya se muestran en ${channel === 'whatsapp' ? 'el itinerario de abajo' : 'las tarjetas visuales de abajo'}.
    - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.
 
 6. ESTRUCTURA OBLIGATORIA DEL JSON:
