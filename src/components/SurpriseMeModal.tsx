@@ -406,11 +406,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
         >
           {/* PASO 1: ¿Qué tipo de plan tienes en mente? */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
-                1
-              </span>
-              <span>¿Qué tipo de plan tienes en mente?</span>
+            <label className="text-xs font-semibold text-slate-700 block">
+              ¿Qué tipo de plan tienes en mente?
             </label>
 
             {/* Selector Desplegable Paso 1 */}
@@ -504,11 +501,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
           {/* PASO 2: ¿En dónde te gustaría vivirlo? */}
           <div className="space-y-1.5 pt-3 border-t border-slate-100">
-            <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
-                2
-              </span>
-              <span>¿En dónde te gustaría vivirlo?</span>
+            <label className="text-xs font-semibold text-slate-700 block">
+              ¿En dónde te gustaría vivirlo?
             </label>
 
             {/* Selector Desplegable Paso 2 */}
@@ -646,11 +640,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
           {/* PASO 3: ¿Cuál es tu presupuesto aproximado? */}
           <div className="space-y-1.5 pt-3 border-t border-slate-100">
-            <label className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-[#ff7700] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
-                3
-              </span>
-              <span>¿Cuál es tu presupuesto aproximado?</span>
+            <label className="text-xs font-semibold text-slate-700 block">
+              ¿Cuál es tu presupuesto aproximado?
             </label>
 
             {/* Selector Desplegable Paso 3 */}
