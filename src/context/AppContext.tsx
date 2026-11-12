@@ -46,7 +46,7 @@ import {
   getNextConsecutiveUsername,
 } from '../utils/credentialUtils';
 import { EMOJI_TO_LUCIDE_MAP, isEmoji } from '../utils/postTypeIcons';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import {
   getPostsFromSupabase,
   getBusinessesFromSupabase,
@@ -1005,25 +1005,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return DEFAULT_NAV_MENU_ITEMS;
   });
 
-  // Sync navigation menu visibility with server on mount
+  // Helper para aplicar configuración combinada del menú
+  const applyNavMenuConfig = (incoming: any[]) => {
+    if (!Array.isArray(incoming) || incoming.length === 0) return;
+    setNavMenuItemsState(() => {
+      const merged = DEFAULT_NAV_MENU_ITEMS.map((def) => {
+        const match = incoming.find((p: any) => p.id === def.id);
+        return match ? { ...def, ...match } : def;
+      });
+      try {
+        localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(merged));
+      } catch {}
+      return merged;
+    });
+  };
+
+  // Sync navigation menu visibility with server & Supabase on mount
   useEffect(() => {
+    let synced = false;
     fetch('/api/navigation-menu/config')
       .then((r) => r.json())
       .then((data) => {
         if (data?.success && Array.isArray(data.items) && data.items.length > 0) {
-          setNavMenuItemsState(() => {
-            const merged = DEFAULT_NAV_MENU_ITEMS.map((def) => {
-              const match = data.items.find((p: any) => p.id === def.id);
-              return match ? { ...def, ...match } : def;
-            });
-            try {
-              localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          synced = true;
+          applyNavMenuConfig(data.items);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        // Si la API del servidor no responde (ej: hosting estático en Hostinger), sincronizar directamente con Supabase
+        if (!synced && isSupabaseConfigured && supabase) {
+          supabase
+            .from('app_configs')
+            .select('value')
+            .eq('key', 'nav_menu_config')
+            .maybeSingle()
+            .then(({ data }) => {
+              if (data?.value && Array.isArray(data.value)) {
+                applyNavMenuConfig(data.value);
+              }
+            })
+            .catch(() => {});
+        }
+      });
   }, []);
 
   const updateNavMenuItemVisibility = (id: NavMenuItemId, visible: boolean) => {
@@ -1032,11 +1056,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(updated));
       } catch {}
+
+      // Guardar en servidor local
       fetch('/api/navigation-menu/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: updated }),
       }).catch(() => {});
+
+      // Sincronizar en Supabase
+      if (isSupabaseConfigured && supabase) {
+        supabase
+          .from('app_configs')
+          .upsert({ key: 'nav_menu_config', value: updated, updated_at: new Date().toISOString() })
+          .catch(() => {});
+      }
+
       return updated;
     });
   };
@@ -1046,11 +1081,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(DEFAULT_NAV_MENU_ITEMS));
       } catch {}
+
       fetch('/api/navigation-menu/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: DEFAULT_NAV_MENU_ITEMS }),
       }).catch(() => {});
+
+      if (isSupabaseConfigured && supabase) {
+        supabase
+          .from('app_configs')
+          .upsert({ key: 'nav_menu_config', value: DEFAULT_NAV_MENU_ITEMS, updated_at: new Date().toISOString() })
+          .catch(() => {});
+      }
+
       return DEFAULT_NAV_MENU_ITEMS;
     });
   };
@@ -1060,11 +1104,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       localStorage.setItem(STORAGE_KEYS.NAV_MENU_CONFIG, JSON.stringify(items));
     } catch {}
+
     fetch('/api/navigation-menu/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items }),
     }).catch(() => {});
+
+    if (isSupabaseConfigured && supabase) {
+      supabase
+        .from('app_configs')
+        .upsert({ key: 'nav_menu_config', value: items, updated_at: new Date().toISOString() })
+        .catch(() => {});
+    }
   };
 
   // Filter & Search states

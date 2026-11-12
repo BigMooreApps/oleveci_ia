@@ -348,3 +348,39 @@ ON CONFLICT (id) DO UPDATE SET
     icon_name = EXCLUDED.icon_name,
     description = EXCLUDED.description,
     color = EXCLUDED.color;
+
+-- ==============================================================================
+-- 10. TABLA: CONFIGURACIÓN GENERAL DE LA APP (app_configs)
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.app_configs (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.app_configs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Permitir lectura de app_configs" ON public.app_configs;
+CREATE POLICY "Permitir lectura de app_configs" ON public.app_configs FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Permitir escritura de app_configs" ON public.app_configs;
+CREATE POLICY "Permitir escritura de app_configs" ON public.app_configs FOR ALL USING (true) WITH CHECK (true);
+
+-- Configuración inicial del menú de navegación
+INSERT INTO public.app_configs (key, value, updated_at)
+VALUES (
+    'nav_menu_config',
+    '[
+      {"id": "home", "label": "Home", "subtitle": "Página principal", "visible": true, "order": 1},
+      {"id": "explorer", "label": "Descubrir", "subtitle": "Explorar publicaciones", "visible": true, "order": 2},
+      {"id": "plans", "label": "Itinerarios", "subtitle": "Itinerarios armados", "visible": true, "order": 3},
+      {"id": "directory", "label": "Directorio", "subtitle": "Comercios y servicios locales", "visible": false, "order": 4},
+      {"id": "maps", "label": "Vecis en Maps", "subtitle": "Todos los negocios en el mapa", "visible": true, "order": 5},
+      {"id": "oli", "label": "Asistente OLI", "subtitle": "Planes y recomendaciones con IA", "visible": false, "order": 6},
+      {"id": "notifications", "label": "Notificaciones", "subtitle": "Alertas y novedades", "visible": false, "order": 7},
+      {"id": "merchant", "label": "Registrarse como Veci", "subtitle": "Crea el espacio para tu negocio", "visible": true, "order": 8}
+    ]'::jsonb,
+    NOW()
+)
+ON CONFLICT (key) DO UPDATE 
+SET value = EXCLUDED.value, updated_at = NOW();
