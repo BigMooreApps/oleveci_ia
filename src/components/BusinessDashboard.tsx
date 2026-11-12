@@ -22,6 +22,7 @@ import { NotificationsModal, NotificationItemData } from './common/Notifications
 import {
   Store,
   Plus,
+  BadgePlus,
   Eye,
   MessageCircle,
   MessageSquare,
@@ -857,7 +858,7 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
             title="Registrar o crear otro negocio local"
             aria-label="Crear nuevo negocio"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <BadgePlus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Nuevo Negocio</span>
           </button>
           <button

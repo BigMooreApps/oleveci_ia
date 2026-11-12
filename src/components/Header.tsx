@@ -18,7 +18,7 @@ import {
   Menu,
   X,
   MapPin,
-  Plus,
+  BadgePlus,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -28,6 +28,8 @@ interface HeaderProps {
   isNotificationModalOpen?: boolean;
   onOpenBusinessAuth?: (tab?: 'login' | 'register') => void;
   onOpenOliAssistant?: () => void;
+  isRegisteringBusiness?: boolean;
+  onReturnToDashboard?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +39,8 @@ export const Header: React.FC<HeaderProps> = ({
   isNotificationModalOpen,
   onOpenBusinessAuth,
   onOpenOliAssistant,
+  isRegisteringBusiness = false,
+  onReturnToDashboard,
 }) => {
   const {
     currentRole,
@@ -174,7 +178,16 @@ export const Header: React.FC<HeaderProps> = ({
     handleSelectRole(getFirstVisibleRole());
   };
 
-  const activeItem = roleConfig[currentRole] || roleConfig.home;
+  const isCreatingBusinessActive = Boolean(isRegisteringBusiness);
+  const isMySpaceActive = currentRole === 'business' && !isCreatingBusinessActive;
+
+  const activeItem = isCreatingBusinessActive
+    ? {
+        label: 'Crear nuevo negocio',
+        icon: BadgePlus,
+        iconColor: 'text-emerald-600',
+      }
+    : roleConfig[currentRole] || roleConfig.home;
   const ActiveIcon = activeItem.icon;
 
   return (
@@ -560,9 +573,58 @@ export const Header: React.FC<HeaderProps> = ({
                       <div className="my-1 border-t border-slate-100" />
                     )}
 
-                    {/* Opción comercial: "Registrarse como Veci" para usuarios o "Mi Espacio" si ya es comercio autenticado */}
+                    {/* Sección Comercial & Administración:
+                        1. Crear nuevo negocio (moderno BadgePlus)
+                        2. Mi Espacio (gestión de negocio)
+                        3. Panel Admin (si está autenticado como admin)
+                    */}
                     {isNavVisible('merchant') && (
                       <>
+                        {/* 1. CREAR NUEVO NEGOCIO */}
+                        <button
+                          id="tab-role-create-new-business"
+                          role="menuitem"
+                          type="button"
+                          onClick={() => {
+                            onCloseNotifications?.();
+                            if (onOpenBusinessAuth) {
+                              onOpenBusinessAuth('register');
+                            } else {
+                              window.dispatchEvent(new CustomEvent('oleveci:open-register'));
+                            }
+                            setIsMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                            isCreatingBusinessActive
+                              ? 'bg-emerald-50/90 text-emerald-900 font-bold'
+                              : 'text-slate-700 hover:bg-emerald-50/60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                isCreatingBusinessActive
+                                  ? 'bg-emerald-600 text-white shadow-2xs'
+                                  : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 border border-emerald-200/60 shadow-2xs'
+                              }`}
+                            >
+                              <BadgePlus className="w-4 h-4" />
+                            </div>
+                            <div className="truncate">
+                              <div className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                                Crear nuevo negocio
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-normal">
+                                Registrar comercio local
+                              </div>
+                            </div>
+                          </div>
+                          {isCreatingBusinessActive && (
+                            <Check className="w-4 h-4 text-emerald-600 shrink-0 ml-2" />
+                          )}
+                        </button>
+
+                        {/* 2. MI ESPACIO */}
                         <button
                           id="tab-role-business"
                           role="menuitem"
@@ -570,10 +632,14 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => {
                             onCloseNotifications?.();
                             if (authenticatedBusinessId) {
-                              setCurrentRole('business');
+                              if (onReturnToDashboard) {
+                                onReturnToDashboard();
+                              } else {
+                                setCurrentRole('business');
+                              }
                             } else {
                               if (onOpenBusinessAuth) {
-                                onOpenBusinessAuth('register');
+                                onOpenBusinessAuth('login');
                               } else {
                                 setCurrentRole('business');
                               }
@@ -581,7 +647,7 @@ export const Header: React.FC<HeaderProps> = ({
                             setIsMenuOpen(false);
                           }}
                           className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                            currentRole === 'business'
+                            isMySpaceActive
                               ? 'bg-orange-50/80 text-orange-800 font-bold'
                               : 'text-slate-700 hover:bg-slate-50'
                           }`}
@@ -589,7 +655,7 @@ export const Header: React.FC<HeaderProps> = ({
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div
                               className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                currentRole === 'business'
+                                isMySpaceActive
                                   ? 'bg-[#ff7700] text-white shadow-2xs'
                                   : 'bg-orange-50 text-[#ff7700] group-hover:bg-orange-100'
                               }`}
@@ -598,50 +664,17 @@ export const Header: React.FC<HeaderProps> = ({
                             </div>
                             <div className="truncate">
                               <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                                {authenticatedBusinessId ? 'Mi Espacio' : 'Registrarse como Veci'}
+                                Mi Espacio
                               </div>
                               <div className="text-[10px] text-slate-500 font-normal">
-                                {authenticatedBusinessId ? 'Gestionar mi negocio' : 'Crea el espacio para tu negocio'}
+                                {authenticatedBusinessId ? 'Gestionar mi negocio' : 'Ingresar a mi negocio'}
                               </div>
                             </div>
                           </div>
-                          {currentRole === 'business' && (
+                          {isMySpaceActive && (
                             <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
                           )}
                         </button>
-
-                        {/* Opción para registrar un nuevo negocio cuando ya se está autenticado */}
-                        {authenticatedBusinessId && (
-                          <button
-                            id="tab-role-create-new-business"
-                            role="menuitem"
-                            type="button"
-                            onClick={() => {
-                              onCloseNotifications?.();
-                              if (onOpenBusinessAuth) {
-                                onOpenBusinessAuth('register');
-                              } else {
-                                window.dispatchEvent(new CustomEvent('oleveci:open-register'));
-                              }
-                              setIsMenuOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group text-slate-700 hover:bg-emerald-50/70"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 border border-emerald-200/60 shadow-2xs">
-                                <Plus className="w-4 h-4" />
-                              </div>
-                              <div className="truncate">
-                                <div className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                                  Crear nuevo negocio
-                                </div>
-                                <div className="text-[10px] text-slate-500 font-normal">
-                                  Registrar otro comercio local
-                                </div>
-                              </div>
-                            </div>
-                          </button>
-                        )}
                       </>
                     )}
 

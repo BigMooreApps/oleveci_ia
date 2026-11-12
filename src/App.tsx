@@ -342,6 +342,11 @@ const MainApp: React.FC = () => {
         onOpenNotifications={() => setIsNotificationModalOpen((prev) => !prev)}
         onCloseNotifications={() => setIsNotificationModalOpen(false)}
         isNotificationModalOpen={isNotificationModalOpen}
+        isRegisteringBusiness={showBusinessAuthScreen && businessAuthTab === 'register'}
+        onReturnToDashboard={() => {
+          setShowBusinessAuthScreen(false);
+          setCurrentRole('business');
+        }}
         onOpenBusinessAuth={(tab = 'login') => {
           setBusinessAuthTab(tab);
           setShowBusinessAuthScreen(true);
