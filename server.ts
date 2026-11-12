@@ -34,6 +34,14 @@ app.enable('trust proxy');
 
 app.use(express.json({ limit: '10mb' }));
 
+// Global error handler for malformed JSON payloads to prevent server crash
+app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Cuerpo de solicitud JSON inválido o malformado' });
+  }
+  next(err);
+});
+
 // In-memory store for instant Open Graph crawler resolution (seeded + runtime sync)
 const postStore = new Map<string, Post>();
 const businessStore = new Map<string, Business>();

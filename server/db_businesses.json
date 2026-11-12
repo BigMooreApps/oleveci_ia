@@ -1282,5 +1282,417 @@
       "shares": 38
     },
     "createdAt": "2025-02-16T10:00:00Z"
+  },
+  {
+    "id": "biz_pizzeria_napoles_cajica",
+    "name": "Pizzería Nápoles & Forno Artesanal",
+    "slug": "pizzeria-napoles-cajica",
+    "logo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1579751626657-72bc17010498?w=1000&auto=format&fit=crop&q=80",
+    "description": "Pizzería tradicional italiana al horno de leña, pizzas clásicas de masa madurada, calzones y focaccias en el centro de Cajicá.",
+    "categoryId": "cat_restaurantes",
+    "subCategory": "Pizzería & Forno Artesanal",
+    "address": "Calle 3 # 4-18",
+    "city": "Cajicá",
+    "sector": "Centro",
+    "coordinates": {
+      "lat": 4.9188,
+      "lng": -74.0255
+    },
+    "hours": "Mar - Dom: 1:00 PM - 10:00 PM",
+    "whatsapp": "573124567890",
+    "phone": "3124567890",
+    "email": "contacto@napolespizza.com",
+    "username": "OLE0118",
+    "password": "Veci2026",
+    "instagram": "@napolespizzacajica",
+    "rating": 4.8,
+    "verified": true,
+    "featured": false,
+    "status": "active",
+    "subscription": {
+      "status": "active",
+      "planName": "Plan Directorio OleVeci",
+      "priceCOP": 0,
+      "billingCycle": "monthly",
+      "expiresAt": "2027-01-01T00:00:00.000Z",
+      "autoRenew": true
+    },
+    "metrics": {
+      "views": 320,
+      "whatsappClicks": 45,
+      "mapsClicks": 30,
+      "calls": 12,
+      "shares": 10,
+      "dailyMetrics": {
+        "2026-09-29": {
+          "views": 4,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-09-30": {
+          "views": 5,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-01": {
+          "views": 5,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-02": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-03": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-04": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-05": {
+          "views": 5,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-06": {
+          "views": 5,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-07": {
+          "views": 5,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-08": {
+          "views": 5,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-09": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-10": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-11": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-12": {
+          "views": 5,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-13": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-14": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-15": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-16": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-17": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-18": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-19": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-20": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-21": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-22": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-23": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-24": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-10-25": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-26": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-27": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-28": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-29": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-30": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-10-31": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-11-01": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-11-02": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 0,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-11-03": {
+          "views": 7,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-11-04": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-11-05": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-11-06": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-11-07": {
+          "views": 10,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-11-08": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-11-09": {
+          "views": 6,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-11-10": {
+          "views": 8,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 0,
+          "shares": 0,
+          "qrRedemptions": 0
+        },
+        "2026-11-11": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        },
+        "2026-11-12": {
+          "views": 9,
+          "whatsappClicks": 1,
+          "mapsClicks": 1,
+          "calls": 1,
+          "shares": 1,
+          "qrRedemptions": 0
+        }
+      }
+    },
+    "createdAt": "2025-03-01T10:00:00Z",
+    "suspensionHistory": [],
+    "accessEmail": "pizzeria-napoles-cajica@oleveci.com",
+    "accessPin": "1234",
+    "accessPassword": "Veci2026",
+    "ownerName": "Propietario / Gerente",
+    "ownerPhone": "3124567890"
   }
 ]

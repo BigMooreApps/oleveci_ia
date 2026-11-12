@@ -1035,12 +1035,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .finally(() => {
         // Si la API del servidor no responde (ej: hosting estático en Hostinger), sincronizar directamente con Supabase
         if (!synced && isSupabaseConfigured && supabase) {
-          supabase
-            .from('app_configs')
-            .select('value')
-            .eq('key', 'nav_menu_config')
-            .maybeSingle()
-            .then(({ data }) => {
+          Promise.resolve(
+            supabase
+              .from('app_configs')
+              .select('value')
+              .eq('key', 'nav_menu_config')
+              .maybeSingle()
+          )
+            .then(({ data }: any) => {
               if (data?.value && Array.isArray(data.value)) {
                 applyNavMenuConfig(data.value);
               }
@@ -1066,10 +1068,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // Sincronizar en Supabase
       if (isSupabaseConfigured && supabase) {
-        supabase
-          .from('app_configs')
-          .upsert({ key: 'nav_menu_config', value: updated, updated_at: new Date().toISOString() })
-          .catch(() => {});
+        Promise.resolve(
+          supabase
+            .from('app_configs')
+            .upsert({ key: 'nav_menu_config', value: updated, updated_at: new Date().toISOString() })
+        ).catch(() => {});
       }
 
       return updated;
@@ -1089,10 +1092,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }).catch(() => {});
 
       if (isSupabaseConfigured && supabase) {
-        supabase
-          .from('app_configs')
-          .upsert({ key: 'nav_menu_config', value: DEFAULT_NAV_MENU_ITEMS, updated_at: new Date().toISOString() })
-          .catch(() => {});
+        Promise.resolve(
+          supabase
+            .from('app_configs')
+            .upsert({ key: 'nav_menu_config', value: DEFAULT_NAV_MENU_ITEMS, updated_at: new Date().toISOString() })
+        ).catch(() => {});
       }
 
       return DEFAULT_NAV_MENU_ITEMS;
@@ -1112,10 +1116,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }).catch(() => {});
 
     if (isSupabaseConfigured && supabase) {
-      supabase
-        .from('app_configs')
-        .upsert({ key: 'nav_menu_config', value: items, updated_at: new Date().toISOString() })
-        .catch(() => {});
+      Promise.resolve(
+        supabase
+          .from('app_configs')
+          .upsert({ key: 'nav_menu_config', value: items, updated_at: new Date().toISOString() })
+      ).catch(() => {});
     }
   };
 

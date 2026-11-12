@@ -50,6 +50,18 @@ const formatPriceCOP = (amount?: number | null): string => {
   return `${Math.round(amount).toLocaleString('es-CO')} pesos`;
 };
 
+const formatCleanAddress = (address?: string, city?: string): string => {
+  if (!address && !city) return 'Dirección registrada';
+  if (!address) return city || '';
+  if (!city) return address;
+  const cleanAddr = address.trim();
+  const cleanCity = city.trim();
+  if (cleanAddr.toLowerCase().includes(cleanCity.toLowerCase())) {
+    return cleanAddr;
+  }
+  return `${cleanAddr}, ${cleanCity}`;
+};
+
 interface OliSectionProps {
   onSelectPlan?: (plan: SimulatedReadyPlan) => void;
   onSelectBusiness?: (businessId: string) => void;
@@ -1056,9 +1068,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   const displayAddress = stop.businessAddress || matchingPost.businessAddress || 'Dirección registrada';
                                   const displayCost = stop.cost || matchingPost.promotionalPrice || matchingPost.originalPrice;
 
-                                  const fullAddress = `${displayAddress}${
-                                    displayCity ? `, ${displayCity}` : ''
-                                  }`;
+                                  const fullAddress = formatCleanAddress(displayAddress, displayCity);
 
                                   return (
                                     <div key={sIdx} className="relative pl-6 sm:pl-8">
@@ -1247,302 +1257,82 @@ export const OliSection: React.FC<OliSectionProps> = ({
                     ) : (
                       /* SEARCH / RECOMMENDATION MODE: SEMANTIC DIFFERENTIATION (BUSINESS vs POST) */
                       (() => {
+                        // UNIFIED BUSINESS-FIRST HIERARCHICAL VIEW
+                        // Every search displays the matching business(es), and each business nests its active matching promotions below.
                         const postsList = matchedP || [];
-                        const prevUserMsg = (index > 0 && chatHistory[index - 1]?.sender === 'user')
-                          ? chatHistory[index - 1].text
-                          : '';
+                        const allBusinesses = [...(matchedBiz || [])];
+                        const bizMap = new Map(allBusinesses.map((b) => [b.id, b]));
 
-                        const searchFocus: 'business' | 'post' =
-                          msg.plan?.searchFocus ||
-                          (prevUserMsg ? detectSearchFocus(prevUserMsg) : (matchedBiz.length > 0 && postsList.length === 0 ? 'business' : 'post'));
-
-                        const isBusinessFocus = searchFocus === 'business' && matchedBiz.length > 0;
-
-                        // 1. BUSINESS-FOCUSED VIEW (When user asks for places, establishments, trades, stores, fruvers, etc.)
-                        if (isBusinessFocus) {
-                          const totalCount = matchedBiz.length;
-                          if (totalCount === 0) return null;
-
-                          const isExpanded = expandedResults[index] !== undefined ? expandedResults[index] : false;
-                          const INITIAL_LIMIT = 4;
-                          const displayedBusinesses = isExpanded ? matchedBiz : matchedBiz.slice(0, INITIAL_LIMIT);
-                          const canExpand = totalCount > INITIAL_LIMIT;
-                          const totalRendered = displayedBusinesses.length;
-
-                          return (
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between px-1">
-                                <div className="flex items-center gap-2">
-                                  <Store className="w-4 h-4 text-[#0066FF]" />
-                                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                    Comercios Encontrados
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[11px] text-slate-400 font-medium">
-                                    {totalCount} {totalCount === 1 ? 'comercio' : 'comercios'}
-                                  </span>
-                                  {canExpand && (
-                                    <button
-                                      type="button"
-                                      onClick={() => setExpandedResults((prev) => ({ ...prev, [index]: !isExpanded }))}
-                                      className="text-xs font-bold text-[#0066FF] hover:text-[#0052cc] bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
-                                      title={isExpanded ? 'Mostrar menos comercios' : `Ver todos los ${totalCount} comercios`}
-                                    >
-                                      <span>{isExpanded ? 'Ver menos' : `Ver todos (${totalCount})`}</span>
-                                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-1 gap-3">
-                                {displayedBusinesses.map((biz) => {
-                                  const fullBizAddress = `${biz.address || 'Dirección registrada'}${
-                                    biz.city ? `, ${biz.city}` : ''
-                                  }`;
-                                  const bizPosts = postsList.filter((p) => p.businessId === biz.id);
-
-                                  return (
-                                    <div
-                                      key={biz.id}
-                                      onClick={() => onSelectBusiness?.(biz.id)}
-                                      className="w-full rounded-xl sm:rounded-2xl bg-white hover:bg-slate-50/80 border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3 sm:p-4 space-y-2.5 group select-none cursor-pointer"
-                                      title="Toca para ver el perfil del comercio"
-                                    >
-                                      {/* Header: Logo, Name, Category, Address */}
-                                      <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
-                                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
-                                          <img
-                                            src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
-                                            alt={biz.name}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        </div>
-
-                                        <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-                                          <div className="flex items-center gap-1.5 flex-wrap">
-                                            <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
-                                              {biz.name}
-                                            </h5>
-                                            {biz.verified && (
-                                              <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                            )}
-                                          </div>
-
-                                          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-500 min-w-0">
-                                            <MapPin className="w-3 h-3 text-[#ff7700] shrink-0" />
-                                            <span className="truncate">{fullBizAddress}</span>
-                                          </div>
-
-                                          {biz.description && (
-                                            <p className="text-[10.5px] sm:text-xs text-slate-600 line-clamp-2 leading-relaxed pt-0.5">
-                                              {biz.description}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-
-                                      {/* Related Products or Promotions if available for this merchant */}
-                                      {bizPosts.length > 0 && (
-                                        <div className="pt-2.5 border-t border-slate-200/80 space-y-1.5">
-                                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                                            Ofertas o especialidades de este comercio:
-                                          </span>
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {bizPosts.map((p) => {
-                                              const pCost = p.promotionalPrice || p.originalPrice;
-                                              return (
-                                                <div
-                                                  key={p.id}
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onSelectPost?.(p);
-                                                  }}
-                                                  className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-300/80 hover:border-blue-400 transition-all flex items-center gap-2.5 cursor-pointer group/post shadow-2xs"
-                                                  title="Toca para ver el anuncio completo"
-                                                >
-                                                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-white shrink-0 relative border border-slate-300/90 shadow-2xs">
-                                                    <img
-                                                      src={p.imageUrl || '/Logo_OleVeci.png'}
-                                                      alt={p.title}
-                                                      className="w-full h-full object-cover group-hover/post:scale-105 transition-transform"
-                                                    />
-                                                    {pCost ? (
-                                                      <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 text-[8.5px] font-black text-emerald-400 text-center py-0.5 truncate leading-none">
-                                                        ${Math.round(pCost).toLocaleString('es-CO')}
-                                                      </div>
-                                                    ) : null}
-                                                  </div>
-                                                  <div className="min-w-0 flex-1">
-                                                    <p className="text-xs font-bold text-slate-900 group-hover/post:text-[#0056d6] truncate">
-                                                      {p.title}
-                                                    </p>
-                                                    {p.description && (
-                                                      <p className="text-[10px] text-slate-600 line-clamp-1">
-                                                        {p.description}
-                                                      </p>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              );
-                                            })}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
+                        // Ensure any business that owns a matched post is in allBusinesses
+                        for (const p of postsList) {
+                          if (!bizMap.has(p.businessId)) {
+                            const found = businesses.find((b) => b.id === p.businessId);
+                            if (found) {
+                              allBusinesses.push(found);
+                              bizMap.set(found.id, found);
+                            }
+                          }
                         }
 
-                        // 2. POST-FOCUSED VIEW (When user asks for a dish, craving, combo, or promo: pizza, burgers, wings, etc.)
-                        const businessesWithPosts = new Set(postsList.map((p) => p.businessId));
-                        const directoryBusinesses = (matchedBiz || []).filter((b) => !businessesWithPosts.has(b.id));
+                        if (allBusinesses.length === 0 && postsList.length === 0) return null;
 
-                        const totalCount = postsList.length + directoryBusinesses.length;
-                        if (totalCount === 0) return null;
+                        // Prioritize businesses that have active matching posts/offers, followed by pure directory businesses
+                        const sortedBusinesses = [...allBusinesses].sort((a, b) => {
+                          const aHasPosts = postsList.some((p) => p.businessId === a.id);
+                          const bHasPosts = postsList.some((p) => p.businessId === b.id);
+                          if (aHasPosts && !bHasPosts) return -1;
+                          if (!aHasPosts && bHasPosts) return 1;
+                          return 0;
+                        });
 
-                        const userAskedForAll =
-                          prevUserMsg.toLowerCase().includes('toda') ||
-                          prevUserMsg.toLowerCase().includes('todo') ||
-                          prevUserMsg.toLowerCase().includes('completo') ||
-                          prevUserMsg.toLowerCase().includes('completa') ||
-                          prevUserMsg.toLowerCase().includes('promocion') ||
-                          prevUserMsg.toLowerCase().includes('oferta') ||
-                          prevUserMsg.toLowerCase().includes('anuncio') ||
-                          prevUserMsg.toLowerCase().includes('descuento');
-
-                        const isExpanded = expandedResults[index] !== undefined
-                          ? expandedResults[index]
-                          : userAskedForAll;
-
+                        const totalCount = sortedBusinesses.length;
+                        const isExpanded = expandedResults[index] !== undefined ? expandedResults[index] : false;
                         const INITIAL_LIMIT = 4;
-                        const displayedPosts = isExpanded ? postsList : postsList.slice(0, INITIAL_LIMIT);
-                        const remainingSlots = Math.max(0, INITIAL_LIMIT - displayedPosts.length);
-                        const displayedBusinesses = isExpanded
-                          ? directoryBusinesses
-                          : (postsList.length === 0 ? directoryBusinesses.slice(0, INITIAL_LIMIT) : directoryBusinesses.slice(0, remainingSlots));
-
-                        const totalRendered = displayedPosts.length + displayedBusinesses.length;
+                        const displayedBusinesses = isExpanded ? sortedBusinesses : sortedBusinesses.slice(0, INITIAL_LIMIT);
                         const canExpand = totalCount > INITIAL_LIMIT;
 
                         return (
                           <div className="space-y-3">
                             <div className="flex items-center justify-between px-1">
                               <div className="flex items-center gap-2">
-                                <Tag className="w-4 h-4 text-[#0066FF]" />
+                                <Store className="w-4 h-4 text-[#0066FF]" />
                                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                  {postsList.length > 0 ? 'Opciones y Anuncios Disponibles' : 'Comercios Encontrados'}
+                                  Comercios Encontrados
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-[11px] text-slate-400 font-medium">
-                                  {totalCount} {totalCount === 1 ? 'opción' : 'opciones'}
+                                  {totalCount} {totalCount === 1 ? 'comercio' : 'comercios'}
                                 </span>
                                 {canExpand && (
                                   <button
                                     type="button"
                                     onClick={() => setExpandedResults((prev) => ({ ...prev, [index]: !isExpanded }))}
                                     className="text-xs font-bold text-[#0066FF] hover:text-[#0052cc] bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
-                                    title={isExpanded ? 'Mostrar menos opciones' : `Ver todas las ${totalCount} opciones`}
+                                    title={isExpanded ? 'Mostrar menos comercios' : `Ver todos los ${totalCount} comercios`}
                                   >
-                                    <span>{isExpanded ? 'Ver menos' : `Ver todas (${totalCount})`}</span>
+                                    <span>{isExpanded ? 'Ver menos' : `Ver todos (${totalCount})`}</span>
                                     {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                                   </button>
                                 )}
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-2.5">
-                              {/* 1. Prioritize Posts / Anuncios */}
-                              {displayedPosts.map((post) => {
-                                const fullPostAddress = `${post.businessAddress || 'Dirección registrada'}${
-                                  post.businessCity ? `, ${post.businessCity}` : ''
-                                }`;
-                                const postCost = post.promotionalPrice || post.originalPrice;
-
-                                return (
-                                  <div
-                                    key={post.id}
-                                    onClick={() => onSelectPost?.(post)}
-                                    className="w-full rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 cursor-pointer group active:scale-[0.99] select-none"
-                                    title="Toca para ver el anuncio completo"
-                                  >
-                                    {/* 1. Encabezado: Imagen con precio + Título y Comercio */}
-                                    <div className="flex items-start gap-2 sm:gap-3">
-                                      {/* Imagen con precio sobrepuesto (estilo OleVeci, compacta en móvil) */}
-                                      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
-                                        <img
-                                          src={post.imageUrl || '/Logo_OleVeci.png'}
-                                          alt={post.title}
-                                          className="w-full h-full object-cover"
-                                        />
-                                        {postCost ? (
-                                          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-xs text-[9px] sm:text-[11px] font-black text-emerald-400 text-center py-0.5 px-0.5 truncate leading-tight">
-                                            ${Math.round(postCost).toLocaleString('es-CO')}
-                                          </div>
-                                        ) : null}
-                                      </div>
-
-                                      {/* Título, Comercio y Dirección con tipografía compacta y ordenada */}
-                                      <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-                                        <div className="flex items-start justify-between gap-1">
-                                          <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words line-clamp-2 sm:line-clamp-none">
-                                            {post.title}
-                                          </h5>
-                                        </div>
-
-                                        {/* Nombre del comercio con icono (ordenado, sin redundancia de municipio) */}
-                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
-                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
-                                          <span className="truncate">{post.businessName}</span>
-                                        </div>
-
-                                        {/* Dirección compacta */}
-                                        <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] text-slate-500 min-w-0">
-                                          <MapPin className="w-2.5 h-2.5 text-[#ff7700] shrink-0" />
-                                          <span className="truncate">{fullPostAddress}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* 2. Cuerpo: Descripción completa a todo lo ancho de la tarjeta */}
-                                    {post.description && (
-                                      <div className="bg-white/70 sm:bg-white/80 rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 border border-slate-200/60 shadow-2xs">
-                                        <p className="text-[10px] sm:text-xs text-slate-600 leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none">
-                                          {post.description}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-
-                              {/* 2. Directory-Only Businesses (Only for businesses without active promotions) */}
-                              {displayedBusinesses.length > 0 && postsList.length > 0 && (
-                                <div className="pt-2 pb-0.5">
-                                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                    Otros comercios recomendados
-                                  </span>
-                                </div>
-                              )}
+                            <div className="grid grid-cols-1 gap-3">
                               {displayedBusinesses.map((biz) => {
-                                const fullBizAddress = `${biz.address || 'Dirección registrada'}${
-                                  biz.city ? `, ${biz.city}` : ''
-                                }`;
+                                const fullBizAddress = formatCleanAddress(biz.address, biz.city);
+                                const bizPosts = postsList.filter((p) => p.businessId === biz.id);
 
                                 return (
                                   <div
                                     key={biz.id}
-                                    className="w-full rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-2 sm:p-3.5 space-y-1.5 sm:space-y-2 cursor-pointer group active:scale-[0.99] select-none"
                                     onClick={() => onSelectBusiness?.(biz.id)}
+                                    className="w-full rounded-xl sm:rounded-2xl bg-white hover:bg-slate-50/80 border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all duration-200 p-3 sm:p-4 space-y-3 group select-none cursor-pointer"
                                     title="Toca para ver el perfil del comercio"
                                   >
-                                    <div className="flex items-start gap-2 sm:gap-3">
-                                      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden bg-white border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
+                                    {/* 1. Header del Comercio: Imagen, Nombre, Verificado, Dirección y Descripción */}
+                                    <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
+                                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-2xs relative group-hover:scale-105 transition-transform">
                                         <img
                                           src={biz.coverImage || biz.logo || '/Logo_OleVeci.png'}
                                           alt={biz.name}
@@ -1550,33 +1340,79 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                         />
                                       </div>
 
-                                      <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-                                        <div className="flex items-start justify-between gap-1">
-                                          <h5 className="text-[11px] sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
+                                      <div className="min-w-0 flex-1 space-y-1">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#0056d6] transition-colors leading-snug break-words">
                                             {biz.name}
                                           </h5>
-                                        </div>
-
-                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-slate-700 min-w-0">
-                                          <Store className="w-3 h-3 text-[#0066FF] shrink-0" />
-                                          <span className="truncate">{biz.name}</span>
                                           {biz.verified && (
-                                            <CheckCircle2 className="w-3 h-3 text-blue-500 shrink-0" />
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                          )}
+                                          {biz.subCategory && (
+                                            <span className="text-[9.5px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                                              {biz.subCategory}
+                                            </span>
                                           )}
                                         </div>
 
-                                        <div className="flex items-center gap-1 text-[9.5px] sm:text-[11px] text-slate-500 min-w-0">
-                                          <MapPin className="w-2.5 h-2.5 text-[#ff7700] shrink-0" />
+                                        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-500 min-w-0">
+                                          <MapPin className="w-3 h-3 text-[#ff7700] shrink-0" />
                                           <span className="truncate">{fullBizAddress}</span>
                                         </div>
+
+                                        {biz.description && (
+                                          <p className="text-[10.5px] sm:text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                                            {biz.description}
+                                          </p>
+                                        )}
                                       </div>
                                     </div>
 
-                                    {biz.description && (
-                                      <div className="bg-white/70 sm:bg-white/80 rounded-lg sm:rounded-xl p-1.5 sm:p-2.5 border border-slate-200/60 shadow-2xs">
-                                        <p className="text-[10px] sm:text-xs text-slate-600 leading-snug sm:leading-relaxed break-words line-clamp-2 sm:line-clamp-none">
-                                          {biz.description}
-                                        </p>
+                                    {/* 2. Ofertas o Especialidades anidadas bajo el comercio */}
+                                    {bizPosts.length > 0 && (
+                                      <div className="pt-2 border-t border-slate-100 space-y-2">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                                          Ofertas o especialidades de este comercio:
+                                        </span>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                          {bizPosts.map((p) => {
+                                            const pCost = p.promotionalPrice || p.originalPrice;
+                                            return (
+                                              <div
+                                                key={p.id}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  onSelectPost?.(p);
+                                                }}
+                                                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/90 border border-slate-200/90 hover:border-blue-400 transition-all flex items-center gap-2.5 cursor-pointer group/post shadow-2xs"
+                                                title="Toca para ver el anuncio completo"
+                                              >
+                                                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-white shrink-0 relative border border-slate-200 shadow-2xs">
+                                                  <img
+                                                    src={p.imageUrl || '/Logo_OleVeci.png'}
+                                                    alt={p.title}
+                                                    className="w-full h-full object-cover group-hover/post:scale-105 transition-transform"
+                                                  />
+                                                  {pCost ? (
+                                                    <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 text-[8.5px] sm:text-[9.5px] font-black text-emerald-400 text-center py-0.5 truncate leading-none">
+                                                      ${Math.round(pCost).toLocaleString('es-CO')}
+                                                    </div>
+                                                  ) : null}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                  <p className="text-xs font-bold text-slate-900 group-hover/post:text-[#0056d6] truncate">
+                                                    {p.title}
+                                                  </p>
+                                                  {p.description && (
+                                                    <p className="text-[10px] text-slate-600 line-clamp-2 leading-tight">
+                                                      {p.description}
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
@@ -1584,7 +1420,7 @@ export const OliSection: React.FC<OliSectionProps> = ({
                               })}
                             </div>
 
-                            {/* Expand / Collapse Button at bottom when there are more items */}
+                            {/* Botón inferior si hay más comercios */}
                             {canExpand && (
                               <div className="pt-1">
                                 <button
@@ -1595,14 +1431,12 @@ export const OliSection: React.FC<OliSectionProps> = ({
                                   {isExpanded ? (
                                     <>
                                       <ChevronUp className="w-4 h-4 text-[#0066FF]" />
-                                      <span>Mostrar menos opciones (ver solo las primeras {INITIAL_LIMIT})</span>
+                                      <span>Mostrar menos comercios</span>
                                     </>
                                   ) : (
                                     <>
                                       <ChevronDown className="w-4 h-4 text-[#0066FF]" />
-                                      <span>
-                                        Ver todas las {totalCount} opciones y promociones disponibles ({totalCount - totalRendered} más)
-                                      </span>
+                                      <span>Ver todos los {totalCount} comercios</span>
                                     </>
                                   )}
                                 </button>

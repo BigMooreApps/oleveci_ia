@@ -2404,6 +2404,90 @@ export function searchBusinessesAndPosts(
 }
 
 /**
+ * Two-Tier Retrieval Architecture:
+ * Tier 1: Businesses with active matching promotions/posts (already in matchedBusinesses).
+ * Tier 2: Verified businesses from the local directory matching the specific requested offering/category in the target municipality,
+ *         even if they do not currently have active promotional flyers/posts.
+ */
+export function enrichWithDirectoryBusinesses(
+  matchedBusinesses: Business[],
+  matchedPosts: Post[],
+  catalogBusinesses: Business[],
+  targetMunicipality: string,
+  userPrompt: string
+): Business[] {
+  const result = [...matchedBusinesses];
+  const seenIds = new Set(result.map((b) => b.id));
+  const targetCityNorm = normalizeText(targetMunicipality);
+
+  // 1. Identify primary categories and subcategories of matched items
+  const primaryCategories = new Set<string>();
+  const primarySubCategories = new Set<string>();
+  for (const b of result) {
+    if (b.categoryId) primaryCategories.add(b.categoryId);
+    if (b.subCategory) primarySubCategories.add(normalizeText(b.subCategory));
+  }
+  for (const p of matchedPosts) {
+    if (p.categoryId) primaryCategories.add(p.categoryId);
+    if (p.planCategoryName) primarySubCategories.add(normalizeText(p.planCategoryName));
+  }
+
+  // 2. Extract semantic keywords from user prompt (e.g. "pizza", "burger", "hamburguesa", "taller", "veterinaria")
+  const promptNorm = normalizeText(userPrompt);
+  const promptKeywords = promptNorm
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(
+      (w) =>
+        w.length >= 4 &&
+        !SPANISH_STOP_WORDS.has(w) &&
+        !['quiero', 'comer', 'donde', 'entonces', 'favor', 'buenas', 'tarde', 'noche', 'veci'].includes(w)
+    );
+
+  const isBroadCategorySearch =
+    promptKeywords.length === 0 ||
+    promptNorm.includes('restaurante') ||
+    promptNorm.includes('almorzar') ||
+    promptNorm.includes('almuerzo') ||
+    promptNorm.includes('cenar') ||
+    promptNorm.includes('comida') ||
+    promptNorm.includes('donde comer');
+
+  // 3. Scan catalog for additional verified businesses in the target municipality
+  for (const b of catalogBusinesses) {
+    if (seenIds.has(b.id)) continue;
+    if (b.status === 'suspended' || b.id === 'biz_oleveci' || b.name === 'OleVeci') continue;
+
+    const bCityNorm = normalizeText(b.city);
+    if (bCityNorm !== targetCityNorm) continue;
+
+    const bSubNorm = normalizeText(b.subCategory || '');
+    const bDescNorm = normalizeText(b.description || '');
+    const bNameNorm = normalizeText(b.name || '');
+
+    // Check if business matches specific query keywords (e.g. "pizza")
+    const matchesKeyword =
+      promptKeywords.length > 0 &&
+      promptKeywords.some((kw) => bNameNorm.includes(kw) || bSubNorm.includes(kw) || bDescNorm.includes(kw));
+
+    // Or check if it shares subcategory
+    const matchesSubCategory = Array.from(primarySubCategories).some(
+      (sc) => bSubNorm.includes(sc) || sc.includes(bSubNorm)
+    );
+
+    // Or if broad category search, match by category
+    const matchesBroadCategory = isBroadCategorySearch && primaryCategories.has(b.categoryId);
+
+    if (matchesKeyword || matchesSubCategory || matchesBroadCategory) {
+      result.push(b);
+      seenIds.add(b.id);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Search response generator (Section 4.A)
  */
 export async function generateOliSearchResponse(
@@ -2478,11 +2562,20 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
 3. MUNICIPIO Y TRANSPARENCIA:
    - Si en el municipio solicitado (${targetMunicipality}) NO existe un comercio que ofrezca ese servicio exacto, indícalo con total amabilidad y honestidad en spokenText.
    - Si en un municipio vecino cercano (ej: Chía si pidieron Cajicá) sí existe un comercio que ofrece exactamente ese servicio, selecciónalo en 'selectedBusinessIds' y cuéntaselo al usuario amablemente en 'spokenText'.
-4. CONSISTENCIA DE PUBLICACIONES:
-   - En 'selectedPostIds' pon ÚNICAMENTE publicaciones que REALMENTE correspondan a lo solicitado. Si ninguna publicación aplica o no hay publicaciones del servicio específico, 'selectedPostIds' DEBE ser un arreglo vacío []. NUNCA incluyas ofertas de lavado cuando pidieron mecánica, ni ofertas de té cuando pidieron café.
+4. CONSISTENCIA DE PUBLICACIONES Y DIRECTORIO:
+   - 'selectedPostIds': Pon TODAS las publicaciones que correspondan a lo solicitado. Si un comercio tiene varias publicaciones o promociones relevantes (ej: 2 opciones de pizza), ¡INCLÚYELAS TODAS! NUNCA selecciones solo una si ambas aplican.
+   - 'selectedBusinessIds': Incluye el comercio o comercios dueños de las publicaciones encontradas. Y si en el catálogo hay otros comercios en ese municipio que ofrezcan ese mismo rubro o comida (incluso marcados como 'Sin anuncios activos (Directorio comercial)'), inclúyelos también en 'selectedBusinessIds' para que aparezcan en el directorio local.
 5. SPOKENTEXT:
    - Comienza obligatoriamente con "¡Listo veci!".
-   - ${channel === 'whatsapp' ? 'IMPORTANTE WHATSAPP: Debe ser UNA SOLA frase introductoria ultra-corta que termine en "te recomiendo" (ejemplo: "¡Listo veci! Para que te tomes una buena cervecita, te recomiendo"). PROHIBIDO TERMINANTEMENTE repetir direcciones, barrios, horarios, teléfonos, precios ni ofertas en este texto.' : 'Sé breve y directo (máximo 2 a 3 oraciones, estilo amigable). Menciona que puede tocar la tarjeta para ver los detalles del comercio.'}
+   - ${
+     channel === 'whatsapp'
+       ? 'IMPORTANTE WHATSAPP: Debe ser UNA SOLA frase introductoria ultra-corta que termine en "te recomiendo" (ejemplo: "¡Listo veci! Para comer pizza en Cajicá, te recomiendo:"). PROHIBIDO TERMINANTEMENTE repetir direcciones, barrios, horarios, teléfonos, precios ni ofertas en este texto.'
+       : `Responde directamente de forma cálida, cercana y entusiasta (1 a 2 oraciones):
+         * Si el comercio principal ofrece múltiples opciones o publicaciones activas, destaca con naturalidad que tiene varias opciones disponibles (ejemplo: "Pizzería Bella Sabana cuenta con deliciosas opciones a la leña y gourmet"). PROHIBIDO hablar de una sola como si fuera la única.
+         * Si hay otros comercios afines en el directorio local, menciónalos brevemente (ejemplo: "Además, en el directorio local también cuentas con...").
+         * PROHIBIDO TERMINANTEMENTE recitar direcciones completas o precios exactos en este texto; esos datos ya se muestran visualmente en las tarjetas de abajo.
+         * Saluda al inicio con "¡Listo veci!" y NO repitas la palabra "veci" al final de la frase.`
+   }
    - PROHIBIDO TOTALMENTE el signo '$'.`;
 
       try {
@@ -2515,6 +2608,16 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
             }
           }
 
+          // Two-Tier Retrieval: Ensure other verified businesses in the target municipality
+          // sharing the primary category/rubro are included as directory alternatives
+          const enrichedBusinesses = enrichWithDirectoryBusinesses(
+            matchedBusinesses,
+            matchedPosts,
+            catalogBusinesses,
+            parsed.targetMunicipality || targetMunicipality,
+            userPrompt
+          );
+
           const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
 
           return {
@@ -2523,7 +2626,7 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
             spokenText: spokenClean,
             searchQuery: userPrompt,
             targetMunicipality,
-            matchedBusinesses,
+            matchedBusinesses: enrichedBusinesses,
             matchedPosts,
             isAlternativeSuggestion: !parsed.exactMatchInRequestedCity,
             alternativeNotice: !parsed.exactMatchInRequestedCity ? parsed.understanding : undefined,
@@ -2597,7 +2700,7 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
     if (ai) {
       try {
         const noMatchRes = await ai.models.generateContent({
-          model: 'gemini-3.8-flash',
+          model: 'gemini-2.5-flash',
           contents: `El usuario preguntó en OleVeci: "${userPrompt}" para el municipio "${targetMunicipality}".
 No hay comercios registrados exactamente para esa búsqueda.
 Responde como Oli (asistente de voz oficial de OleVeci en Colombia):
@@ -2666,13 +2769,14 @@ ${
   channel === 'whatsapp'
     ? '2. IMPORTANTE WHATSAPP: Debe ser UNA SOLA frase ultra-corta de introducción que termine en "te recomiendo" (ejemplo: "¡Listo veci! Para que te tomes una buena cervecita, te recomiendo"). PROHIBIDO TERMINANTEMENTE repetir direcciones, horarios, precios ni ofertas aquí.'
     : `2. Responde directamente a lo que preguntó el usuario de forma cálida, cercana y entusiasta.
-3. Menciona el comercio más relevante (${firstBiz.name}), su municipio (${firstBiz.city}), dirección (${firstBiz.address}) y el servicio o precio destacado si aplica.
-4. Menciona que puede tocar la tarjeta del comercio para ver su ficha completa y detalles.`
+3. Menciona el comercio más relevante (${firstBiz.name}) en ${firstBiz.city}. Si cuenta con varias opciones o publicaciones activas, destaca que tiene varias opciones disponibles para elegir.
+4. NO recites direcciones completas ni precios exactos aquí, ya que el usuario los ve con claridad en las tarjetas visuales de abajo.
+5. No repitas la palabra "veci" al final si ya saludaste al inicio.`
 }
 5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
-6. Máximo 1 a 2 oraciones directas.`;
+6. Máximo 1 a 2 oraciones directas y conversacionales.`;
 
-      for (const modelName of ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']) {
+      for (const modelName of ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3.8-flash']) {
         try {
           const aiResponse = await ai.models.generateContent({
             model: modelName,
@@ -2806,8 +2910,9 @@ async function callGroqWithFallback(
   if (!key || key.trim().length === 0) return null;
 
   const candidateModels = [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
+    'openai/gpt-oss-120b',
+    'qwen/qwen3.8-27b',
+    'allam-2-7b',
   ];
 
   for (const model of candidateModels) {
@@ -2877,9 +2982,9 @@ async function callGeminiWithModelFallback(
 ): Promise<{ text: string; modelUsed: string }> {
   // Candidate models: cascade from fastest active models to resilient fallbacks
   const candidateModels = [
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
-    'gemini-1.5-pro',
+    'gemini-2.5-flash',
+    'gemini-2.5-pro',
+    'gemini-3.8-flash',
   ];
   let lastError: any = null;
 
@@ -2926,7 +3031,7 @@ async function callLLMWithFallback(
   geminiSchema: any,
   groqKey?: string
 ): Promise<{ text: string; modelUsed: string; provider: 'groq' | 'gemini' }> {
-  const preferred = process.env.OLI_PROVIDER || 'groq';
+  const preferred = process.env.OLI_PROVIDER || 'gemini';
 
   // If Gemini is preferred, try Gemini first
   if (preferred === 'gemini' && aiInstance) {
@@ -2986,7 +3091,7 @@ function fillMissingPromptStops(
   previousPlan?: any
 ): void {
   const normPrompt = normalizeText(userPrompt);
-  let desiredCount = extractDesiredStopCount(userPrompt);
+  let desiredCount = 3;
 
   if (previousPlan?.stops && previousPlan.stops.length > 0) {
     const isAdd =
@@ -2997,29 +3102,44 @@ function fillMissingPromptStops(
       normPrompt.includes('suma') ||
       normPrompt.includes('meter');
     if (isAdd) {
-      desiredCount = Math.max(desiredCount, previousPlan.stops.length + 1);
+      desiredCount = previousPlan.stops.length + 1;
     } else if (
-      !normPrompt.includes('quita') &&
-      !normPrompt.includes('elimina') &&
-      !normPrompt.includes('borra')
+      normPrompt.includes('quita') ||
+      normPrompt.includes('elimina') ||
+      normPrompt.includes('borra')
     ) {
-      desiredCount = Math.max(desiredCount, previousPlan.stops.length);
+      desiredCount = Math.max(1, previousPlan.stops.length - 1);
+    } else {
+      desiredCount = previousPlan.stops.length;
     }
+  } else {
+    desiredCount = extractDesiredStopCount(userPrompt);
   }
 
-  // Detect unwanted item that user explicitly rejected (e.g. "incluiste hamburguesa pero quiero es pizza")
+  // Detect unwanted item that user explicitly rejected (e.g. "en vez de hamburguesa quiero pizza")
   let unwantedKey: string | null = null;
   if (
-    normPrompt.includes('pero quiero') ||
-    normPrompt.includes('quiero es') ||
-    normPrompt.includes('cambia') ||
-    normPrompt.includes('en vez de') ||
-    normPrompt.includes('incluiste') ||
-    normPrompt.includes('pusiste')
+    normPrompt.includes('en vez de hamburguesa') ||
+    normPrompt.includes('en vez de burger') ||
+    normPrompt.includes('cambia la hamburguesa') ||
+    normPrompt.includes('quita la hamburguesa') ||
+    (normPrompt.includes('incluiste hamburguesa') && normPrompt.includes('quiero'))
   ) {
-    if (normPrompt.includes('hamburguesa') || normPrompt.includes('burger')) unwantedKey = 'burger';
-    else if (normPrompt.includes('pollo')) unwantedKey = 'pollo';
-    else if (normPrompt.includes('pizza')) unwantedKey = 'pizza';
+    unwantedKey = 'burger';
+  } else if (
+    normPrompt.includes('en vez de pollo') ||
+    normPrompt.includes('cambia el pollo') ||
+    normPrompt.includes('quita el pollo') ||
+    (normPrompt.includes('incluiste pollo') && normPrompt.includes('quiero'))
+  ) {
+    unwantedKey = 'pollo';
+  } else if (
+    normPrompt.includes('en vez de pizza') ||
+    normPrompt.includes('cambia la pizza') ||
+    normPrompt.includes('quita la pizza') ||
+    (normPrompt.includes('incluiste pizza') && normPrompt.includes('quiero'))
+  ) {
+    unwantedKey = 'pizza';
   }
 
   // If coherentStops contains an unwanted stop, remove it to make room for the desired stop
@@ -3323,7 +3443,12 @@ Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin li
      * Si es cambio/refinamiento: "¡Listo veci! Ya cambié la [parada X] por [comercio o actividad solicitada]."
      * Si es agregar paradas: "¡Listo veci! Tu plan fue actualizado y ahora tiene [N] paradas."
      * Si es eliminar parada: "¡Listo veci! Ya eliminé esa parada de tu plan."
-     * Si es búsqueda puntual de comercio o servicio: "${channel === 'whatsapp' ? '¡Listo veci! Para lo que buscas en [municipio], te recomiendo' : '¡Listo veci! En [municipio] te recomiendo [Comercio], puedes tocar su tarjeta para ver todos los detalles.'}"
+     * Si es búsqueda puntual de comercio, comida o servicio:
+        - Si el comercio destacado tiene varias opciones o publicaciones activas, destaca que tiene varias opciones para elegir (ejemplo: "Pizzería Bella Sabana tiene opciones a la leña y gourmet"). NUNCA menciones solo una si tiene varias.
+        - Si en el catálogo existen otros comercios afines o del mismo rubro en el municipio (incluso sin ofertas activas hoy), inclúyelos en 'selectedBusinessIds' y menciónalos brevemente como alternativas disponibles en el directorio (ejemplo: "Además, en el directorio local también cuentas con...").
+        - PROHIBIDO TERMINANTEMENTE recitar direcciones completas o precios exactos en este texto; esos datos ya se muestran con claridad en las tarjetas de abajo.
+        - Saluda al inicio con "¡Listo veci!" y NO repitas la palabra "veci" al final de la frase.
+        - Si el usuario usa palabras de transición ("entonces", "bueno", "ahora"), reconoce la transición con naturalidad y cercanía.
    - PROHIBIDO TERMINANTEMENTE recitar el itinerario o repetir las paradas una por una en este texto; las paradas ya se muestran en ${channel === 'whatsapp' ? 'el itinerario de abajo' : 'las tarjetas visuales de abajo'}.
    - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.
 
@@ -3472,6 +3597,16 @@ ${catalogSummaryText}`;
             }
           }
 
+          // Two-Tier Retrieval: Ensure other verified businesses in the target municipality
+          // sharing the primary category/rubro are included as directory alternatives
+          const enrichedBusinesses = enrichWithDirectoryBusinesses(
+            matchedBusinesses,
+            matchedPosts,
+            catalogBusinesses,
+            parsed.targetMunicipality || targetCity,
+            userPrompt
+          );
+
           const spokenClean = sanitizeSpokenText(parsed.spokenText || '', [], false, true);
 
           return returnAndCache({
@@ -3480,7 +3615,7 @@ ${catalogSummaryText}`;
             spokenText: spokenClean,
             searchQuery: userPrompt,
             targetMunicipality: parsed.targetMunicipality || targetCity,
-            matchedBusinesses,
+            matchedBusinesses: enrichedBusinesses,
             matchedPosts,
             isAlternativeSuggestion: parsed.isAlternativeSuggestion ?? !parsed.exactMatchInRequestedCity,
             alternativeNotice: parsed.alternativeNotice || (!parsed.exactMatchInRequestedCity ? parsed.understanding : undefined),
@@ -3745,7 +3880,7 @@ export async function generateOliSpeechAudio(spokenText: string): Promise<Buffer
     const cleanText = sanitizeCurrencyText(spokenText).trim();
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-2.5-flash-preview-tts',
       contents: [
         {
           role: 'user',

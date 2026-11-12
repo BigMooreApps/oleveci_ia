@@ -1220,6 +1220,50 @@ export const INITIAL_BUSINESSES: Business[] = [
       "shares": 38
     },
     "createdAt": "2025-02-16T10:00:00Z"
+  },
+  {
+    "id": "biz_pizzeria_napoles_cajica",
+    "name": "Pizzería Nápoles & Forno Artesanal",
+    "slug": "pizzeria-napoles-cajica",
+    "logo": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1579751626657-72bc17010498?w=1000&auto=format&fit=crop&q=80",
+    "description": "Pizzería tradicional italiana al horno de leña, pizzas clásicas de masa madurada, calzones y focaccias en el centro de Cajicá.",
+    "categoryId": "cat_restaurantes",
+    "subCategory": "Pizzería & Forno Artesanal",
+    "address": "Calle 3 # 4-18",
+    "city": "Cajicá",
+    "sector": "Centro",
+    "coordinates": {
+      "lat": 4.9188,
+      "lng": -74.0255
+    },
+    "hours": "Mar - Dom: 1:00 PM - 10:00 PM",
+    "whatsapp": "573124567890",
+    "phone": "3124567890",
+    "email": "contacto@napolespizza.com",
+    "username": "OLE0118",
+    "password": "Veci2026",
+    "instagram": "@napolespizzacajica",
+    "rating": 4.8,
+    "verified": true,
+    "featured": false,
+    "status": "active",
+    "subscription": {
+      "status": "active",
+      "planName": "Plan Directorio OleVeci",
+      "priceCOP": 0,
+      "billingCycle": "monthly",
+      "expiresAt": "2027-01-01T00:00:00.000Z",
+      "autoRenew": true
+    },
+    "metrics": {
+      "views": 320,
+      "whatsappClicks": 45,
+      "mapsClicks": 30,
+      "calls": 12,
+      "shares": 10
+    },
+    "createdAt": "2025-03-01T10:00:00Z"
   }
 ];
 
