@@ -301,7 +301,7 @@ export const AdminDashboard: React.FC = () => {
     },
     {
       id: 'nav_menu',
-      label: 'Menú Público',
+      label: 'Menú',
       icon: Menu,
     },
     {
