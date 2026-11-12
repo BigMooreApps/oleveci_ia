@@ -173,6 +173,7 @@ export function runWhatsAppSessionSuite() {
 
   runTest(301, 'getOrCreateSession: Historial de mensajes se preserva ordenado', () => {
     const s = getOrCreateSession('573005556677');
+    s.messageHistory = [];
     s.messageHistory.push({ sender: 'user', text: 'Hola veci' });
     s.messageHistory.push({ sender: 'oli', text: '¡Listo veci!' });
     assert.strictEqual(s.messageHistory.length, 2);
