@@ -457,15 +457,17 @@ export function runWhatsAppSessionSuite() {
     });
     assert.strictEqual(res.type, 'search');
     assert.strictEqual(res.stops.length, 0);
-    assert.ok(res.spokenText.includes('¡Hola veci! 👋 Soy OLI'));
+    assert.ok(res.spokenText.includes('¡Hola Veci! Soy Oli, tu asistente en OleVeci'));
     assert.ok(!res.spokenText.includes('¡Listo veci! Tu plan ya quedó armado'));
   });
 
   runTest(328, 'formatOliResponseForWhatsApp: Saludo puro genera texto enriquecido amigable sin paradas ficticias', () => {
     const greeting = createGreetingResponse('Cajicá');
     const formatted = formatOliResponseForWhatsApp(greeting);
-    assert.ok(formatted.includes('🤖 *OLI · Asistente Oficial OleVeci*'));
-    assert.ok(formatted.includes('¡Hola veci! 👋 Soy OLI'));
+    assert.strictEqual(
+      formatted.trim(),
+      '¡Hola Veci! Soy Oli, tu asistente en OleVeci. Cuéntame qué se te antoja o qué buscas hoy y te ayudo al instante.'
+    );
     assert.ok(!formatted.includes('ITINERARIO PASO A PASO'));
     assert.ok(!formatted.includes('Parada 1'));
   });

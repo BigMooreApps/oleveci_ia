@@ -312,7 +312,7 @@ export function createGreetingResponse(cityName: string = 'Cajicá'): OliPlanRes
   return {
     type: 'search',
     planTitle: '¡Bienvenido a OleVeci!',
-    spokenText: `¡Hola veci! 👋 Soy OLI, tu asistente en OleVeci para Sabana Centro (${cityName}, Chía, Cota, Zipaquirá y más).\n\n¿En qué te puedo ayudar hoy?\n• 🍽️ *Gastronomía y café:* Dónde comer, tardear o pedir a domicilio\n• 🛠️ *Servicios y comercio:* Talleres, barberías, veterinarias o tiendas locales\n• 🗺️ *Planes a tu medida:* Armar un recorrido completo con paradas y presupuesto\n\nCuéntame qué se te antoja o qué buscas hoy y te ayudo al instante.`,
+    spokenText: '¡Hola Veci! Soy Oli, tu asistente en OleVeci. Cuéntame qué se te antoja o qué buscas hoy y te ayudo al instante.',
     matchedBusinesses: [],
     matchedPosts: [],
     stops: [],

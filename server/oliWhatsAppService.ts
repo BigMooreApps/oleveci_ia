@@ -134,9 +134,16 @@ export function formatOliResponseForWhatsApp(response: OliPlanResponse): string 
   const parts: string[] = [];
 
   if (response.type === 'search') {
-    parts.push(`🤖 *OLI · Asistente Oficial OleVeci*\n`);
+    const hasItems =
+      (response.matchedBusinesses && response.matchedBusinesses.length > 0) ||
+      (response.matchedPosts && response.matchedPosts.length > 0);
+
+    if (hasItems) {
+      parts.push(`🤖 *OLI · Asistente Oficial OleVeci*\n`);
+    }
+
     if (response.spokenText) {
-      parts.push(`${response.spokenText}\n`);
+      parts.push(hasItems ? `${response.spokenText}\n` : response.spokenText);
     }
 
     if (response.matchedBusinesses && response.matchedBusinesses.length > 0) {
