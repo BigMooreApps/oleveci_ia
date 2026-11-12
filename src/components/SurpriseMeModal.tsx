@@ -172,6 +172,25 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
   const [openDropdown, setOpenDropdown] = useState<'plan' | 'city' | 'budget' | null>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
 
+  // Auto-ajustar el scroll de la vista cuando se despliega una lista
+  useEffect(() => {
+    if (openDropdown && modalBodyRef.current) {
+      const timer = setTimeout(() => {
+        const el = document.querySelector(`[data-dropdown-name="${openDropdown}"]`);
+        if (el && modalBodyRef.current) {
+          const container = modalBodyRef.current;
+          const containerRect = container.getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
+          const spaceBelow = containerRect.bottom - elRect.bottom;
+          if (spaceBelow < 240) {
+            container.scrollBy({ top: 240 - spaceBelow + 20, behavior: 'smooth' });
+          }
+        }
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [openDropdown]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -402,11 +421,13 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
         {/* Scrollable Content Body with 3 Clean Dropdowns */}
         <div
           ref={modalBodyRef}
-          className="p-4 sm:p-5 space-y-4 overflow-y-auto overscroll-contain"
+          className={`p-3.5 sm:p-5 space-y-2.5 overflow-y-auto overscroll-contain transition-all duration-200 ${
+            openDropdown ? 'pb-48 sm:pb-56' : 'pb-4'
+          }`}
         >
           {/* PASO 1: ¿Qué tipo de plan tienes en mente? */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 block">
+          <div data-dropdown-name="plan" className="space-y-1">
+            <label className="text-[11px] sm:text-xs font-semibold text-slate-700 block">
               ¿Qué tipo de plan tienes en mente?
             </label>
 
@@ -415,29 +436,29 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenDropdown((prev) => (prev === 'plan' ? null : 'plan'))}
-                className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
+                className={`w-full py-2 px-3 rounded-xl sm:rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-2.5 select-none active:scale-[0.99] ${
                   openDropdown === 'plan'
                     ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/20 shadow-sm'
                     : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'plan'}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
-                    <SelectedPlanIcon className="w-4 h-4 text-white" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7.5 h-7.5 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
+                    <SelectedPlanIcon className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-slate-800 truncate">
+                    <div className="text-xs sm:text-sm font-bold text-slate-800 leading-tight truncate">
                       {selectedPlan.label}
                     </div>
-                    <div className="text-xs text-slate-500 font-normal truncate">
+                    <div className="text-[10.5px] text-slate-500 font-normal leading-tight truncate mt-0.5">
                       {selectedPlan.subtitle}
                     </div>
                   </div>
                 </div>
 
                 <ChevronDown
-                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                  className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
                     openDropdown === 'plan' ? 'rotate-180 text-[#ff7700]' : ''
                   }`}
                 />
@@ -445,8 +466,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
               {/* Lista Desplegable Abierta Paso 1 */}
               {openDropdown === 'plan' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
-                  <div className="max-h-60 overflow-y-auto overscroll-contain p-1.5 space-y-0.5 dropdown-menu-scroll">
+                <div className="mt-1.5 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
+                  <div className="max-h-48 sm:max-h-52 overflow-y-auto overscroll-contain p-1.5 space-y-0.5 dropdown-menu-scroll">
                     {PLAN_EXPERIENCES.map((plan) => {
                       const IconComponent = plan.icon;
                       const isSelected = draftPlanType === plan.id;
@@ -458,38 +479,38 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                             setDraftPlanType(plan.id);
                             setOpenDropdown(null);
                           }}
-                          className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
+                          className={`w-full py-1.5 px-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2 cursor-pointer select-none ${
                             isSelected
                               ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
                               : 'hover:bg-slate-50 border border-transparent text-slate-700'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                             <div
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                              className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${
                                 isSelected
                                   ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
                                   : 'bg-orange-50 text-[#ff7700]'
                               }`}
                             >
-                              <IconComponent className="w-3.5 h-3.5" />
+                              <IconComponent className="w-3 h-3" />
                             </div>
                             <div className="min-w-0">
                               <span
                                 className={`text-xs block truncate ${
-                                  isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                                  isSelected ? 'font-bold text-[#ff7700]' : 'font-medium text-slate-700'
                                 }`}
                               >
                                 {plan.label}
                               </span>
-                              <span className="text-[11px] text-slate-400 font-normal block truncate">
+                              <span className="text-[10px] text-slate-400 font-normal block truncate">
                                 {plan.subtitle}
                               </span>
                             </div>
                           </div>
                           {isSelected && (
-                            <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            <span className="w-3.5 h-3.5 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <Check className="w-2 h-2 stroke-[3]" />
                             </span>
                           )}
                         </button>
@@ -502,8 +523,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           </div>
 
           {/* PASO 2: ¿En dónde te gustaría vivirlo? */}
-          <div className="space-y-1.5 pt-3 border-t border-slate-100">
-            <label className="text-xs font-semibold text-slate-700 block">
+          <div data-dropdown-name="city" className="space-y-1 pt-2.5 border-t border-slate-100">
+            <label className="text-[11px] sm:text-xs font-semibold text-slate-700 block">
               ¿En dónde te gustaría vivirlo?
             </label>
 
@@ -512,33 +533,33 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenDropdown((prev) => (prev === 'city' ? null : 'city'))}
-                className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
+                className={`w-full py-2 px-3 rounded-xl sm:rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-2.5 select-none active:scale-[0.99] ${
                   openDropdown === 'city'
                     ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/20 shadow-sm'
                     : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'city'}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7.5 h-7.5 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
                     {draftCity === 'all' ? (
-                      <Globe className="w-4 h-4 text-white" />
+                      <Globe className="w-3.5 h-3.5 text-white" />
                     ) : (
-                      <MapPin className="w-4 h-4 text-white" />
+                      <MapPin className="w-3.5 h-3.5 text-white" />
                     )}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-slate-800 truncate">
+                    <div className="text-xs sm:text-sm font-bold text-slate-800 leading-tight truncate">
                       {draftCity === 'all' ? 'Todos los municipios' : draftCity}
                     </div>
-                    <div className="text-xs text-slate-500 font-normal truncate">
+                    <div className="text-[10.5px] text-slate-500 font-normal leading-tight truncate mt-0.5">
                       {draftCity === 'all' ? 'Sabana Centro y alrededores' : 'Sabana Centro'}
                     </div>
                   </div>
                 </div>
 
                 <ChevronDown
-                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                  className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
                     openDropdown === 'city' ? 'rotate-180 text-[#ff7700]' : ''
                   }`}
                 />
@@ -546,8 +567,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
               {/* Lista Desplegable Abierta Paso 2 */}
               {openDropdown === 'city' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
-                  <div className="max-h-60 overflow-y-auto overscroll-contain p-1.5 space-y-0.5 dropdown-menu-scroll">
+                <div className="mt-1.5 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
+                  <div className="max-h-48 sm:max-h-52 overflow-y-auto overscroll-contain p-1.5 space-y-0.5 dropdown-menu-scroll">
                     {/* Opción 1: Todos los municipios */}
                     <button
                       type="button"
@@ -555,38 +576,38 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                         setDraftCity('all');
                         setOpenDropdown(null);
                       }}
-                      className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
+                      className={`w-full py-1.5 px-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2 cursor-pointer select-none ${
                         draftCity === 'all'
                           ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
                           : 'hover:bg-slate-50 border border-transparent text-slate-700'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <div
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${
                             draftCity === 'all'
                               ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
                               : 'bg-orange-50 text-[#ff7700]'
                           }`}
                         >
-                          <Globe className="w-3.5 h-3.5" />
+                          <Globe className="w-3 h-3" />
                         </div>
                         <div className="min-w-0">
                           <span
                             className={`text-xs block truncate ${
-                              draftCity === 'all' ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                              draftCity === 'all' ? 'font-bold text-[#ff7700]' : 'font-medium text-slate-700'
                             }`}
                           >
                             Todos los municipios
                           </span>
-                          <span className="text-[11px] text-slate-400 font-normal block truncate">
+                          <span className="text-[10px] text-slate-400 font-normal block truncate">
                             Toda la cobertura en Sabana Centro
                           </span>
                         </div>
                       </div>
                       {draftCity === 'all' && (
-                        <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        <span className="w-3.5 h-3.5 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <Check className="w-2 h-2 stroke-[3]" />
                         </span>
                       )}
                     </button>
@@ -604,33 +625,33 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                             setDraftCity(city);
                             setOpenDropdown(null);
                           }}
-                          className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
+                          className={`w-full py-1.5 px-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2 cursor-pointer select-none ${
                             isSelected
                               ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
                               : 'hover:bg-slate-50 border border-transparent text-slate-700'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                             <div
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                              className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${
                                 isSelected
                                   ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
                                   : 'bg-orange-50 text-[#ff7700]'
                               }`}
                             >
-                              <MapPin className="w-3.5 h-3.5" />
+                              <MapPin className="w-3 h-3" />
                             </div>
                             <span
                               className={`text-xs truncate ${
-                                isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                                isSelected ? 'font-bold text-[#ff7700]' : 'font-medium text-slate-700'
                               }`}
                             >
                               {city}
                             </span>
                           </div>
                           {isSelected && (
-                            <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            <span className="w-3.5 h-3.5 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <Check className="w-2 h-2 stroke-[3]" />
                             </span>
                           )}
                         </button>
@@ -643,8 +664,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
           </div>
 
           {/* PASO 3: ¿Cuál es tu presupuesto aproximado? */}
-          <div className="space-y-1.5 pt-3 border-t border-slate-100">
-            <label className="text-xs font-semibold text-slate-700 block">
+          <div data-dropdown-name="budget" className="space-y-1 pt-2.5 border-t border-slate-100">
+            <label className="text-[11px] sm:text-xs font-semibold text-slate-700 block">
               ¿Cuál es tu presupuesto aproximado?
             </label>
 
@@ -653,29 +674,29 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
               <button
                 type="button"
                 onClick={() => setOpenDropdown((prev) => (prev === 'budget' ? null : 'budget'))}
-                className={`w-full py-2.5 px-3.5 rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-3 select-none active:scale-[0.99] ${
+                className={`w-full py-2 px-3 rounded-xl sm:rounded-2xl text-left transition-all duration-200 border cursor-pointer flex items-center justify-between gap-2.5 select-none active:scale-[0.99] ${
                   openDropdown === 'budget'
                     ? 'bg-white border-[#ff7700] ring-2 ring-[#ff7700]/20 shadow-sm'
                     : 'bg-slate-50/70 hover:bg-white hover:border-slate-300 border-slate-200/80 shadow-2xs'
                 }`}
                 aria-expanded={openDropdown === 'budget'}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
-                    <SelectedBudgetIcon className="w-4 h-4 text-white" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7.5 h-7.5 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-xs">
+                    <SelectedBudgetIcon className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-slate-800 truncate">
+                    <div className="text-xs sm:text-sm font-bold text-slate-800 leading-tight truncate">
                       {selectedBudgetInfo.label}
                     </div>
-                    <div className="text-xs text-slate-500 font-normal truncate">
+                    <div className="text-[10.5px] text-slate-500 font-normal leading-tight truncate mt-0.5">
                       {selectedBudgetInfo.subtitle}
                     </div>
                   </div>
                 </div>
 
                 <ChevronDown
-                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                  className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
                     openDropdown === 'budget' ? 'rotate-180 text-[#ff7700]' : ''
                   }`}
                 />
@@ -683,120 +704,120 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
               {/* Lista Desplegable Abierta Paso 3 */}
               {openDropdown === 'budget' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
-                  <div className="max-h-64 overflow-y-auto overscroll-contain p-2 space-y-2 dropdown-menu-scroll">
-                  {/* Opciones rápidas */}
-                  <div className="space-y-0.5">
-                    {BUDGET_OPTIONS.map((b) => {
-                      const IconComponent = b.icon;
-                      const isSelected = draftBudget === b.value;
-                      return (
-                        <button
-                          key={b.shortLabel}
-                          type="button"
-                          onClick={() => {
-                            setDraftBudget(b.value);
-                            setCustomBudgetInput(
-                              b.value !== null ? b.value.toLocaleString('es-CO') : ''
-                            );
-                            setOpenDropdown(null);
-                          }}
-                          className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
-                            isSelected
-                              ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
-                              : 'hover:bg-slate-50 border border-transparent text-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                isSelected
-                                  ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
-                                  : 'bg-orange-50 text-[#ff7700]'
-                              }`}
-                            >
-                              <IconComponent className="w-3.5 h-3.5" />
-                            </div>
-                            <div className="min-w-0">
-                              <span
-                                className={`text-xs block truncate ${
-                                  isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                <div className="mt-1.5 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
+                  <div className="max-h-52 sm:max-h-56 overflow-y-auto overscroll-contain p-1.5 space-y-1.5 dropdown-menu-scroll">
+                    {/* Opciones rápidas */}
+                    <div className="space-y-0.5">
+                      {BUDGET_OPTIONS.map((b) => {
+                        const IconComponent = b.icon;
+                        const isSelected = draftBudget === b.value;
+                        return (
+                          <button
+                            key={b.shortLabel}
+                            type="button"
+                            onClick={() => {
+                              setDraftBudget(b.value);
+                              setCustomBudgetInput(
+                                b.value !== null ? b.value.toLocaleString('es-CO') : ''
+                              );
+                              setOpenDropdown(null);
+                            }}
+                            className={`w-full py-1.5 px-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2 cursor-pointer select-none ${
+                              isSelected
+                                ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                                : 'hover:bg-slate-50 border border-transparent text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div
+                                className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${
+                                  isSelected
+                                    ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                                    : 'bg-orange-50 text-[#ff7700]'
                                 }`}
                               >
-                                {b.shortLabel}
-                              </span>
-                              <span className="text-[11px] text-slate-400 font-normal block truncate">
-                                {b.subtitle}
-                              </span>
+                                <IconComponent className="w-3 h-3" />
+                              </div>
+                              <div className="min-w-0">
+                                <span
+                                  className={`text-xs block truncate ${
+                                    isSelected ? 'font-bold text-[#ff7700]' : 'font-medium text-slate-700'
+                                  }`}
+                                >
+                                  {b.shortLabel}
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-normal block truncate">
+                                  {b.subtitle}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                          {isSelected && (
-                            <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                              <Check className="w-2.5 h-2.5 stroke-[3]" />
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Campo interactivo para digitar presupuesto exacto */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="text-xs font-medium text-slate-600 mb-1.5 flex items-center justify-between">
-                      <span>O escribe un presupuesto exacto:</span>
-                      {draftBudget !== null && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCustomBudgetInput('');
-                            setDraftBudget(null);
-                          }}
-                          className="text-[11px] text-slate-400 hover:text-rose-600 font-normal cursor-pointer transition"
-                        >
-                          Quitar límite
-                        </button>
-                      )}
+                            {isSelected && (
+                              <span className="w-3.5 h-3.5 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                                <Check className="w-2 h-2 stroke-[3]" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
-                    <div className="relative flex items-center">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-medium text-xs">
-                        $
+
+                    {/* Campo interactivo para digitar presupuesto exacto */}
+                    <div className="pt-2 border-t border-slate-100">
+                      <div className="text-[11px] font-medium text-slate-600 mb-1 flex items-center justify-between">
+                        <span>O escribe un presupuesto exacto:</span>
+                        {draftBudget !== null && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomBudgetInput('');
+                              setDraftBudget(null);
+                            }}
+                            className="text-[10.5px] text-slate-400 hover:text-rose-600 font-normal cursor-pointer transition"
+                          >
+                            Quitar límite
+                          </button>
+                        )}
                       </div>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={customBudgetInput}
-                        onChange={(e) => {
-                          const rawValue = e.target.value.replace(/\D/g, '');
-                          if (rawValue === '') {
-                            setCustomBudgetInput('');
-                            setDraftBudget(null);
-                          } else {
-                            const numValue = parseInt(rawValue, 10);
-                            setCustomBudgetInput(numValue.toLocaleString('es-CO'));
-                            setDraftBudget(numValue);
-                          }
-                        }}
-                        placeholder="Ej: 40.000 COP"
-                        className="w-full pl-7 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-white focus:bg-white text-xs font-normal text-slate-800 border border-slate-200 focus:border-[#ff7700] focus:ring-2 focus:ring-[#ff7700]/20 outline-none transition"
-                      />
-                      {customBudgetInput && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCustomBudgetInput('');
-                            setDraftBudget(null);
+                      <div className="relative flex items-center">
+                        <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 font-medium text-xs">
+                          $
+                        </div>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={customBudgetInput}
+                          onChange={(e) => {
+                            const rawValue = e.target.value.replace(/\D/g, '');
+                            if (rawValue === '') {
+                              setCustomBudgetInput('');
+                              setDraftBudget(null);
+                            } else {
+                              const numValue = parseInt(rawValue, 10);
+                              setCustomBudgetInput(numValue.toLocaleString('es-CO'));
+                              setDraftBudget(numValue);
+                            }
                           }}
-                          className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                          title="Borrar presupuesto"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                          placeholder="Ej: 40.000 COP"
+                          className="w-full pl-6 pr-7 py-1.5 rounded-lg bg-slate-50 hover:bg-white focus:bg-white text-xs font-normal text-slate-800 border border-slate-200 focus:border-[#ff7700] focus:ring-2 focus:ring-[#ff7700]/20 outline-none transition"
+                        />
+                        {customBudgetInput && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomBudgetInput('');
+                              setDraftBudget(null);
+                            }}
+                            className="absolute inset-y-0 right-0 pr-2 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                            title="Borrar presupuesto"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
             </div>
           </div>
         </div>
