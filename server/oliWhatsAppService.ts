@@ -214,9 +214,9 @@ export function formatOliResponseForWhatsApp(response: OliPlanResponse): string 
           bizLines.push(`⏰ ${biz.hours}`);
         }
 
-        // Oferta destacada si existe
+        // Oferta destacada si existe y pertenece estrictamente a este comercio
         const bizPosts = (response.matchedPosts || []).filter((p) => p.businessId === biz.id);
-        const topPost = bizPosts[0] || (hasPosts ? response.matchedPosts[0] : null);
+        const topPost = bizPosts[0];
         if (topPost) {
           const price = topPost.promotionalPrice || topPost.originalPrice || topPost.approximatePrice;
           bizLines.push(`\n🎁 *Oferta destacada en OleVeci:*`);
