@@ -252,10 +252,10 @@ export const DEFAULT_NAV_MENU_ITEMS: NavMenuItemConfig[] = [
   { id: 'home', label: 'Home', subtitle: 'Página principal', visible: true, order: 1 },
   { id: 'explorer', label: 'Descubrir', subtitle: 'Explorar publicaciones', visible: true, order: 2 },
   { id: 'plans', label: 'Itinerarios', subtitle: 'Itinerarios armados', visible: true, order: 3 },
-  { id: 'directory', label: 'Directorio', subtitle: 'Comercios y servicios locales', visible: true, order: 4 },
+  { id: 'directory', label: 'Directorio', subtitle: 'Comercios y servicios locales', visible: false, order: 4 },
   { id: 'maps', label: 'Vecis en Maps', subtitle: 'Todos los negocios en el mapa', visible: true, order: 5 },
-  { id: 'oli', label: 'Asistente OLI', subtitle: 'Planes y recomendaciones con IA', visible: true, order: 6 },
-  { id: 'notifications', label: 'Notificaciones', subtitle: 'Alertas y novedades', visible: true, order: 7 },
+  { id: 'oli', label: 'Asistente OLI', subtitle: 'Planes y recomendaciones con IA', visible: false, order: 6 },
+  { id: 'notifications', label: 'Notificaciones', subtitle: 'Alertas y novedades', visible: false, order: 7 },
   { id: 'merchant', label: 'Registrarse como Veci', subtitle: 'Crea el espacio para tu negocio', visible: true, order: 8 },
 ];
 
@@ -293,7 +293,7 @@ const STORAGE_KEYS = {
   ADMIN_PROFILE: 'oleveci_admin_profile_v1',
   DELETED_BUSINESS_IDS: 'oleveci_deleted_business_ids_v1',
   DELETED_POST_IDS: 'oleveci_deleted_post_ids_v1',
-  NAV_MENU_CONFIG: 'oleveci_nav_menu_config_v1',
+  NAV_MENU_CONFIG: 'oleveci_nav_menu_config_v2',
 };
 
 const getDeletedBusinessIds = (): string[] => {

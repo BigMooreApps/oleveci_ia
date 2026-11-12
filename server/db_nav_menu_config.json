@@ -38,7 +38,7 @@
     "id": "oli",
     "label": "Asistente OLI",
     "subtitle": "Planes y recomendaciones con IA",
-    "visible": true,
+    "visible": false,
     "order": 6
   },
   {
