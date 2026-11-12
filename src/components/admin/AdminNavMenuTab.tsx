@@ -40,7 +40,7 @@ const MENU_COLOR_CLASSES: Record<NavMenuItemId, { bg: string; text: string; bord
 };
 
 export const AdminNavMenuTab: React.FC = () => {
-  const { navMenuItems, updateNavMenuItemVisibility } = useApp();
+  const { navMenuItems, updateNavMenuItemVisibility, authenticatedBusinessId } = useApp();
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -218,15 +218,17 @@ export const AdminNavMenuTab: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-orange-50 text-[#ff7700]">
-                      <Store className="w-3.5 h-3.5" />
+                  {authenticatedBusinessId && (
+                    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-orange-50 text-[#ff7700]">
+                        <Store className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="truncate">
+                        <div className="text-xs font-semibold text-slate-900">Mi Espacio</div>
+                        <div className="text-[9px] text-slate-500">Gestionar mi negocio</div>
+                      </div>
                     </div>
-                    <div className="truncate">
-                      <div className="text-xs font-semibold text-slate-900">Mi Espacio</div>
-                      <div className="text-[9px] text-slate-500">Gestionar mi negocio</div>
-                    </div>
-                  </div>
+                  )}
                 </>
               )}
 

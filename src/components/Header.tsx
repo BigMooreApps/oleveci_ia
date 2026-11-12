@@ -624,57 +624,51 @@ export const Header: React.FC<HeaderProps> = ({
                           )}
                         </button>
 
-                        {/* 2. MI ESPACIO */}
-                        <button
-                          id="tab-role-business"
-                          role="menuitem"
-                          type="button"
-                          onClick={() => {
-                            onCloseNotifications?.();
-                            if (authenticatedBusinessId) {
+                        {/* 2. MI ESPACIO (solo visible con sesión iniciada) */}
+                        {authenticatedBusinessId && (
+                          <button
+                            id="tab-role-business"
+                            role="menuitem"
+                            type="button"
+                            onClick={() => {
+                              onCloseNotifications?.();
                               if (onReturnToDashboard) {
                                 onReturnToDashboard();
                               } else {
                                 setCurrentRole('business');
                               }
-                            } else {
-                              if (onOpenBusinessAuth) {
-                                onOpenBusinessAuth('login');
-                              } else {
-                                setCurrentRole('business');
-                              }
-                            }
-                            setIsMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                            isMySpaceActive
-                              ? 'bg-orange-50/80 text-orange-800 font-bold'
-                              : 'text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                isMySpaceActive
-                                  ? 'bg-[#ff7700] text-white shadow-2xs'
-                                  : 'bg-orange-50 text-[#ff7700] group-hover:bg-orange-100'
-                              }`}
-                            >
-                              <Store className="w-4 h-4" />
-                            </div>
-                            <div className="truncate">
-                              <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                                Mi Espacio
+                              setIsMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                              isMySpaceActive
+                                ? 'bg-orange-50/80 text-orange-800 font-bold'
+                                : 'text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                  isMySpaceActive
+                                    ? 'bg-[#ff7700] text-white shadow-2xs'
+                                    : 'bg-orange-50 text-[#ff7700] group-hover:bg-orange-100'
+                                }`}
+                              >
+                                <Store className="w-4 h-4" />
                               </div>
-                              <div className="text-[10px] text-slate-500 font-normal">
-                                {authenticatedBusinessId ? 'Gestionar mi negocio' : 'Ingresar a mi negocio'}
+                              <div className="truncate">
+                                <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                                  Mi Espacio
+                                </div>
+                                <div className="text-[10px] text-slate-500 font-normal">
+                                  Gestionar mi negocio
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          {isMySpaceActive && (
-                            <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
-                          )}
-                        </button>
+                            {isMySpaceActive && (
+                              <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
+                            )}
+                          </button>
+                        )}
                       </>
                     )}
 
