@@ -470,12 +470,13 @@ const MainApp: React.FC = () => {
           !authenticatedBusinessId || showBusinessAuthScreen ? (
             <BusinessAuthScreen
               initialTab={businessAuthTab}
+              showTabSwitcher={false}
               onSuccessLogin={(_bizId) => {
                 setShowBusinessAuthScreen(false);
               }}
               onCancel={() => {
                 setShowBusinessAuthScreen(false);
-                setCurrentRole('explorer');
+                setCurrentRole('home');
               }}
             />
           ) : (
@@ -503,12 +504,13 @@ const MainApp: React.FC = () => {
           ) : (
             <BusinessAuthScreen
               initialTab="login"
+              showTabSwitcher={false}
               onSuccessLogin={() => {
                 setShowBusinessAuthScreen(false);
               }}
               onCancel={() => {
                 setShowBusinessAuthScreen(false);
-                setCurrentRole('explorer');
+                setCurrentRole('home');
               }}
             />
           )
