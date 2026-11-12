@@ -2482,8 +2482,7 @@ Analiza con sentido común humano la consulta del usuario y compárala con el ca
    - En 'selectedPostIds' pon ÚNICAMENTE publicaciones que REALMENTE correspondan a lo solicitado. Si ninguna publicación aplica o no hay publicaciones del servicio específico, 'selectedPostIds' DEBE ser un arreglo vacío []. NUNCA incluyas ofertas de lavado cuando pidieron mecánica, ni ofertas de té cuando pidieron café.
 5. SPOKENTEXT:
    - Comienza obligatoriamente con "¡Listo veci!".
-   - Sé breve y directo (máximo 2 a 3 oraciones, estilo WhatsApp).
-   - ${channel === 'whatsapp' ? 'IMPORTANTE WHATSAPP: NO menciones tarjetas ni pulsar elementos de pantalla (en WhatsApp no existen tarjetas). Puedes decir: "¡Abajo tienes su contacto directo de WhatsApp y los detalles para escribirles!".' : 'Menciona que puede tocar la tarjeta para ver los detalles del comercio.'}
+   - ${channel === 'whatsapp' ? 'IMPORTANTE WHATSAPP: Debe ser UNA SOLA frase introductoria ultra-corta que termine en "te recomiendo" (ejemplo: "¡Listo veci! Para que te tomes una buena cervecita, te recomiendo"). PROHIBIDO TERMINANTEMENTE repetir direcciones, barrios, horarios, teléfonos, precios ni ofertas en este texto.' : 'Sé breve y directo (máximo 2 a 3 oraciones, estilo amigable). Menciona que puede tocar la tarjeta para ver los detalles del comercio.'}
    - PROHIBIDO TOTALMENTE el signo '$'.`;
 
       try {
@@ -2663,11 +2662,15 @@ ${JSON.stringify(postSummary, null, 2)}
 
 Genera la respuesta hablada de Oli:
 1. DEBE comenzar estrictamente con "¡Listo veci!".
-2. Responde directamente a lo que preguntó el usuario de forma cálida, cercana y entusiasta.
+${
+  channel === 'whatsapp'
+    ? '2. IMPORTANTE WHATSAPP: Debe ser UNA SOLA frase ultra-corta de introducción que termine en "te recomiendo" (ejemplo: "¡Listo veci! Para que te tomes una buena cervecita, te recomiendo"). PROHIBIDO TERMINANTEMENTE repetir direcciones, horarios, precios ni ofertas aquí.'
+    : `2. Responde directamente a lo que preguntó el usuario de forma cálida, cercana y entusiasta.
 3. Menciona el comercio más relevante (${firstBiz.name}), su municipio (${firstBiz.city}), dirección (${firstBiz.address}) y el servicio o precio destacado si aplica.
-4. ${channel === 'whatsapp' ? 'IMPORTANTE WHATSAPP: NO menciones tarjetas ni pulsar pantallas (en WhatsApp no existen tarjetas). Indica que abajo encontrará el contacto de WhatsApp y dirección para comunicarse.' : 'Menciona que puede tocar la tarjeta del comercio para ver su ficha completa y detalles.'}
+4. Menciona que puede tocar la tarjeta del comercio para ver su ficha completa y detalles.`
+}
 5. PROHIBIDO TOTALMENTE el signo '$'. Usa palabras o números con "pesos" o "mil pesos".
-6. Máximo 2 o 3 oraciones directas.`;
+6. Máximo 1 a 2 oraciones directas.`;
 
       for (const modelName of ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']) {
         try {
@@ -3320,7 +3323,7 @@ Analiza con INTELIGENCIA Y SENTIDO COMÚN HUMANO la consulta del usuario, sin li
      * Si es cambio/refinamiento: "¡Listo veci! Ya cambié la [parada X] por [comercio o actividad solicitada]."
      * Si es agregar paradas: "¡Listo veci! Tu plan fue actualizado y ahora tiene [N] paradas."
      * Si es eliminar parada: "¡Listo veci! Ya eliminé esa parada de tu plan."
-     * Si es búsqueda puntual de comercio o servicio: "${channel === 'whatsapp' ? '¡Listo veci! En [municipio] te recomiendo [Comercio], abajo tienes su contacto directo de WhatsApp y detalles para escribirles.' : '¡Listo veci! En [municipio] te recomiendo [Comercio], puedes tocar su tarjeta para ver todos los detalles.'}"
+     * Si es búsqueda puntual de comercio o servicio: "${channel === 'whatsapp' ? '¡Listo veci! Para lo que buscas en [municipio], te recomiendo' : '¡Listo veci! En [municipio] te recomiendo [Comercio], puedes tocar su tarjeta para ver todos los detalles.'}"
    - PROHIBIDO TERMINANTEMENTE recitar el itinerario o repetir las paradas una por una en este texto; las paradas ya se muestran en ${channel === 'whatsapp' ? 'el itinerario de abajo' : 'las tarjetas visuales de abajo'}.
    - PROHIBIDO TOTALMENTE el signo '$'. Expresa valores en pesos o mil pesos.
 

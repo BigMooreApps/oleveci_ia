@@ -127,146 +127,166 @@ export function getOrCreateSession(phoneNumber: string): WhatsAppUserSession {
 }
 
 /**
- * Cleans spoken text specifically for WhatsApp by replacing UI references (like tapping visual cards)
- * with natural WhatsApp references (like WhatsApp links, addresses, etc.)
+ * Cleans spoken text specifically for WhatsApp by condensing it into a short, direct lead-in
  */
-export function cleanSpokenTextForWhatsApp(text: string): string {
+export function cleanSpokenTextForWhatsApp(text: string, hasItems: boolean = false): string {
   if (!text) return '';
-  return text
-    .replace(/[¡!]?puedes tocar la tarjeta( del comercio)? para ver( su ficha completa y)? todos los detalles[\.!]/gi, '¡Abajo tienes su contacto directo de WhatsApp y los detalles para escribirles!')
-    .replace(/[¡!]?puedes tocar la tarjeta( del comercio)? para ver( todos)? los detalles[\.!]/gi, '¡Abajo tienes su contacto directo de WhatsApp!')
-    .replace(/[¡!]?puedes tocar la tarjeta( del comercio)?[\.!]/gi, '¡Abajo encuentras todos los datos!')
-    .replace(/[¡!]?toca la tarjeta( del comercio)? para ver.*?[!\.]/gi, '¡Abajo encuentras todos los datos!')
-    .replace(/las paradas ya se muestran en las tarjetas visuales de abajo\.?/gi, 'abajo tienes el itinerario paso a paso.')
-    .replace(/en pantalla tienes todos los detalles para contactar a cada veci\.?/gi, 'abajo tienes todos los detalles y enlaces de WhatsApp para contactar a cada veci.')
-    .replace(/en pantalla tienes todos los detalles/gi, 'abajo tienes todos los detalles')
-    .replace(/tarjetas? visuales?/gi, 'opciones')
-    .replace(/tarjetas?/gi, 'opciones')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
+
+  let clean = text.trim();
+
+  if (hasItems) {
+    // Si van a aparecer fichas abajo, condensamos a una sola línea introductoria muy breve
+    clean = clean.replace(/¡Listo veci!\s*¡Claro que sí!\s*/i, '¡Listo veci! ');
+    clean = clean.replace(/¡Listo veci!\s*¡Por supuesto!\s*/i, '¡Listo veci! ');
+
+    // Si tiene la estructura "¡Listo veci! ... te recomiendo / te super recomiendo"
+    const matchTeRecomiendo = clean.match(/^(¡Listo veci!.*?\bte (?:super\s+)?recomiendo)\b/i);
+    if (matchTeRecomiendo) {
+      return matchTeRecomiendo[1].replace(/te super recomiendo/i, 'te recomiendo');
+    }
+
+    const matchSugerencia = clean.match(/^(¡Listo veci!.*?\b(?:te sugiero|te recomiendo))\b/i);
+    if (matchSugerencia) {
+      return matchSugerencia[1];
+    }
+
+    clean = clean
+      .replace(/[¡!]?puedes tocar la tarjeta.*?[!\.]/gi, '')
+      .replace(/[¡!]?toca la tarjeta.*?[!\.]/gi, '')
+      .replace(/abajo te dejo el contacto.*?[!\.]/gi, '')
+      .replace(/abajo tienes su contacto.*?[!\.]/gi, '')
+      .replace(/en pantalla tienes todos los detalles.*?[!\.]/gi, '')
+      .trim();
+
+    const firstSentence = clean.split(/[.\n]/)[0].trim();
+    if (firstSentence && firstSentence.length > 10) {
+      return firstSentence;
+    }
+  } else {
+    clean = clean
+      .replace(/[¡!]?puedes tocar la tarjeta.*?[!\.]/gi, '')
+      .replace(/[¡!]?toca la tarjeta.*?[!\.]/gi, '')
+      .replace(/en pantalla tienes todos los detalles/gi, 'aquí tienes los detalles')
+      .trim();
+  }
+
+  return clean;
 }
 
 /**
  * Formats Oli's response into clean, natural WhatsApp rich text (*bold*, _italic_, clean emojis)
- * Avoids broken ASCII boxes and ugly, cluttered URL search parameters.
+ * Avoids broken ASCII boxes, repetitive paragraphs, and ugly URL search parameters.
  */
 export function formatOliResponseForWhatsApp(response: OliPlanResponse): string {
   const parts: string[] = [];
-  const cleanSpoken = cleanSpokenTextForWhatsApp(response.spokenText || '');
 
   if (response.type === 'search') {
-    const hasItems =
-      (response.matchedBusinesses && response.matchedBusinesses.length > 0) ||
-      (response.matchedPosts && response.matchedPosts.length > 0);
+    const hasBusinesses = response.matchedBusinesses && response.matchedBusinesses.length > 0;
+    const hasPosts = response.matchedPosts && response.matchedPosts.length > 0;
+    const hasItems = hasBusinesses || hasPosts;
 
-    if (hasItems) {
-      parts.push(`🤖 *OLI · Asistente Oficial OleVeci*\n`);
+    if (!hasItems) {
+      // Saludo puro ("¡Hola Veci! Soy Oli...") o respuesta de texto sin fichas
+      return cleanSpokenTextForWhatsApp(response.spokenText || '', false);
     }
 
+    // Intro ultra corta y directa (ej: "¡Listo veci! Para que te tomes una buena cervecita, te recomiendo")
+    const cleanSpoken = cleanSpokenTextForWhatsApp(response.spokenText || '', true);
     if (cleanSpoken) {
-      parts.push(hasItems ? `${cleanSpoken}\n` : cleanSpoken);
+      parts.push(cleanSpoken);
     }
 
-    if (response.matchedBusinesses && response.matchedBusinesses.length > 0) {
-      parts.push(`🏢 *Comercios Recomendados:*`);
-      response.matchedBusinesses.forEach((biz, idx) => {
-        const verifiedTag = biz.verified ? ' (Verificado ✅)' : '';
+    if (hasBusinesses) {
+      // Mostramos máximo 2 comercios para mantener el mensaje corto y ejecutivo en WhatsApp
+      response.matchedBusinesses.slice(0, 2).forEach((biz, idx) => {
         const addressLine = biz.address ? `${biz.address}${biz.city ? ` (${biz.city})` : ''}` : (biz.city || 'Sabana Centro');
         const cleanWa = (biz.whatsapp || biz.phone || '').replace(/\D/g, '');
 
-        parts.push(`\n*${idx + 1}. ${biz.name}*${verifiedTag}`);
+        const bizLines: string[] = [];
+        bizLines.push(`*${idx + 1}. ${biz.name}*`);
         if (addressLine) {
-          parts.push(`📍 ${addressLine}`);
+          bizLines.push(`📍 ${addressLine}`);
         }
         if (biz.subCategory) {
-          parts.push(`🏷️ ${biz.subCategory}`);
+          bizLines.push(`🏷️ ${biz.subCategory}`);
         }
         if (biz.hours) {
-          parts.push(`⏰ ${biz.hours}`);
+          bizLines.push(`⏰ ${biz.hours}`);
         }
 
         // Oferta destacada si existe
         const bizPosts = (response.matchedPosts || []).filter((p) => p.businessId === biz.id);
-        const topPost = bizPosts[0] || (response.matchedPosts && response.matchedPosts.length > 0 ? response.matchedPosts[0] : null);
+        const topPost = bizPosts[0] || (hasPosts ? response.matchedPosts[0] : null);
         if (topPost) {
           const price = topPost.promotionalPrice || topPost.originalPrice || topPost.approximatePrice;
-          parts.push(`🎁 *Oferta destacada en OleVeci:*`);
-          parts.push(`• ${topPost.title}${price ? ` - *${formatPriceCOP(price)}*` : ''}`);
+          bizLines.push(`\n🎁 *Oferta destacada en OleVeci:*`);
+          bizLines.push(`• ${topPost.title}${price ? ` - *${formatPriceCOP(price)}*` : ''}`);
         }
 
-        // Contacto WhatsApp directo y limpio
+        // Contacto directo limpio sin previews
         if (cleanWa) {
-          parts.push(`💬 WhatsApp directo: https://wa.me/${cleanWa}`);
+          bizLines.push(`💬 WhatsApp directo: ${cleanWa}`);
         } else if (biz.phone) {
-          parts.push(`📞 Teléfono: ${biz.phone}`);
+          bizLines.push(`📞 Teléfono: ${biz.phone}`);
         }
+
+        parts.push(bizLines.join('\n'));
       });
-    } else if (response.matchedPosts && response.matchedPosts.length > 0) {
-      parts.push(`🎁 *Ofertas y Planes Encontrados:*`);
-      response.matchedPosts.forEach((post, idx) => {
-        parts.push(`\n*${idx + 1}. ${post.title}*`);
-        if (post.businessName) {
-          parts.push(`🏢 ${post.businessName}${post.businessCity ? ` (${post.businessCity})` : ''}`);
-        }
+    } else if (hasPosts) {
+      response.matchedPosts.slice(0, 2).forEach((post, idx) => {
+        const cleanWa = (post.businessWhatsapp || '').replace(/\D/g, '');
         const price = post.promotionalPrice || post.originalPrice || post.approximatePrice;
+
+        const postLines: string[] = [];
+        postLines.push(`*${idx + 1}. ${post.title}*`);
+        if (post.businessName) {
+          postLines.push(`🏢 ${post.businessName}${post.businessCity ? ` (${post.businessCity})` : ''}`);
+        }
         if (price) {
-          parts.push(`💰 Precio: *${formatPriceCOP(price)}*`);
+          postLines.push(`💰 Precio: *${formatPriceCOP(price)}*`);
         }
-        if (post.description) {
-          parts.push(`📝 ${post.description.slice(0, 120)}...`);
+        if (cleanWa) {
+          postLines.push(`💬 WhatsApp directo: ${cleanWa}`);
         }
-        if (post.businessWhatsapp) {
-          const cleanWa = post.businessWhatsapp.replace(/\D/g, '');
-          parts.push(`💬 Contacto WhatsApp: https://wa.me/${cleanWa}`);
-        }
+        parts.push(postLines.join('\n'));
       });
     }
 
-    if (
-      (response.matchedBusinesses && response.matchedBusinesses.length > 0) ||
-      (response.matchedPosts && response.matchedPosts.length > 0)
-    ) {
-      parts.push(`\n_Escríbeme si quieres buscar otro comercio o armar un plan en la Sabana._`);
-    }
+    parts.push(`_Si quieres buscar otro comercio o armar otro plan, hazmelo saber_`);
+    return parts.join('\n\n');
   } else {
-    // Plan response
-    parts.push(`🤖 *OLI · Tu Plan en OleVeci*\n`);
+    // Plan / Itinerario simplificado y conciso para WhatsApp
     parts.push(`🎉 *${response.planTitle || 'Plan Personalizado en Sabana Centro'}*`);
-    parts.push(`📅 ${response.day || 'Fin de semana'} · 👥 ${response.targetAudience || 'En pareja'} (${response.personCount || 1} pers.)\n`);
-
-    if (cleanSpoken) {
-      parts.push(`${cleanSpoken}\n`);
-    }
+    parts.push(`📅 ${response.day || 'Fin de semana'} · 👥 ${response.targetAudience || 'En pareja'} (${response.personCount || 1} pers.)`);
 
     if (response.stops && response.stops.length > 0) {
-      parts.push(`📍 *ITINERARIO PASO A PASO:*`);
       response.stops.forEach((stop, idx) => {
         const cleanWa = (stop.businessWhatsapp || stop.businessPhone || '').replace(/\D/g, '');
-
-        parts.push(`\n*Parada ${idx + 1} (${stop.time || 'Horario sugerido'}):*`);
-        parts.push(`🏢 *${stop.businessName}* (${stop.businessCity})`);
-        parts.push(`✨ ${stop.postTitle || stop.activity}`);
-        parts.push(`💰 Costo: *${formatPriceCOP(stop.cost)}*`);
+        const stopLines: string[] = [];
+        stopLines.push(`*Parada ${idx + 1} (${stop.time || 'Horario sugerido'}): ${stop.businessName}* (${stop.businessCity})`);
+        stopLines.push(`✨ ${stop.postTitle || stop.activity}`);
+        stopLines.push(`💰 Costo: *${formatPriceCOP(stop.cost)}*`);
         if (stop.businessAddress) {
-          parts.push(`📌 Dirección: ${stop.businessAddress}`);
+          stopLines.push(`📌 Dirección: ${stop.businessAddress}`);
         }
         if (cleanWa) {
-          parts.push(`💬 Contacto WhatsApp: https://wa.me/${cleanWa}`);
+          stopLines.push(`💬 WhatsApp directo: ${cleanWa}`);
         }
+        parts.push(stopLines.join('\n'));
       });
     }
 
     if (response.totalEstimatedCost) {
-      parts.push(`\n💵 *Presupuesto total estimado:* *${formatPriceCOP(response.totalEstimatedCost)}*`);
+      let costLine = `💵 *Presupuesto total estimado:* *${formatPriceCOP(response.totalEstimatedCost)}*`;
       if (response.personCount && response.personCount > 1 && response.costPerPerson) {
-        parts.push(`👤 *Por persona:* *${formatPriceCOP(response.costPerPerson)}*`);
+        costLine += ` · *${formatPriceCOP(response.costPerPerson)}* / persona`;
       }
+      parts.push(costLine);
     }
 
-    parts.push(`\n_Toca el enlace de WhatsApp de cada comercio para confirmar tu visita o reservar._`);
+    parts.push(`_Si quieres buscar otro comercio o armar otro plan, hazmelo saber_`);
+    return parts.join('\n\n');
   }
-
-  return parts.join('\n');
 }
 
 export interface WhatsAppInteractiveButton {
