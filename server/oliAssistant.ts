@@ -2796,8 +2796,6 @@ async function callGroqWithFallback(
   if (!key || key.trim().length === 0) return null;
 
   const candidateModels = [
-    'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
   ];
@@ -2869,8 +2867,6 @@ async function callGeminiWithModelFallback(
 ): Promise<{ text: string; modelUsed: string }> {
   // Candidate models: cascade from fastest active models to resilient fallbacks
   const candidateModels = [
-    'gemini-3.8-flash',
-    'gemini-2.5-flash',
     'gemini-2.0-flash',
     'gemini-1.5-flash',
     'gemini-1.5-pro',
