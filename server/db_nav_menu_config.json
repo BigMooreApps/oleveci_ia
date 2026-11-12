@@ -24,7 +24,7 @@
     "id": "directory",
     "label": "Directorio",
     "subtitle": "Comercios y servicios locales",
-    "visible": false,
+    "visible": true,
     "order": 4
   },
   {
@@ -38,14 +38,14 @@
     "id": "oli",
     "label": "Asistente OLI",
     "subtitle": "Planes y recomendaciones con IA",
-    "visible": false,
+    "visible": true,
     "order": 6
   },
   {
     "id": "notifications",
     "label": "Notificaciones",
     "subtitle": "Alertas y novedades",
-    "visible": false,
+    "visible": true,
     "order": 7
   },
   {
