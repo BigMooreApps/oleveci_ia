@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const activeItem = isCreatingBusinessActive
     ? {
-        label: 'Crear nuevo negocio',
+        label: 'Registrarse como Veci',
         icon: BadgePlus,
         iconColor: 'text-emerald-600',
       }
@@ -612,10 +612,10 @@ export const Header: React.FC<HeaderProps> = ({
                             </div>
                             <div className="truncate">
                               <div className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                                Crear nuevo negocio
+                                Registrarse como Veci
                               </div>
                               <div className="text-[10px] text-slate-500 font-normal">
-                                Registrar comercio local
+                                Crea el espacio para tu negocio
                               </div>
                             </div>
                           </div>

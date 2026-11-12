@@ -25,7 +25,7 @@ const MENU_ICONS: Record<NavMenuItemId, React.ElementType> = {
   maps: MapPin,
   oli: Bot,
   notifications: Bell,
-  merchant: Store,
+  merchant: BadgePlus,
 };
 
 const MENU_COLOR_CLASSES: Record<NavMenuItemId, { bg: string; text: string; border: string }> = {
@@ -36,7 +36,7 @@ const MENU_COLOR_CLASSES: Record<NavMenuItemId, { bg: string; text: string; bord
   maps: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
   oli: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
   notifications: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
-  merchant: { bg: 'bg-orange-50', text: 'text-[#ff7700]', border: 'border-orange-200' },
+  merchant: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
 };
 
 export const AdminNavMenuTab: React.FC = () => {
@@ -213,8 +213,8 @@ export const AdminNavMenuTab: React.FC = () => {
                       <BadgePlus className="w-3.5 h-3.5" />
                     </div>
                     <div className="truncate">
-                      <div className="text-xs font-semibold text-slate-900">Crear nuevo negocio</div>
-                      <div className="text-[9px] text-slate-500">Registrar comercio local</div>
+                      <div className="text-xs font-semibold text-slate-900">Registrarse como Veci</div>
+                      <div className="text-[9px] text-slate-500">Crea el espacio para tu negocio</div>
                     </div>
                   </div>
 
