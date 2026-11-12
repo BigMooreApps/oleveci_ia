@@ -476,7 +476,11 @@ const MainApp: React.FC = () => {
               }}
               onCancel={() => {
                 setShowBusinessAuthScreen(false);
-                setCurrentRole('home');
+                if (authenticatedBusinessId) {
+                  setCurrentRole('business');
+                } else {
+                  setCurrentRole('home');
+                }
               }}
             />
           ) : (
@@ -510,7 +514,11 @@ const MainApp: React.FC = () => {
               }}
               onCancel={() => {
                 setShowBusinessAuthScreen(false);
-                setCurrentRole('home');
+                if (authenticatedBusinessId) {
+                  setCurrentRole('business');
+                } else {
+                  setCurrentRole('home');
+                }
               }}
             />
           )

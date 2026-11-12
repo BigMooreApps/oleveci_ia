@@ -845,6 +845,23 @@ export const BusinessDashboard: React.FC<BusinessDashboardProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
+            id="btn-business-header-new-business"
+            onClick={() => {
+              if (onOpenAuthScreen) {
+                onOpenAuthScreen('register');
+              } else {
+                window.dispatchEvent(new CustomEvent('oleveci:open-register'));
+              }
+            }}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-emerald-500/80 hover:bg-emerald-500 text-white transition border border-emerald-400/40 cursor-pointer text-xs font-bold shadow-xs active:scale-95"
+            title="Registrar o crear otro negocio local"
+            aria-label="Crear nuevo negocio"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Nuevo Negocio</span>
+          </button>
+          <button
+            type="button"
             id="btn-business-header-notifications"
             onClick={() => setShowNotificationsModal(true)}
             className="relative p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition border border-white/15 cursor-pointer flex items-center justify-center"

@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   MapPin,
+  Plus,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -561,52 +562,87 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* Opción comercial: "Registrarse como Veci" para usuarios o "Mi Espacio" si ya es comercio autenticado */}
                     {isNavVisible('merchant') && (
-                      <button
-                        id="tab-role-business"
-                        role="menuitem"
-                        type="button"
-                        onClick={() => {
-                          onCloseNotifications?.();
-                          if (authenticatedBusinessId) {
-                            setCurrentRole('business');
-                          } else {
-                            if (onOpenBusinessAuth) {
-                              onOpenBusinessAuth('register');
-                            } else {
+                      <>
+                        <button
+                          id="tab-role-business"
+                          role="menuitem"
+                          type="button"
+                          onClick={() => {
+                            onCloseNotifications?.();
+                            if (authenticatedBusinessId) {
                               setCurrentRole('business');
+                            } else {
+                              if (onOpenBusinessAuth) {
+                                onOpenBusinessAuth('register');
+                              } else {
+                                setCurrentRole('business');
+                              }
                             }
-                          }
-                          setIsMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
-                          currentRole === 'business'
-                            ? 'bg-orange-50/80 text-orange-800 font-bold'
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                              currentRole === 'business'
-                                ? 'bg-[#ff7700] text-white shadow-2xs'
-                                : 'bg-orange-50 text-[#ff7700] group-hover:bg-orange-100'
-                            }`}
+                            setIsMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group ${
+                            currentRole === 'business'
+                              ? 'bg-orange-50/80 text-orange-800 font-bold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                currentRole === 'business'
+                                  ? 'bg-[#ff7700] text-white shadow-2xs'
+                                  : 'bg-orange-50 text-[#ff7700] group-hover:bg-orange-100'
+                              }`}
+                            >
+                              <Store className="w-4 h-4" />
+                            </div>
+                            <div className="truncate">
+                              <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                                {authenticatedBusinessId ? 'Mi Espacio' : 'Registrarse como Veci'}
+                              </div>
+                              <div className="text-[10px] text-slate-500 font-normal">
+                                {authenticatedBusinessId ? 'Gestionar mi negocio' : 'Crea el espacio para tu negocio'}
+                              </div>
+                            </div>
+                          </div>
+                          {currentRole === 'business' && (
+                            <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
+                          )}
+                        </button>
+
+                        {/* Opción para registrar un nuevo negocio cuando ya se está autenticado */}
+                        {authenticatedBusinessId && (
+                          <button
+                            id="tab-role-create-new-business"
+                            role="menuitem"
+                            type="button"
+                            onClick={() => {
+                              onCloseNotifications?.();
+                              if (onOpenBusinessAuth) {
+                                onOpenBusinessAuth('register');
+                              } else {
+                                window.dispatchEvent(new CustomEvent('oleveci:open-register'));
+                              }
+                              setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition cursor-pointer group text-slate-700 hover:bg-emerald-50/70"
                           >
-                            <Store className="w-4 h-4" />
-                          </div>
-                          <div className="truncate">
-                            <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                              {authenticatedBusinessId ? 'Mi Espacio' : 'Registrarse como Veci'}
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 border border-emerald-200/60 shadow-2xs">
+                                <Plus className="w-4 h-4" />
+                              </div>
+                              <div className="truncate">
+                                <div className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                                  Crear nuevo negocio
+                                </div>
+                                <div className="text-[10px] text-slate-500 font-normal">
+                                  Registrar otro comercio local
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-[10px] text-slate-500 font-normal">
-                              {authenticatedBusinessId ? 'Gestionar mi negocio' : 'Crea el espacio para tu negocio'}
-                            </div>
-                          </div>
-                        </div>
-                        {currentRole === 'business' && (
-                          <Check className="w-4 h-4 text-[#ff7700] shrink-0 ml-2" />
+                          </button>
                         )}
-                      </button>
+                      </>
                     )}
 
                     {/* Opción 5: Admin (si está autenticado como admin) */}
