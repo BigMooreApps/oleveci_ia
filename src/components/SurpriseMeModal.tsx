@@ -172,21 +172,25 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
   const [openDropdown, setOpenDropdown] = useState<'plan' | 'city' | 'budget' | null>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
 
-  // Auto-ajustar el scroll de la vista cuando se despliega una lista
+  // Auto-ajustar el scroll de la vista cuando se despliega una lista (solo si desborda)
   useEffect(() => {
     if (openDropdown && modalBodyRef.current) {
       const timer = setTimeout(() => {
-        const el = document.querySelector(`[data-dropdown-name="${openDropdown}"]`);
+        const el = modalBodyRef.current?.querySelector(`[data-dropdown-name="${openDropdown}"]`);
         if (el && modalBodyRef.current) {
           const container = modalBodyRef.current;
           const containerRect = container.getBoundingClientRect();
           const elRect = el.getBoundingClientRect();
-          const spaceBelow = containerRect.bottom - elRect.bottom;
-          if (spaceBelow < 240) {
-            container.scrollBy({ top: 240 - spaceBelow + 20, behavior: 'smooth' });
+          const overflowBottom = elRect.bottom - containerRect.bottom;
+          if (overflowBottom > 0) {
+            // Solo desplazamos los píxeles necesarios para que sea visible, con un margen limpio de 12px
+            container.scrollBy({ top: overflowBottom + 12, behavior: 'smooth' });
+          } else if (elRect.top < containerRect.top) {
+            // Si el elemento quedó arriba por scroll previo, lo volvemos a poner a la vista
+            container.scrollBy({ top: elRect.top - containerRect.top - 8, behavior: 'smooth' });
           }
         }
-      }, 60);
+      }, 70);
       return () => clearTimeout(timer);
     }
   }, [openDropdown]);
@@ -421,9 +425,7 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
         {/* Scrollable Content Body with 3 Clean Dropdowns */}
         <div
           ref={modalBodyRef}
-          className={`p-3.5 sm:p-5 space-y-2.5 overflow-y-auto overscroll-contain transition-all duration-200 ${
-            openDropdown ? 'pb-48 sm:pb-56' : 'pb-4'
-          }`}
+          className="p-3.5 sm:p-5 pb-4 sm:pb-5 space-y-2.5 overflow-y-auto overscroll-contain"
         >
           {/* PASO 1: ¿Qué tipo de plan tienes en mente? */}
           <div data-dropdown-name="plan" className="space-y-1">
