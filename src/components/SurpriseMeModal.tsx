@@ -445,55 +445,57 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
               {/* Lista Desplegable Abierta Paso 1 */}
               {openDropdown === 'plan' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-1.5 max-h-60 overflow-y-auto overscroll-contain space-y-0.5 animate-in fade-in zoom-in-98 duration-150">
-                  {PLAN_EXPERIENCES.map((plan) => {
-                    const IconComponent = plan.icon;
-                    const isSelected = draftPlanType === plan.id;
-                    return (
-                      <button
-                        key={plan.id}
-                        type="button"
-                        onClick={() => {
-                          setDraftPlanType(plan.id);
-                          setOpenDropdown(null);
-                        }}
-                        className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
-                          isSelected
-                            ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
-                            : 'hover:bg-slate-50 border border-transparent text-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                              isSelected
-                                ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
-                                : 'bg-orange-50 text-[#ff7700]'
-                            }`}
-                          >
-                            <IconComponent className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="min-w-0">
-                            <span
-                              className={`text-xs block truncate ${
-                                isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
+                  <div className="max-h-60 overflow-y-auto overscroll-contain p-1.5 space-y-0.5 dropdown-menu-scroll">
+                    {PLAN_EXPERIENCES.map((plan) => {
+                      const IconComponent = plan.icon;
+                      const isSelected = draftPlanType === plan.id;
+                      return (
+                        <button
+                          key={plan.id}
+                          type="button"
+                          onClick={() => {
+                            setDraftPlanType(plan.id);
+                            setOpenDropdown(null);
+                          }}
+                          className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
+                            isSelected
+                              ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                              : 'hover:bg-slate-50 border border-transparent text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                                  : 'bg-orange-50 text-[#ff7700]'
                               }`}
                             >
-                              {plan.label}
-                            </span>
-                            <span className="text-[11px] text-slate-400 font-normal block truncate">
-                              {plan.subtitle}
-                            </span>
+                              <IconComponent className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <span
+                                className={`text-xs block truncate ${
+                                  isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                                }`}
+                              >
+                                {plan.label}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-normal block truncate">
+                                {plan.subtitle}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                            <Check className="w-2.5 h-2.5 stroke-[3]" />
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                          {isSelected && (
+                            <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -544,95 +546,97 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
               {/* Lista Desplegable Abierta Paso 2 */}
               {openDropdown === 'city' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-1.5 max-h-60 overflow-y-auto overscroll-contain space-y-0.5 animate-in fade-in zoom-in-98 duration-150">
-                  {/* Opción 1: Todos los municipios */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDraftCity('all');
-                      setOpenDropdown(null);
-                    }}
-                    className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
-                      draftCity === 'all'
-                        ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
-                        : 'hover:bg-slate-50 border border-transparent text-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          draftCity === 'all'
-                            ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
-                            : 'bg-orange-50 text-[#ff7700]'
-                        }`}
-                      >
-                        <Globe className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="min-w-0">
-                        <span
-                          className={`text-xs block truncate ${
-                            draftCity === 'all' ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
+                  <div className="max-h-60 overflow-y-auto overscroll-contain p-1.5 space-y-0.5 dropdown-menu-scroll">
+                    {/* Opción 1: Todos los municipios */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDraftCity('all');
+                        setOpenDropdown(null);
+                      }}
+                      className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
+                        draftCity === 'all'
+                          ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                          : 'hover:bg-slate-50 border border-transparent text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            draftCity === 'all'
+                              ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                              : 'bg-orange-50 text-[#ff7700]'
                           }`}
                         >
-                          Todos los municipios
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-normal block truncate">
-                          Toda la cobertura en Sabana Centro
-                        </span>
-                      </div>
-                    </div>
-                    {draftCity === 'all' && (
-                      <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      </span>
-                    )}
-                  </button>
-
-                  <div className="my-1 border-t border-slate-100" />
-
-                  {/* Municipios ordenados alfabéticamente */}
-                  {cities.map((city) => {
-                    const isSelected = draftCity.toLowerCase() === city.toLowerCase();
-                    return (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => {
-                          setDraftCity(city);
-                          setOpenDropdown(null);
-                        }}
-                        className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
-                          isSelected
-                            ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
-                            : 'hover:bg-slate-50 border border-transparent text-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                              isSelected
-                                ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
-                                : 'bg-orange-50 text-[#ff7700]'
-                            }`}
-                          >
-                            <MapPin className="w-3.5 h-3.5" />
-                          </div>
+                          <Globe className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="min-w-0">
                           <span
-                            className={`text-xs truncate ${
-                              isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                            className={`text-xs block truncate ${
+                              draftCity === 'all' ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
                             }`}
                           >
-                            {city}
+                            Todos los municipios
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-normal block truncate">
+                            Toda la cobertura en Sabana Centro
                           </span>
                         </div>
-                        {isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                            <Check className="w-2.5 h-2.5 stroke-[3]" />
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                      </div>
+                      {draftCity === 'all' && (
+                        <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        </span>
+                      )}
+                    </button>
+
+                    <div className="my-1 border-t border-slate-100" />
+
+                    {/* Municipios ordenados alfabéticamente */}
+                    {cities.map((city) => {
+                      const isSelected = draftCity.toLowerCase() === city.toLowerCase();
+                      return (
+                        <button
+                          key={city}
+                          type="button"
+                          onClick={() => {
+                            setDraftCity(city);
+                            setOpenDropdown(null);
+                          }}
+                          className={`w-full p-2.5 rounded-xl text-left transition-all duration-150 flex items-center justify-between gap-2.5 cursor-pointer select-none ${
+                            isSelected
+                              ? 'bg-orange-50/80 border border-[#ff7700]/30 shadow-2xs'
+                              : 'hover:bg-slate-50 border border-transparent text-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? 'bg-gradient-to-tr from-amber-500 to-[#ff7700] text-white shadow-2xs'
+                                  : 'bg-orange-50 text-[#ff7700]'
+                              }`}
+                            >
+                              <MapPin className="w-3.5 h-3.5" />
+                            </div>
+                            <span
+                              className={`text-xs truncate ${
+                                isSelected ? 'font-semibold text-[#ff7700]' : 'font-medium text-slate-700'
+                              }`}
+                            >
+                              {city}
+                            </span>
+                          </div>
+                          {isSelected && (
+                            <span className="w-4 h-4 rounded-full bg-[#ff7700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                              <Check className="w-2.5 h-2.5 stroke-[3]" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -679,7 +683,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
 
               {/* Lista Desplegable Abierta Paso 3 */}
               {openDropdown === 'budget' && (
-                <div className="mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 max-h-64 overflow-y-auto overscroll-contain space-y-2 animate-in fade-in zoom-in-98 duration-150">
+                <div className="mt-2 bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden animate-in fade-in zoom-in-98 duration-150">
+                  <div className="max-h-64 overflow-y-auto overscroll-contain p-2 space-y-2 dropdown-menu-scroll">
                   {/* Opciones rápidas */}
                   <div className="space-y-0.5">
                     {BUDGET_OPTIONS.map((b) => {
@@ -790,7 +795,8 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
             </div>
           </div>
         </div>

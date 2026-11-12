@@ -113,6 +113,26 @@
   background: #94a3b8;
 }
 
+/* Dropdown Menus Smooth Integrated Scrollbar */
+.dropdown-menu-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.dropdown-menu-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.dropdown-menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 2px;
+}
+.dropdown-menu-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dropdown-menu-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* Eliminate scrollbars, corner grips, and overscroll bounce in Reel Feed */
 .reel-container-9-16,
 .reel-container-9-16 * {
