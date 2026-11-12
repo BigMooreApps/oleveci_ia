@@ -14,6 +14,7 @@ import {
   Check,
   CheckCircle2,
   UserCog,
+  BadgePlus,
 } from 'lucide-react';
 
 const MENU_ICONS: Record<NavMenuItemId, React.ElementType> = {
@@ -29,12 +30,12 @@ const MENU_ICONS: Record<NavMenuItemId, React.ElementType> = {
 
 const MENU_COLOR_CLASSES: Record<NavMenuItemId, { bg: string; text: string; border: string }> = {
   home: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
-  explorer: { bg: 'bg-sky-50', text: 'text-sky-600', border: 'border-sky-200' },
-  plans: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200' },
-  directory: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
-  maps: { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-200' },
-  oli: { bg: 'bg-amber-50', text: 'text-[#ff7700]', border: 'border-amber-200' },
-  notifications: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
+  explorer: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
+  plans: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
+  directory: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
+  maps: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
+  oli: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
+  notifications: { bg: 'bg-blue-50', text: 'text-[#007af7]', border: 'border-blue-200' },
   merchant: { bg: 'bg-orange-50', text: 'text-[#ff7700]', border: 'border-orange-200' },
 };
 
@@ -201,20 +202,32 @@ export const AdminNavMenuTab: React.FC = () => {
                 </div>
               )}
 
-              {/* Footer Section */}
+              {/* Footer Section: Comercial & Admin */}
               <div className="my-1 border-t border-slate-100" />
 
-              {/* Registrarse como Veci if visible */}
+              {/* Crear nuevo negocio & Mi Espacio if merchant visible */}
               {navMenuItems.find((i) => i.id === 'merchant')?.visible && (
-                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-orange-50 text-[#ff7700]">
-                    <Store className="w-3.5 h-3.5" />
+                <>
+                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200/60 shadow-2xs">
+                      <BadgePlus className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="truncate">
+                      <div className="text-xs font-semibold text-slate-900">Crear nuevo negocio</div>
+                      <div className="text-[9px] text-slate-500">Registrar comercio local</div>
+                    </div>
                   </div>
-                  <div className="truncate">
-                    <div className="text-xs font-semibold text-slate-900">Registrarse como Veci</div>
-                    <div className="text-[9px] text-slate-500">Crea el espacio para tu negocio</div>
+
+                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-orange-50 text-[#ff7700]">
+                      <Store className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="truncate">
+                      <div className="text-xs font-semibold text-slate-900">Mi Espacio</div>
+                      <div className="text-[9px] text-slate-500">Gestionar mi negocio</div>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Panel Admin (visible solo para administradores autenticados) */}
@@ -224,7 +237,7 @@ export const AdminNavMenuTab: React.FC = () => {
                 </div>
                 <div className="truncate">
                   <div className="text-xs font-semibold text-slate-900">Panel Admin</div>
-                  <div className="text-[9px] text-indigo-600 font-medium">Visible solo con inicio de sesión</div>
+                  <div className="text-[9px] text-indigo-600 font-medium">Configuración y control</div>
                 </div>
               </div>
             </div>
