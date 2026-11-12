@@ -772,32 +772,18 @@ export const BusinessAuthScreen: React.FC<BusinessAuthScreenProps> = ({
             {/* Top brand line indicator */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#041f5e] via-[#007af7] to-[#00d8a5]" />
 
-            <div className="border-b border-slate-100 pb-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-[#041f5e] flex items-center justify-center shrink-0 shadow-2xs">
-                  <Store className="w-5 h-5 text-[#0056d6]" />
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight truncate">
-                    Acceso a la Plataforma
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5 truncate">
-                    Ingresa con tus credenciales de Administrador o Comercio.
-                  </p>
-                </div>
+            <div className="border-b border-slate-100 pb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-[#041f5e] flex items-center justify-center shrink-0 shadow-2xs">
+                <Store className="w-5 h-5 text-[#0056d6]" />
               </div>
-
-              {onCancel && (
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0"
-                  title="Volver a la página principal"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Volver</span>
-                </button>
-              )}
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                  Acceso a la Plataforma
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Ingresa con tus credenciales de Administrador o Comercio.
+                </p>
+              </div>
             </div>
 
             {/* FORMULARIO DE ACCESO (USUARIO Y CONTRASEÑA) */}
@@ -971,28 +957,14 @@ export const BusinessAuthScreen: React.FC<BusinessAuthScreenProps> = ({
                 {/* Top brand line indicator */}
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#041f5e] via-[#007af7] to-[#00d8a5]" />
 
-                <div className="border-b border-slate-100 pb-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2 truncate">
-                      <Store className="w-5 h-5 text-[#007af7] shrink-0" />
-                      <span>Registrarse como Veci</span>
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">
-                      Elige el plan para activar tu Espacio y conectar con clientes locales.
-                    </p>
-                  </div>
-
-                  {onCancel && (
-                    <button
-                      type="button"
-                      onClick={onCancel}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0"
-                      title="Volver a la página principal"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Volver</span>
-                    </button>
-                  )}
+                <div className="border-b border-slate-100 pb-3">
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <Store className="w-5 h-5 text-[#007af7] shrink-0" />
+                    <span>Registrarse como Veci</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Elige el plan para activar tu Espacio y conectar con clientes locales.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
