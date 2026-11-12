@@ -204,27 +204,27 @@ export const AdminNavMenuTab: React.FC = () => {
               {/* Footer Section */}
               <div className="my-1 border-t border-slate-100" />
 
-              {/* Mi Espacio if visible */}
+              {/* Registrarse como Veci if visible */}
               {navMenuItems.find((i) => i.id === 'merchant')?.visible && (
                 <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-orange-50 text-[#ff7700]">
                     <Store className="w-3.5 h-3.5" />
                   </div>
                   <div className="truncate">
-                    <div className="text-xs font-semibold text-slate-900">Mi Espacio</div>
-                    <div className="text-[9px] text-slate-500">Acceso comercial</div>
+                    <div className="text-xs font-semibold text-slate-900">Registrarse como Veci</div>
+                    <div className="text-[9px] text-slate-500">Crea el espacio para tu negocio</div>
                   </div>
                 </div>
               )}
 
-              {/* Panel Admin (always visible) */}
+              {/* Panel Admin (visible solo para administradores autenticados) */}
               <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 bg-indigo-50/40">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-indigo-50 text-indigo-600">
                   <UserCog className="w-3.5 h-3.5" />
                 </div>
                 <div className="truncate">
                   <div className="text-xs font-semibold text-slate-900">Panel Admin</div>
-                  <div className="text-[9px] text-slate-500">Configuración y control</div>
+                  <div className="text-[9px] text-indigo-600 font-medium">Visible solo con inicio de sesión</div>
                 </div>
               </div>
             </div>

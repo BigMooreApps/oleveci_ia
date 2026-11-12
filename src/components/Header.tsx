@@ -108,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
       iconColor: 'text-[#007af7]',
     },
     business: {
-      label: 'Mi Espacio',
+      label: authenticatedBusinessId ? 'Mi Espacio' : 'Registrarse como Veci',
       icon: Store,
       iconColor: 'text-[#ff7700]',
     },
@@ -140,6 +140,39 @@ export const Header: React.FC<HeaderProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setIsMenuOpen(false);
   };
+
+  // Detección de 3 clics rápidos en el logo para abrir login de negocio / admin
+  const logoClicksRef = useRef<{ count: number; lastTime: number }>({ count: 0, lastTime: 0 });
+
+  const handleLogoClick = () => {
+    const now = Date.now();
+    // Si pasaron más de 900ms desde el último clic, reiniciar el contador a 1
+    if (now - logoClicksRef.current.lastTime > 900) {
+      logoClicksRef.current = { count: 1, lastTime: now };
+      handleSelectRole(getFirstVisibleRole());
+      return;
+    }
+
+    logoClicksRef.current.count += 1;
+    logoClicksRef.current.lastTime = now;
+
+    if (logoClicksRef.current.count >= 3) {
+      logoClicksRef.current = { count: 0, lastTime: 0 };
+      try {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(40);
+        }
+      } catch {}
+      // Abre pantalla de acceso para dueños de negocio o admin
+      if (onOpenBusinessAuth) {
+        onOpenBusinessAuth('login');
+      }
+      return;
+    }
+
+    handleSelectRole(getFirstVisibleRole());
+  };
+
   const activeItem = roleConfig[currentRole] || roleConfig.home;
   const ActiveIcon = activeItem.icon;
 
@@ -151,10 +184,8 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Authentic OleVeci Brand Logo (always visible on top left) */}
           <div className="flex items-center shrink-0">
             <button
-              onClick={() => {
-                handleSelectRole(getFirstVisibleRole());
-              }}
-              className="flex items-center text-left focus:outline-hidden group cursor-pointer"
+              onClick={handleLogoClick}
+              className="flex items-center text-left focus:outline-hidden group cursor-pointer touch-manipulation"
               title="OleVeci - Ir a Home"
               aria-label="OleVeci Inicio"
             >
@@ -523,10 +554,12 @@ export const Header: React.FC<HeaderProps> = ({
                       </button>
                     )}
 
-                    {/* Separador hacia el área de gestión y administración */}
-                    <div className="my-1 border-t border-slate-100" />
+                    {/* Separador hacia el área de registro o gestión comercial */}
+                    {(isNavVisible('merchant') || isAdminAuthenticated) && (
+                      <div className="my-1 border-t border-slate-100" />
+                    )}
 
-                    {/* Opción 4: Mi Espacio */}
+                    {/* Opción comercial: "Registrarse como Veci" para usuarios o "Mi Espacio" si ya es comercio autenticado */}
                     {isNavVisible('merchant') && (
                       <button
                         id="tab-role-business"
@@ -534,10 +567,14 @@ export const Header: React.FC<HeaderProps> = ({
                         type="button"
                         onClick={() => {
                           onCloseNotifications?.();
-                          if (onOpenBusinessAuth && !authenticatedBusinessId) {
-                            onOpenBusinessAuth('login');
-                          } else {
+                          if (authenticatedBusinessId) {
                             setCurrentRole('business');
+                          } else {
+                            if (onOpenBusinessAuth) {
+                              onOpenBusinessAuth('register');
+                            } else {
+                              setCurrentRole('business');
+                            }
                           }
                           setIsMenuOpen(false);
                         }}
@@ -559,10 +596,10 @@ export const Header: React.FC<HeaderProps> = ({
                           </div>
                           <div className="truncate">
                             <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                              Mi Espacio
+                              {authenticatedBusinessId ? 'Mi Espacio' : 'Registrarse como Veci'}
                             </div>
                             <div className="text-[10px] text-slate-500 font-normal">
-                              {authenticatedBusinessId ? 'Gestionar negocio' : 'Acceso comercial'}
+                              {authenticatedBusinessId ? 'Gestionar mi negocio' : 'Crea el espacio para tu negocio'}
                             </div>
                           </div>
                         </div>

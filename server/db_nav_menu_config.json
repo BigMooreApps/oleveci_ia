@@ -10,7 +10,7 @@
     "id": "explorer",
     "label": "Descubrir",
     "subtitle": "Explorar publicaciones",
-    "visible": false,
+    "visible": true,
     "order": 2
   },
   {
@@ -50,8 +50,8 @@
   },
   {
     "id": "merchant",
-    "label": "Mi Espacio",
-    "subtitle": "Acceso comercial",
+    "label": "Registrarse como Veci",
+    "subtitle": "Crea el espacio para tu negocio",
     "visible": true,
     "order": 8
   }

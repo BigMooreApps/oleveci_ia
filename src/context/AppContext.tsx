@@ -256,7 +256,7 @@ export const DEFAULT_NAV_MENU_ITEMS: NavMenuItemConfig[] = [
   { id: 'maps', label: 'Vecis en Maps', subtitle: 'Todos los negocios en el mapa', visible: true, order: 5 },
   { id: 'oli', label: 'Asistente OLI', subtitle: 'Planes y recomendaciones con IA', visible: true, order: 6 },
   { id: 'notifications', label: 'Notificaciones', subtitle: 'Alertas y novedades', visible: true, order: 7 },
-  { id: 'merchant', label: 'Mi Espacio', subtitle: 'Acceso comercial', visible: true, order: 8 },
+  { id: 'merchant', label: 'Registrarse como Veci', subtitle: 'Crea el espacio para tu negocio', visible: true, order: 8 },
 ];
 
 export const DEFAULT_SUPERADMIN_PROFILE: SuperAdminProfile = {
